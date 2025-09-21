@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Editor from '@/components/Editor'
 import MarkdownPreview from '@/components/MarkdownPreview'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils'
 import { useHotkeys } from 'react-hotkeys-hook'
 import * as monaco from 'monaco-editor'
 import { Eye, EyeOff } from 'lucide-react'
+import { IS_TAURI } from '@/lib/constants'
 
 export function App() {
+  const previewButtonRef = useRef<HTMLButtonElement>(null)
   const [showPreview, setShowPreview] = useState(true)
   const [markdownContent, setMarkdownContent] =
     useState(`# Welcome to allein.app
@@ -36,16 +38,32 @@ Try editing this text!`)
     ) {
       event.preventDefault()
     }
+
+    if (event.keyCode === monaco.KeyCode.Escape) {
+      previewButtonRef.current?.focus()
+    }
   }
 
   return (
     <div className="h-screen flex flex-col">
-      <header className="px-4 py-3 flex justify-end border-b border-gray-200">
+      <header className="relative px-4 py-3 flex justify-end border-b border-gray-200">
+        {IS_TAURI() && (
+          <div
+            className="absolute left-0 top-0 size-full z-10"
+            data-tauri-drag-region
+          />
+        )}
+
         <Button
           variant="outline"
           size="icon"
-          onClick={() => setShowPreview(!showPreview)}
+          onClick={() => {
+            setShowPreview(!showPreview)
+            previewButtonRef.current?.focus()
+          }}
           aria-label={showPreview ? 'Hide preview' : 'Show preview'}
+          className="relative z-20"
+          ref={previewButtonRef}
         >
           {showPreview ? (
             <EyeOff className="w-4 h-4" />

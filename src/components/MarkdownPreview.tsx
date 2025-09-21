@@ -13,7 +13,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
   placeholder,
 }) => {
   return (
-    <div className="flex flex-col bg-white h-full">
+    <div className="flex flex-col bg-transparent h-full">
       <div className="flex-1 p-6 overflow-auto">
         <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-gray-800 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-blockquote:border-l-gray-300 prose-blockquote:text-gray-600 [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_li_ul]:ml-4 [&_li_ol]:ml-4">
           <ReactMarkdown

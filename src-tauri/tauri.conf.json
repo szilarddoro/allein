@@ -10,10 +10,18 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [],
-    "security": {
-      "csp": null
-    }
+    "windows": [
+      {
+        "title": "Allein",
+        "backgroundColor": "#ff0000",
+        "width": 1200,
+        "height": 800,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay",
+        "acceptFirstMouse": true
+      }
+    ],
+    "security": { "csp": null }
   },
   "bundle": {
     "active": true,

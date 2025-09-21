@@ -27,8 +27,6 @@ const Editor: React.FC<EditorProps> = ({
   ) => {
     editorRef.current = editor
 
-    console.log(editor.getAction('editor.action.triggerSuggest'))
-
     // Add keydown event listener
     editor.onKeyDown((event: monaco.IKeyboardEvent) => {
       onKeyDown?.(event)
@@ -36,7 +34,7 @@ const Editor: React.FC<EditorProps> = ({
   }
 
   return (
-    <div className="flex flex-col bg-white h-full">
+    <div className="flex flex-col bg-gray-50 p-4 h-full">
       <div className="flex-1">
         <MonacoEditor
           theme="monaco-editor"
@@ -45,6 +43,7 @@ const Editor: React.FC<EditorProps> = ({
           value={initialValue}
           onChange={handleEditorChange}
           onMount={handleEditorDidMount}
+          className="rounded-lg border-2 border-gray-100 overflow-hidden"
           options={{
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
@@ -65,6 +64,7 @@ const Editor: React.FC<EditorProps> = ({
               verticalScrollbarSize: 8,
               horizontalScrollbarSize: 8,
             },
+            smoothScrolling: true,
             tabCompletion: 'off',
             codeLens: false,
             contextmenu: false,
@@ -105,7 +105,7 @@ const Editor: React.FC<EditorProps> = ({
               'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
             fontSize: 14,
             lineHeight: 1.6,
-            padding: { top: 24, bottom: 24 },
+            padding: { top: 12, bottom: 12 },
             placeholder: placeholder,
             automaticLayout: true,
           }}

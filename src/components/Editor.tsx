@@ -51,6 +51,7 @@ const Editor: React.FC<EditorProps> = ({
             lineNumbers: 'off',
             glyphMargin: false,
             folding: false,
+            renderWhitespace: 'none',
             guides: { indentation: false },
             occurrencesHighlight: 'off',
             foldingHighlight: false,

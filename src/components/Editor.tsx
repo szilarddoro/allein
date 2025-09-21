@@ -1,6 +1,7 @@
 import React, { useRef } from 'react'
 import MonacoEditor, { Monaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
+import { Card } from '@/components/ui/card'
 
 interface EditorProps {
   initialValue?: string
@@ -34,7 +35,7 @@ const Editor: React.FC<EditorProps> = ({
   }
 
   return (
-    <div className="flex flex-col bg-gray-50 p-4 h-full">
+    <Card className="flex flex-col h-full p-0 overflow-hidden">
       <div className="flex-1">
         <MonacoEditor
           theme="monaco-editor"
@@ -43,7 +44,6 @@ const Editor: React.FC<EditorProps> = ({
           value={initialValue}
           onChange={handleEditorChange}
           onMount={handleEditorDidMount}
-          className="rounded-lg border-2 border-gray-100 overflow-hidden"
           options={{
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
@@ -59,9 +59,10 @@ const Editor: React.FC<EditorProps> = ({
             hideCursorInOverviewRuler: true,
             overviewRulerBorder: false,
             scrollbar: {
+              useShadows: false,
               vertical: 'auto',
               horizontal: 'auto',
-              verticalScrollbarSize: 8,
+              verticalScrollbarSize: 4,
               horizontalScrollbarSize: 8,
             },
             smoothScrolling: true,
@@ -105,13 +106,13 @@ const Editor: React.FC<EditorProps> = ({
               'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
             fontSize: 14,
             lineHeight: 1.6,
-            padding: { top: 12, bottom: 12 },
+            padding: { top: 12, bottom: 32 },
             placeholder: placeholder,
             automaticLayout: true,
           }}
         />
       </div>
-    </div>
+    </Card>
   )
 }
 

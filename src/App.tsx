@@ -45,8 +45,8 @@ Try editing this text!`)
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      <header className="relative px-4 py-3 flex justify-end border-b border-gray-200">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-rose-50 to-blue-50">
+      <header className="relative px-4 py-3 flex justify-end">
         {IS_TAURI() && (
           <div
             className="absolute left-0 top-0 size-full z-10"
@@ -73,12 +73,7 @@ Try editing this text!`)
         </Button>
       </header>
       <div className="flex-1 flex overflow-hidden">
-        <div
-          className={cn(
-            'w-full border-r border-gray-200',
-            showPreview && 'w-1/2',
-          )}
-        >
+        <div className={cn('w-full px-6 pb-4', showPreview && 'w-1/2')}>
           <Editor
             initialValue={markdownContent}
             onChange={handleEditorChange}

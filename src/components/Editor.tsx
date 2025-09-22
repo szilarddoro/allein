@@ -38,6 +38,7 @@ const Editor: React.FC<EditorProps> = ({
     <Card className="flex flex-col h-full p-0 overflow-hidden">
       <div className="flex-1">
         <MonacoEditor
+          className="pl-2"
           theme="monaco-editor"
           height="100%"
           defaultLanguage="markdown"
@@ -45,6 +46,7 @@ const Editor: React.FC<EditorProps> = ({
           onChange={handleEditorChange}
           onMount={handleEditorDidMount}
           options={{
+            useShadowDOM: true,
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
             wordWrap: 'on',

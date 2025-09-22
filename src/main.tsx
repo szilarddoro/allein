@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router'
 import { AppLayout } from '@/components/AppLayout'
 import { EditorPage } from '@/pages/EditorPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { QueryProvider } from '@/lib/queryClient'
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <QueryProvider>
+      <RouterProvider router={router} />
+    </QueryProvider>
   </React.StrictMode>,
 )

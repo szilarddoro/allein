@@ -56,7 +56,7 @@ export function AppLayout() {
         </Button>
       </header>
 
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-auto overflow-auto">
         <Outlet context={{ showPreview, setShowPreview, previewButtonRef }} />
       </main>
     </div>

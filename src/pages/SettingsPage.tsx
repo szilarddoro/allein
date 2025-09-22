@@ -5,103 +5,204 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { H1, H2, H3, P } from '@/components/ui/typography'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  RefreshCw,
+} from 'lucide-react'
 import { Link } from 'react-router'
+import { useOllamaModels, useOllamaConnection } from '@/hooks/useOllamaModels'
+import { useDebounceValue } from 'usehooks-ts'
+import { getAppVersion, getAppName } from '@/lib/version'
 
 export function SettingsPage() {
+  const [ollamaUrl, setOllamaUrl] = useDebounceValue(
+    'http://localhost:11434',
+    500,
+  )
+
+  const {
+    data: models,
+    isLoading: modelsLoading,
+    error: modelsError,
+    refetch: refetchModels,
+  } = useOllamaModels(ollamaUrl)
+  const {
+    data: isConnected,
+    isLoading: connectionLoading,
+    refetch: testConnection,
+  } = useOllamaConnection(ollamaUrl)
+
   return (
-    <div className="h-full p-6">
+    <div className="overflow-auto p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" asChild>
-            <Link to="/">
-              <span className="sr-only">Back to editor</span>
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-          </Button>
+        <div className="flex flex-col items-start gap-4">
+          <Link
+            to="/"
+            className="flex items-center gap-2 hover:underline focus:ring-[3px] focus:ring-ring/50 focus:outline-none rounded-sm px-0.5"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to editor
+          </Link>
 
           <div>
-            <h1 className="text-3xl font-bold">Settings</h1>
-            <p className="text-muted-foreground">
-              Configure your allein.app preferences
-            </p>
+            <H1 className="mb-0">Settings</H1>
+            <P className="!mt-0 text-muted-foreground">
+              Configure your app preferences
+            </P>
           </div>
         </div>
 
-        {/* Settings Sections */}
-        <div className="grid gap-6">
-          {/* Editor Settings */}
+        <section>
           <Card>
-            <CardHeader>
-              <CardTitle>Editor</CardTitle>
+            <CardHeader className="gap-0">
+              <CardTitle>
+                <H2 className="text-xl">AI Assistant</H2>
+              </CardTitle>
               <CardDescription>
-                Customize your writing experience
+                <P className="!mt-0 text-muted-foreground">
+                  Configure AI features and Ollama integration
+                </P>
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                Editor settings will be available in a future update.
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Appearance Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Appearance</CardTitle>
-              <CardDescription>
-                Customize the look and feel of the application
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                Theme and appearance settings will be available in a future
-                update.
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* AI Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Assistant</CardTitle>
-              <CardDescription>
-                Configure AI features and Ollama integration
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                AI settings will be available when Ollama integration is
-                implemented.
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* About */}
-          <Card>
-            <CardHeader>
-              <CardTitle>About</CardTitle>
-              <CardDescription>Information about allein.app</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="text-sm">
-                  <strong>Version:</strong> 0.1.0
+            <CardContent className="space-y-6">
+              {/* Ollama Server Configuration */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <H3 className="text-lg">Ollama Server</H3>
+                  <div className="flex items-center gap-2">
+                    {connectionLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : isConnected ? (
+                      <div className="flex items-center gap-1 text-green-600">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm">Connected</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 text-red-600">
+                        <XCircle className="w-4 h-4" />
+                        <span className="text-sm">Disconnected</span>
+                      </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => testConnection()}
+                      disabled={connectionLoading}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="text-sm">
-                  <strong>Description:</strong> A modern markdown editor with
-                  live preview
-                </div>
-                <div className="text-sm">
-                  <strong>Built with:</strong> Tauri, React, TypeScript,
-                  Tailwind CSS
+
+                <div className="space-y-2">
+                  <Label htmlFor="ollama-url">Server URL</Label>
+                  <Input
+                    id="ollama-url"
+                    defaultValue={ollamaUrl}
+                    onChange={(e) => setOllamaUrl(e.target.value)}
+                    placeholder="http://localhost:11434"
+                  />
                 </div>
               </div>
+
+              {/* Available Models */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <H3 className="text-lg">Available Models</H3>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => refetchModels()}
+                    disabled={modelsLoading}
+                  >
+                    {modelsLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+
+                {modelsLoading ? (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Loading models...</span>
+                  </div>
+                ) : modelsError ? (
+                  <div className="flex items-center gap-2 text-red-600">
+                    <XCircle className="w-4 h-4" />
+                    <span>
+                      Failed to load models. Make sure Ollama is running.
+                    </span>
+                  </div>
+                ) : models && models.length > 0 ? (
+                  <div className="space-y-2">
+                    {models.map((model) => (
+                      <div
+                        key={model.name}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div>
+                          <div className="font-medium">{model.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            Size: {(model.size / 1024 / 1024 / 1024).toFixed(2)}{' '}
+                            GB
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Select
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <P>No models found. Pull a model first using:</P>
+                    <code className="block mt-2 p-2 bg-muted rounded text-sm">
+                      ollama pull gemma2:2b
+                    </code>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
-        </div>
+        </section>
+
+        <section>
+          <Card>
+            <CardHeader className="gap-0">
+              <CardTitle>
+                <H2 className="text-xl">About</H2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="font-medium">Name</span>
+                    <span className="text-muted-foreground">
+                      {getAppName()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="font-medium">Version</span>
+                    <span className="text-muted-foreground">
+                      {getAppVersion()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </div>
   )

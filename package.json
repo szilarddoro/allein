@@ -29,7 +29,8 @@
     "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
     "slate-md-serializer": "^5.5.4",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "usehooks-ts": "^3.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

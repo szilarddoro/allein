@@ -1,17 +1,22 @@
-import { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useOutletContext } from 'react-router'
-import Editor from '@/components/Editor'
+import { Editor } from '@/components/Editor'
 import MarkdownPreview from '@/components/MarkdownPreview'
 import { cn } from '@/lib/utils'
 import { useHotkeys } from 'react-hotkeys-hook'
 import * as monaco from 'monaco-editor'
+import { useOnClickOutside } from 'usehooks-ts'
 
 interface OutletContext {
   showPreview: boolean
+  setShowPreview: (showPreview: boolean) => void
+  previewButtonRef: React.RefObject<HTMLButtonElement>
 }
 
 export function EditorPage() {
-  const { showPreview } = useOutletContext<OutletContext>()
+  const editorRef = useRef<HTMLDivElement>(null)
+  const { showPreview, setShowPreview, previewButtonRef } =
+    useOutletContext<OutletContext>()
   const [markdownContent, setMarkdownContent] =
     useState(`# Welcome to allein.app
 
@@ -30,8 +35,7 @@ Try editing this text!`)
   useHotkeys(
     ['ctrl+i', 'meta+i'],
     () => {
-      // TODO: Toggle preview from parent context
-      // This will be handled by the AppLayout component
+      setShowPreview(!showPreview)
     },
     {
       preventDefault: true,
@@ -49,11 +53,24 @@ Try editing this text!`)
     ) {
       event.preventDefault()
     }
+
+    if (event.keyCode === monaco.KeyCode.Escape) {
+      previewButtonRef.current?.focus()
+    }
   }
+
+  useOnClickOutside(editorRef as React.RefObject<HTMLElement>, () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+  })
 
   return (
     <div className="h-full flex overflow-hidden">
-      <div className={cn('w-full pl-4 pr-2 pb-4', showPreview && 'w-1/2')}>
+      <div
+        ref={editorRef}
+        className={cn('w-full pl-4 pr-2 pb-4', showPreview && 'w-1/2')}
+      >
         <Editor
           initialValue={markdownContent}
           onChange={handleEditorChange}

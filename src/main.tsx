@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import { AppLayout } from '@/components/AppLayout'
 import { EditorPage } from '@/pages/EditorPage'
+import { SettingsPage } from '@/pages/SettingsPage'
 
 const router = createBrowserRouter([
   {
@@ -13,6 +14,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <EditorPage />,
+      },
+      {
+        path: 'settings',
+        element: <SettingsPage />,
       },
     ],
   },

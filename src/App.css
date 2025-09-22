@@ -116,6 +116,6 @@
   }
   html,
   body {
-    @apply bg-transparent text-foreground;
+    @apply overflow-hidden bg-transparent text-foreground;
   }
 }

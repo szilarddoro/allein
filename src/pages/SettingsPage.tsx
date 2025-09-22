@@ -20,8 +20,11 @@ import { Link } from 'react-router'
 import { useOllamaModels, useOllamaConnection } from '@/hooks/useOllamaModels'
 import { useDebounceValue } from 'usehooks-ts'
 import { getAppVersion, getAppName } from '@/lib/version'
+import { useDatabase } from '@/hooks/useDatabase'
+import { Separator } from '@/components/ui/separator'
 
 export function SettingsPage() {
+  const { data: database } = useDatabase()
   const [ollamaUrl, setOllamaUrl] = useDebounceValue(
     'http://localhost:11434',
     500,
@@ -49,15 +52,10 @@ export function SettingsPage() {
             className="flex items-center gap-2 hover:underline focus:ring-[3px] focus:ring-ring/50 focus:outline-none rounded-sm px-0.5"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to editor
+            Back to the editor
           </Link>
 
-          <div>
-            <H1 className="mb-0">Settings</H1>
-            <P className="!mt-0 text-muted-foreground">
-              Configure your app preferences
-            </P>
-          </div>
+          <H1 className="mb-0">Settings</H1>
         </div>
 
         <section>
@@ -67,13 +65,12 @@ export function SettingsPage() {
                 <H2 className="text-xl">AI Assistant</H2>
               </CardTitle>
               <CardDescription>
-                <P className="!mt-0 text-muted-foreground">
+                <P className="!mt-0.5 text-muted-foreground text-sm">
                   Configure AI features and Ollama integration
                 </P>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Ollama Server Configuration */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <H3 className="text-lg">Ollama Server</H3>
@@ -113,7 +110,6 @@ export function SettingsPage() {
                 </div>
               </div>
 
-              {/* Available Models */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <H3 className="text-lg">Available Models</H3>
@@ -183,22 +179,21 @@ export function SettingsPage() {
                 <H2 className="text-xl">About</H2>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="font-medium">Name</span>
-                    <span className="text-muted-foreground">
-                      {getAppName()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="font-medium">Version</span>
-                    <span className="text-muted-foreground">
-                      {getAppVersion()}
-                    </span>
-                  </div>
-                </div>
+            <CardContent className="flex flex-col gap-2">
+              <div className="flex justify-between items-center gap-4">
+                <span className="font-medium text-sm">Name</span>
+                <span className="text-muted-foreground text-sm">
+                  {getAppName()}
+                </span>
+              </div>
+
+              <Separator />
+
+              <div className="flex justify-between items-center gap-4">
+                <span className="font-medium text-sm">Version</span>
+                <span className="text-muted-foreground text-sm">
+                  {getAppVersion()}
+                </span>
               </div>
             </CardContent>
           </Card>

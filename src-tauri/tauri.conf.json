@@ -23,6 +23,11 @@
     ],
     "security": { "csp": null }
   },
+  "plugins": {
+    "sql": {
+      "preload": ["sqlite:database.db"]
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchOllamaModels } from '@/ollama/ollama'
+import { fetchOllamaModels } from '@/lib/ollama/ollama'
 
 export function useOllamaModels(serverUrl?: string | null) {
   return useQuery({

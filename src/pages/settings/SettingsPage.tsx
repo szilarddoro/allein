@@ -9,23 +9,18 @@ import { H1, H2, H3, P } from '@/components/ui/typography'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import {
-  ArrowLeft,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  RefreshCw,
-} from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import { Link } from 'react-router'
-import { useOllamaModels } from '@/ollama/useOllamaModels'
-import { useOllamaConnection } from '@/ollama/useOllamaConnection'
+import { useOllamaModels } from '@/lib/ollama/useOllamaModels'
+import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { useDebounceCallback } from 'usehooks-ts'
 import { getAppVersion, getAppName } from '@/lib/version'
 import { Separator } from '@/components/ui/separator'
-import { useConfig } from '@/db/useConfig'
-import { useUpdateConfig } from '@/db/useUpdateConfig'
+import { useConfig } from '@/lib/db/useConfig'
+import { useUpdateConfig } from '@/lib/db/useUpdateConfig'
 import { ModelListItem } from './ModelListItem'
 import { toast } from 'sonner'
+import { ActivityIndicator } from '@/components/ActivityIndicator'
 
 export function SettingsPage() {
   const { data: config, refetch: refetchConfig } = useConfig()
@@ -112,10 +107,9 @@ export function SettingsPage() {
                   <H3 className="text-lg">Ollama Server</H3>
                   <div className="flex items-center gap-2">
                     {connectionLoading ? (
-                      <>
-                        <span className="sr-only">Checking Connection</span>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      </>
+                      <ActivityIndicator srOnly>
+                        Checking connection...
+                      </ActivityIndicator>
                     ) : isConnected ? (
                       <div className="flex items-center gap-1 text-green-600">
                         <CheckCircle className="w-4 h-4" />
@@ -127,6 +121,7 @@ export function SettingsPage() {
                         <span className="text-sm">Disconnected</span>
                       </div>
                     )}
+
                     <Button
                       variant="outline"
                       size="icon"
@@ -152,31 +147,28 @@ export function SettingsPage() {
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <H3 className="text-lg">Available Models</H3>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleRefetchModels}
-                    disabled={modelsLoading}
-                  >
-                    {modelsLoading ? (
-                      <>
-                        <span className="sr-only">Loading Models</span>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      </>
-                    ) : (
-                      <>
-                        <span className="sr-only">Refresh Models</span>
-                        <RefreshCw className="w-4 h-4" />
-                      </>
+
+                  <div className="flex items-center gap-2">
+                    {modelsLoading && (
+                      <ActivityIndicator srOnly>
+                        Loading models...
+                      </ActivityIndicator>
                     )}
-                  </Button>
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleRefetchModels}
+                      disabled={modelsLoading}
+                    >
+                      <span className="sr-only">Refresh Models</span>
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
 
                 {modelsLoading ? (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Loading models...</span>
-                  </div>
+                  <ActivityIndicator>Loading models...</ActivityIndicator>
                 ) : modelsError ? (
                   <div className="flex items-center gap-1 text-red-600 text-sm">
                     <XCircle className="w-4 h-4" />

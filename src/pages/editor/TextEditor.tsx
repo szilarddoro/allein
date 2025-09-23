@@ -1,11 +1,12 @@
-import React, { forwardRef, useRef } from 'react'
+import { forwardRef, useRef, useState } from 'react'
 import MonacoEditor, { Monaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { Card } from '@/components/ui/card'
-import { useOnClickOutside } from 'usehooks-ts'
+import { DebouncedState, useDebounceCallback } from 'usehooks-ts'
+import { ActivityIndicator } from '@/components/ActivityIndicator'
 
 export interface TextEditorProps {
-  initialValue?: string
+  value?: string
   onChange?: (value: string) => void
   placeholder?: string
   onKeyDown?: (event: monaco.IKeyboardEvent) => void
@@ -14,23 +15,41 @@ export interface TextEditorProps {
 export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
   (
     {
-      initialValue = '',
+      value = '',
       onChange,
       placeholder = 'Start writing your markdown...',
       onKeyDown,
     },
     ref,
   ) => {
+    const [suggestion, setSuggestion] = useState<string>()
+    const pendingFetchRef =
+      useRef<DebouncedState<(value: string | undefined) => void>>(null)
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
-    const handleEditorChange = (value: string | undefined) => {
+    const fetchSuggestions = useDebounceCallback(
+      (_value: string | undefined) => {
+        setSuggestion('lorem ipsum dolor sit amet.')
+
+        console.log(editorRef.current?.getSelection())
+
+        // TODO: Insert suggestion as an overlay to the text.
+      },
+      750,
+    )
+
+    function handleEditorChange(value: string | undefined) {
       onChange?.(value || '')
+
+      pendingFetchRef.current?.cancel()
+      pendingFetchRef.current = fetchSuggestions
+      pendingFetchRef.current(value)
     }
 
-    const handleEditorDidMount = (
+    function handleEditorDidMount(
       editor: monaco.editor.IStandaloneCodeEditor,
       _monaco: Monaco,
-    ) => {
+    ) {
       editorRef.current = editor
 
       // Add keydown event listener
@@ -43,27 +62,17 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       })
     }
 
-    useOnClickOutside(ref as React.RefObject<HTMLElement>, () => {
-      if (editorRef.current) {
-        // Get the Monaco editor's DOM node and blur it
-        const editorDomNode = editorRef.current.getDomNode()
-        if (editorDomNode) {
-          editorDomNode.blur()
-        }
-      }
-    })
-
     return (
       <Card className="flex flex-col h-full p-0 overflow-hidden" ref={ref}>
         <div className="flex-1">
           <MonacoEditor
-            className="pl-2"
+            className="pl-2 h-full"
             theme="monaco-editor"
-            height="100%"
             defaultLanguage="markdown"
-            value={initialValue}
+            defaultValue={value}
             onChange={handleEditorChange}
             onMount={handleEditorDidMount}
+            loading={<ActivityIndicator>Loading editor...</ActivityIndicator>}
             options={{
               links: false,
               minimap: { enabled: false },

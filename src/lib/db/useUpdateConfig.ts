@@ -1,4 +1,4 @@
-import { ConfigModel, updateConfig } from '@/db/database'
+import { ConfigModel, updateConfig } from '@/lib/db/database'
 import { useMutation } from '@tanstack/react-query'
 import { useToast } from '@/lib/useToast'
 

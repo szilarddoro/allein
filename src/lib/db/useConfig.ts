@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ConfigModel, getDatabase } from '@/db/database'
+import { ConfigModel, getDatabase } from '@/lib/db/database'
 
 export const USE_CONFIG_QUERY_KEY = 'config'
 

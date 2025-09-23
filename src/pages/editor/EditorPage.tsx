@@ -72,7 +72,7 @@ Try editing this text!`)
         className={cn('w-full pl-4 pr-4 pb-4', showPreview && 'w-1/2 pr-2')}
       >
         <TextEditor
-          initialValue={markdownContent}
+          value={markdownContent}
           onChange={handleEditorChange}
           onKeyDown={handleKeyDown}
           placeholder="Start writing your markdown..."

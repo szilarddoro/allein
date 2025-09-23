@@ -1,4 +1,4 @@
-import { testOllamaConnection } from '@/ollama/ollama'
+import { testOllamaConnection } from '@/lib/ollama/ollama'
 import { useQuery } from '@tanstack/react-query'
 
 export function useOllamaConnection(serverUrl?: string | null) {

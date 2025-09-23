@@ -24,6 +24,8 @@ import { getAppVersion, getAppName } from '@/lib/version'
 import { Separator } from '@/components/ui/separator'
 import { useConfig } from '@/db/useConfig'
 import { useUpdateConfig } from '@/db/useUpdateConfig'
+import { ModelListItem } from './ModelListItem'
+import { toast } from 'sonner'
 
 export function SettingsPage() {
   const { data: config, refetch: refetchConfig } = useConfig()
@@ -31,9 +33,10 @@ export function SettingsPage() {
     onSuccess: refetchConfig,
   })
 
-  const ollamaUrl =
-    config?.find((c) => c.key === 'ollama_url')?.value ||
-    'http://localhost:11434'
+  const ollamaUrl = config?.find((c) => c.key === 'ollama_url')?.value || null
+
+  const selectedOllamaModel =
+    config?.find((c) => c.key === 'ollama_model')?.value || null
 
   const {
     data: models,
@@ -51,6 +54,29 @@ export function SettingsPage() {
   const handleUpdateOllamaUrl = useDebounceCallback((value: string) => {
     updateConfig({ key: 'ollama_url', value: value })
   }, 500)
+
+  function handleSelectModel(modelName: string) {
+    updateConfig({ key: 'ollama_model', value: modelName })
+  }
+
+  async function handleRefetchModels() {
+    await refetchModels()
+    toast.success('Models refreshed successfully')
+  }
+
+  async function handleTestConnection() {
+    try {
+      const { data: isConnected } = await testConnection()
+
+      if (isConnected) {
+        toast.success('Connected to Ollama')
+      } else {
+        toast.error('Failed to connect to Ollama')
+      }
+    } catch {
+      toast.error('Failed to connect to Ollama')
+    }
+  }
 
   return (
     <div className="overflow-auto p-6">
@@ -79,13 +105,17 @@ export function SettingsPage() {
                 </P>
               </CardDescription>
             </CardHeader>
+
             <CardContent className="space-y-6">
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <H3 className="text-lg">Ollama Server</H3>
                   <div className="flex items-center gap-2">
                     {connectionLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <>
+                        <span className="sr-only">Checking Connection</span>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      </>
                     ) : isConnected ? (
                       <div className="flex items-center gap-1 text-green-600">
                         <CheckCircle className="w-4 h-4" />
@@ -100,9 +130,10 @@ export function SettingsPage() {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => testConnection()}
+                      onClick={handleTestConnection}
                       disabled={connectionLoading}
                     >
+                      <span className="sr-only">Test Connection</span>
                       <RefreshCw className="w-4 h-4" />
                     </Button>
                   </div>
@@ -112,9 +143,8 @@ export function SettingsPage() {
                   <Label htmlFor="ollama-url">Server URL</Label>
                   <Input
                     id="ollama-url"
-                    defaultValue={ollamaUrl}
+                    defaultValue={ollamaUrl || undefined}
                     onChange={(e) => handleUpdateOllamaUrl(e.target.value)}
-                    placeholder="http://localhost:11434"
                   />
                 </div>
               </div>
@@ -125,13 +155,19 @@ export function SettingsPage() {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => refetchModels()}
+                    onClick={handleRefetchModels}
                     disabled={modelsLoading}
                   >
                     {modelsLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <>
+                        <span className="sr-only">Loading Models</span>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      </>
                     ) : (
-                      <RefreshCw className="w-4 h-4" />
+                      <>
+                        <span className="sr-only">Refresh Models</span>
+                        <RefreshCw className="w-4 h-4" />
+                      </>
                     )}
                   </Button>
                 </div>
@@ -151,21 +187,12 @@ export function SettingsPage() {
                 ) : models && models.length > 0 ? (
                   <div className="space-y-2">
                     {models.map((model) => (
-                      <div
+                      <ModelListItem
                         key={model.name}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <div className="font-medium">{model.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            Size: {(model.size / 1024 / 1024 / 1024).toFixed(2)}{' '}
-                            GB
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          Select
-                        </Button>
-                      </div>
+                        model={model}
+                        isSelected={selectedOllamaModel === model.name}
+                        onSelect={handleSelectModel}
+                      />
                     ))}
                   </div>
                 ) : (

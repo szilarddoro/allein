@@ -1,9 +1,10 @@
-import { forwardRef, useRef, useState } from 'react'
+import { forwardRef, useRef } from 'react'
 import MonacoEditor, { Monaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { Card } from '@/components/ui/card'
 import { DebouncedState, useDebounceCallback } from 'usehooks-ts'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { useInlineCompletion } from './completion/useInlineCompletion'
 
 export interface TextEditorProps {
   value?: string
@@ -22,28 +23,22 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     },
     ref,
   ) => {
-    const [suggestion, setSuggestion] = useState<string>()
-    const pendingFetchRef =
-      useRef<DebouncedState<(value: string | undefined) => void>>(null)
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
+    const { fetchSuggestions } = useInlineCompletion({
+      editor: editorRef.current,
+    })
 
-    const fetchSuggestions = useDebounceCallback(
-      (_value: string | undefined) => {
-        setSuggestion('lorem ipsum dolor sit amet.')
-
-        console.log(editorRef.current?.getSelection())
-
-        // TODO: Insert suggestion as an overlay to the text.
-      },
-      750,
-    )
+    const debouncedFetchSuggestionRef =
+      useRef<DebouncedState<() => Promise<void>>>(null)
+    const debouncedFetchSuggestion = useDebounceCallback(fetchSuggestions, 750)
 
     function handleEditorChange(value: string | undefined) {
       onChange?.(value || '')
 
-      pendingFetchRef.current?.cancel()
-      pendingFetchRef.current = fetchSuggestions
-      pendingFetchRef.current(value)
+      // Debounce calls to the AI API
+      debouncedFetchSuggestionRef.current?.cancel()
+      debouncedFetchSuggestionRef.current = debouncedFetchSuggestion
+      debouncedFetchSuggestionRef.current()
     }
 
     function handleEditorDidMount(
@@ -52,7 +47,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     ) {
       editorRef.current = editor
 
-      // Add keydown event listener
       editor.onKeyDown((event: monaco.IKeyboardEvent) => {
         onKeyDown?.(event)
       })

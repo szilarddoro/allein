@@ -35,6 +35,8 @@ export function useInlineCompletion({
       'markdown',
       {
         provideInlineCompletions: (model, position) => {
+          // TODO: Suggestions appear at incorrect times. This should be reviewed.
+
           // Filter cached suggestions to include only those that start with the current word at the cursor position
           const suggestions = cachedSuggestions.filter((suggestion) =>
             suggestion.insertText.startsWith(
@@ -99,6 +101,7 @@ export function useInlineCompletion({
     const textBeforeCursor = model
       .getValue()
       .substring(0, offset - currentLine.length)
+
     const textBeforeCursorOnCurrentLine = currentLine.substring(
       0,
       position.column - 1,
@@ -118,13 +121,17 @@ export function useInlineCompletion({
       temperature: 0.8,
     })
 
+    const newCompletion = response.text
     const newSuggestion = {
-      insertText: response.text,
+      insertText: newCompletion,
       range: {
         startLineNumber: position.lineNumber,
         startColumn: position.column,
-        endLineNumber: position.lineNumber,
-        endColumn: position.column,
+        endLineNumber:
+          // Calculate the number of new lines in the completion text and add it to the current line number
+          position.lineNumber + (newCompletion.match(/\n/g) || []).length,
+        // If the suggestion is on the same line, return the length of the completion text
+        endColumn: position.column + newCompletion.length,
       },
     }
 

@@ -28,7 +28,7 @@ export function ModelListItem({
   return (
     <div
       className={cn(
-        'flex items-center justify-between p-3 border-2 rounded-lg transition-all duration-300',
+        'flex items-center justify-between p-3 border rounded-lg transition-colors duration-300',
         isSelected && 'bg-zinc-50 border-zinc-300',
       )}
     >

@@ -21,6 +21,7 @@ import { useUpdateConfig } from '@/lib/db/useUpdateConfig'
 import { ModelListItem } from './ModelListItem'
 import { toast } from 'sonner'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { cn } from '@/lib/utils'
 
 export function SettingsPage() {
   const { data: config, refetch: refetchConfig } = useConfig()
@@ -74,7 +75,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="overflow-auto p-6">
+    <div className="p-6 pb-32">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col items-start gap-4">
           <Link
@@ -144,7 +145,7 @@ export function SettingsPage() {
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div>
                 <div className="flex items-center justify-between">
                   <H3 className="text-lg">Available Models</H3>
 
@@ -177,7 +178,7 @@ export function SettingsPage() {
                     </span>
                   </div>
                 ) : models && models.length > 0 ? (
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2 mt-4">
                     {models.map((model) => (
                       <ModelListItem
                         key={model.name}
@@ -195,6 +196,60 @@ export function SettingsPage() {
                     </code>
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section>
+          <Card>
+            <CardHeader className="gap-0">
+              <CardTitle>
+                <H2 className="text-xl">About</H2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              <div className="flex justify-between items-center gap-4">
+                <span className="font-medium text-sm">Name</span>
+                <span className="text-muted-foreground text-sm">
+                  {getAppName()}
+                </span>
+              </div>
+
+              <Separator />
+
+              <div className="flex justify-between items-center gap-4">
+                <span className="font-medium text-sm">Version</span>
+                <span className="text-muted-foreground text-sm">
+                  {getAppVersion()}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section>
+          <Card>
+            <CardHeader className="gap-0">
+              <CardTitle>
+                <H2 className="text-xl">About</H2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              <div className="flex justify-between items-center gap-4">
+                <span className="font-medium text-sm">Name</span>
+                <span className="text-muted-foreground text-sm">
+                  {getAppName()}
+                </span>
+              </div>
+
+              <Separator />
+
+              <div className="flex justify-between items-center gap-4">
+                <span className="font-medium text-sm">Version</span>
+                <span className="text-muted-foreground text-sm">
+                  {getAppVersion()}
+                </span>
               </div>
             </CardContent>
           </Card>

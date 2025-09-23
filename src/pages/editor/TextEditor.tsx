@@ -1,16 +1,17 @@
-import { forwardRef, useRef } from 'react'
+import React, { forwardRef, useRef } from 'react'
 import MonacoEditor, { Monaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { Card } from '@/components/ui/card'
+import { useOnClickOutside } from 'usehooks-ts'
 
-export interface EditorProps {
+export interface TextEditorProps {
   initialValue?: string
   onChange?: (value: string) => void
   placeholder?: string
   onKeyDown?: (event: monaco.IKeyboardEvent) => void
 }
 
-export const Editor = forwardRef<HTMLDivElement, EditorProps>(
+export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
   (
     {
       initialValue = '',
@@ -42,12 +43,23 @@ export const Editor = forwardRef<HTMLDivElement, EditorProps>(
       })
     }
 
+    useOnClickOutside(ref as React.RefObject<HTMLElement>, () => {
+      if (editorRef.current) {
+        // Get the Monaco editor's DOM node and blur it
+        const editorDomNode = editorRef.current.getDomNode()
+        if (editorDomNode) {
+          editorDomNode.blur()
+        }
+      }
+    })
+
     return (
       <Card className="flex flex-col h-full p-0 overflow-hidden" ref={ref}>
         <div className="flex-1">
           <MonacoEditor
-            className="pl-2 h-full"
+            className="pl-2"
             theme="monaco-editor"
+            height="100%"
             defaultLanguage="markdown"
             value={initialValue}
             onChange={handleEditorChange}
@@ -127,4 +139,4 @@ export const Editor = forwardRef<HTMLDivElement, EditorProps>(
   },
 )
 
-Editor.displayName = 'Editor'
+TextEditor.displayName = 'TextEditor'

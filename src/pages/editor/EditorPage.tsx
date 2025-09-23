@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { useOutletContext } from 'react-router'
-import { Editor } from '@/components/Editor'
-import MarkdownPreview from '@/components/MarkdownPreview'
+import { TextEditor } from './TextEditor'
+import MarkdownPreview from './MarkdownPreview'
 import { cn } from '@/lib/utils'
 import { useHotkeys } from 'react-hotkeys-hook'
 import * as monaco from 'monaco-editor'
@@ -71,7 +71,7 @@ Try editing this text!`)
         ref={editorRef}
         className={cn('w-full pl-4 pr-4 pb-4', showPreview && 'w-1/2 pr-2')}
       >
-        <Editor
+        <TextEditor
           initialValue={markdownContent}
           onChange={handleEditorChange}
           onKeyDown={handleKeyDown}

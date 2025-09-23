@@ -6,6 +6,7 @@ import { AppLayout } from '@/components/AppLayout'
 import { EditorPage } from '@/pages/EditorPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { QueryProvider } from '@/lib/queryClient'
+import { Toaster } from '@/components/ui/sonner'
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <QueryProvider>
       <RouterProvider router={router} />
+      <Toaster />
     </QueryProvider>
   </React.StrictMode>,
 )

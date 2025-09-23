@@ -69,7 +69,7 @@ Try editing this text!`)
     <div className="h-full flex overflow-hidden">
       <div
         ref={editorRef}
-        className={cn('w-full pl-4 pr-2 pb-4', showPreview && 'w-1/2')}
+        className={cn('w-full pl-4 pr-4 pb-4', showPreview && 'w-1/2 pr-2')}
       >
         <Editor
           initialValue={markdownContent}

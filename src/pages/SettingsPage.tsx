@@ -17,18 +17,23 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { Link } from 'react-router'
-import { useOllamaModels, useOllamaConnection } from '@/hooks/useOllamaModels'
-import { useDebounceValue } from 'usehooks-ts'
+import { useOllamaModels } from '@/ollama/useOllamaModels'
+import { useOllamaConnection } from '@/ollama/useOllamaConnection'
+import { useDebounceCallback } from 'usehooks-ts'
 import { getAppVersion, getAppName } from '@/lib/version'
-import { useDatabase } from '@/hooks/useDatabase'
 import { Separator } from '@/components/ui/separator'
+import { useConfig } from '@/db/useConfig'
+import { useUpdateConfig } from '@/db/useUpdateConfig'
 
 export function SettingsPage() {
-  const { data: database } = useDatabase()
-  const [ollamaUrl, setOllamaUrl] = useDebounceValue(
-    'http://localhost:11434',
-    500,
-  )
+  const { data: config, refetch: refetchConfig } = useConfig()
+  const { mutate: updateConfig } = useUpdateConfig({
+    onSuccess: refetchConfig,
+  })
+
+  const ollamaUrl =
+    config?.find((c) => c.key === 'ollama_url')?.value ||
+    'http://localhost:11434'
 
   const {
     data: models,
@@ -36,16 +41,20 @@ export function SettingsPage() {
     error: modelsError,
     refetch: refetchModels,
   } = useOllamaModels(ollamaUrl)
+
   const {
     data: isConnected,
     isLoading: connectionLoading,
     refetch: testConnection,
   } = useOllamaConnection(ollamaUrl)
 
+  const handleUpdateOllamaUrl = useDebounceCallback((value: string) => {
+    updateConfig({ key: 'ollama_url', value: value })
+  }, 500)
+
   return (
     <div className="overflow-auto p-6">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
         <div className="flex flex-col items-start gap-4">
           <Link
             to="/"
@@ -71,7 +80,7 @@ export function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-4">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <H3 className="text-lg">Ollama Server</H3>
                   <div className="flex items-center gap-2">
@@ -104,13 +113,13 @@ export function SettingsPage() {
                   <Input
                     id="ollama-url"
                     defaultValue={ollamaUrl}
-                    onChange={(e) => setOllamaUrl(e.target.value)}
+                    onChange={(e) => handleUpdateOllamaUrl(e.target.value)}
                     placeholder="http://localhost:11434"
                   />
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <H3 className="text-lg">Available Models</H3>
                   <Button
@@ -133,7 +142,7 @@ export function SettingsPage() {
                     <span>Loading models...</span>
                   </div>
                 ) : modelsError ? (
-                  <div className="flex items-center gap-2 text-red-600">
+                  <div className="flex items-center gap-1 text-red-600 text-sm">
                     <XCircle className="w-4 h-4" />
                     <span>
                       Failed to load models. Make sure Ollama is running.

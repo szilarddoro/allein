@@ -14,8 +14,8 @@ export function getAppVersion(): string {
 // Get app name from package.json
 export function getAppName(): string {
   try {
-    return __APP_NAME__ || 'allein.app'
+    return __APP_NAME__ || 'allein'
   } catch {
-    return 'allein.app'
+    return 'allein'
   }
 }

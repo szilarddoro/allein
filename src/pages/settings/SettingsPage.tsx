@@ -15,7 +15,6 @@ import { useOllamaModels } from '@/lib/ollama/useOllamaModels'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { useDebounceCallback } from 'usehooks-ts'
 import { getAppVersion, getAppName } from '@/lib/version'
-import { Separator } from '@/components/ui/separator'
 import { useConfig } from '@/lib/db/useConfig'
 import { useUpdateConfig } from '@/lib/db/useUpdateConfig'
 import { ModelListItem } from './ModelListItem'
@@ -207,22 +206,22 @@ export function SettingsPage() {
                 <H2 className="text-xl">About</H2>
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              <div className="flex justify-between items-center gap-4">
-                <span className="font-medium text-sm">Name</span>
-                <span className="text-muted-foreground text-sm">
-                  {getAppName()}
-                </span>
-              </div>
 
-              <Separator />
-
-              <div className="flex justify-between items-center gap-4">
-                <span className="font-medium text-sm">Version</span>
-                <span className="text-muted-foreground text-sm">
-                  {getAppVersion()}
-                </span>
-              </div>
+            <CardContent>
+              <ul className="flex flex-col divide-y">
+                <li className="flex justify-between items-center gap-2 py-2">
+                  <span className="font-medium text-sm">Name</span>
+                  <span className="text-muted-foreground text-sm">
+                    {getAppName()}
+                  </span>
+                </li>
+                <li className="flex justify-between items-center gap-4 py-2">
+                  <span className="font-medium text-sm">Version</span>
+                  <span className="text-muted-foreground text-sm">
+                    {getAppVersion()}
+                  </span>
+                </li>
+              </ul>
             </CardContent>
           </Card>
         </section>

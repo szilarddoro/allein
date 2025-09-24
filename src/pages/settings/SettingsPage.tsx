@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { H1, H2, H3, P } from '@/components/ui/typography'
+import { H1, H2, H3, InlineCode, P } from '@/components/ui/typography'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,7 @@ import { useUpdateConfig } from '@/lib/db/useUpdateConfig'
 import { ModelListItem } from './ModelListItem'
 import { toast } from 'sonner'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
 export function SettingsPage() {
   const { data: config, refetch: refetchConfig } = useConfig()
@@ -70,6 +71,12 @@ export function SettingsPage() {
     } catch {
       toast.error('Failed to connect to Ollama')
     }
+  }
+
+  async function handleCopyOllamaPullCommand() {
+    await writeText('ollama pull gemma3:latest')
+
+    toast.success('Command copied to clipboard')
   }
 
   return (
@@ -187,11 +194,22 @@ export function SettingsPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <P>No models found. Pull a model first using:</P>
-                    <code className="block mt-2 p-2 bg-muted rounded text-sm">
-                      ollama pull gemma2:2b
-                    </code>
+                  <div className="flex flex-col items-center text-muted-foreground text-sm">
+                    <P>
+                      No models found. Run{' '}
+                      <Button
+                        variant="ghost"
+                        onClick={handleCopyOllamaPullCommand}
+                        size="sm"
+                        className="mx-1 p-0 h-auto rounded-sm"
+                        aria-label='Copy "ollama pull gemma3:latest" to clipboard'
+                      >
+                        <InlineCode className="cursor-default">
+                          ollama pull gemma3:latest
+                        </InlineCode>
+                      </Button>{' '}
+                      in your terminal.
+                    </P>
                   </div>
                 )}
               </div>

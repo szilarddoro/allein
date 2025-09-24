@@ -21,7 +21,6 @@ import { useUpdateConfig } from '@/lib/db/useUpdateConfig'
 import { ModelListItem } from './ModelListItem'
 import { toast } from 'sonner'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
-import { cn } from '@/lib/utils'
 
 export function SettingsPage() {
   const { data: config, refetch: refetchConfig } = useConfig()
@@ -196,60 +195,6 @@ export function SettingsPage() {
                     </code>
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section>
-          <Card>
-            <CardHeader className="gap-0">
-              <CardTitle>
-                <H2 className="text-xl">About</H2>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              <div className="flex justify-between items-center gap-4">
-                <span className="font-medium text-sm">Name</span>
-                <span className="text-muted-foreground text-sm">
-                  {getAppName()}
-                </span>
-              </div>
-
-              <Separator />
-
-              <div className="flex justify-between items-center gap-4">
-                <span className="font-medium text-sm">Version</span>
-                <span className="text-muted-foreground text-sm">
-                  {getAppVersion()}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section>
-          <Card>
-            <CardHeader className="gap-0">
-              <CardTitle>
-                <H2 className="text-xl">About</H2>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              <div className="flex justify-between items-center gap-4">
-                <span className="font-medium text-sm">Name</span>
-                <span className="text-muted-foreground text-sm">
-                  {getAppName()}
-                </span>
-              </div>
-
-              <Separator />
-
-              <div className="flex justify-between items-center gap-4">
-                <span className="font-medium text-sm">Version</span>
-                <span className="text-muted-foreground text-sm">
-                  {getAppVersion()}
-                </span>
               </div>
             </CardContent>
           </Card>

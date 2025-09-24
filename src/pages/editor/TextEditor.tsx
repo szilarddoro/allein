@@ -117,6 +117,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
               suggestOnTriggerCharacters: false,
               acceptSuggestionOnEnter: 'off',
               wordBasedSuggestions: 'off',
+              inlineSuggest: { enabled: true },
               fontFamily:
                 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
               fontSize: 14,

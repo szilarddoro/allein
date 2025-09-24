@@ -1,5 +1,5 @@
 import { useMonaco } from '@monaco-editor/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { generateInstructions } from './prompt'
 import { generateText } from 'ai'
 import * as monaco from 'monaco-editor'
@@ -7,43 +7,36 @@ import { CompletionFormatter } from './CompletionFormatter'
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 
 export interface UseInlineCompletionOptions {
-  editor: monaco.editor.IStandaloneCodeEditor | null
   suggestionCacheSize?: number
-  suggestionRefetchDelay?: number
+  debounceDelay?: number
 }
 
 export function useInlineCompletion({
-  editor,
   suggestionCacheSize = 10,
-  suggestionRefetchDelay = 500,
-}: UseInlineCompletionOptions) {
+  debounceDelay = 750,
+}: UseInlineCompletionOptions = {}) {
   const monaco = useMonaco()
   const [cachedSuggestions, setCachedSuggestions] = useState<
     { insertText: string; range: monaco.IRange }[]
   >([])
 
-  const fetchSuggestionsIntervalRef = useRef<number>(null)
-  const timeoutRef = useRef<number>(null)
+  const debounceTimeout = useRef<number | null>(null)
+  const currentRequest = useRef<AbortController | null>(null)
 
   const { ollamaProvider } = useOllamaConfig()
 
   useEffect(() => {
     return () => {
-      // Clear the interval and timeout when the component is unmounted
-      if (fetchSuggestionsIntervalRef.current != null) {
-        window.clearInterval(fetchSuggestionsIntervalRef.current)
+      // Clear debounce timeout and abort any pending requests
+      if (debounceTimeout.current != null) {
+        window.clearTimeout(debounceTimeout.current)
       }
 
-      if (timeoutRef.current != null) {
-        window.clearTimeout(timeoutRef.current)
+      if (currentRequest.current) {
+        currentRequest.current.abort()
       }
     }
   }, [])
-
-  const provideInlineCompletions = useCallback(
-    (model: monaco.editor.ITextModel, position: monaco.Position) => {},
-    [cachedSuggestions],
-  )
 
   useEffect(() => {
     if (!monaco) {
@@ -53,39 +46,135 @@ export function useInlineCompletion({
     const provider = monaco?.languages.registerInlineCompletionsProvider(
       'markdown',
       {
-        provideInlineCompletions: (model, position) => {
-          // TODO: Suggestions appear at incorrect times. This should be reviewed.
-
-          // Filter cached suggestions to include only those that start with the current word at the cursor position
-          const suggestions = cachedSuggestions.filter((suggestion) =>
-            suggestion.insertText.startsWith(
-              model.getValueInRange(suggestion.range),
-            ),
-          )
-
-          // Further filter suggestions to ensure they are relevant to the current cursor position within the line
-          const localSuggestions = suggestions.filter(
-            (suggestion) =>
-              suggestion.range.startLineNumber == position.lineNumber &&
-              suggestion.range.startColumn >= position.column - 3,
-          )
-
-          // Avoid providing suggestions if the character before the cursor is not a letter, number, or whitespace
+        provideInlineCompletions: async (model, position) => {
+          // Avoid providing suggestions if the character before the cursor is not appropriate
           if (
             !/[a-zA-Z0-9\s]/.test(model.getValue().charAt(position.column - 2))
           ) {
+            return { items: [] }
+          }
+
+          // Check if we already have a relevant cached suggestion
+          const relevantSuggestions = cachedSuggestions.filter(
+            (suggestion) =>
+              suggestion.range.startLineNumber === position.lineNumber &&
+              suggestion.range.startColumn <= position.column &&
+              suggestion.insertText.length > 0,
+          )
+
+          if (relevantSuggestions.length > 0) {
+            // Return the most recent relevant suggestion
+            const suggestion =
+              relevantSuggestions[relevantSuggestions.length - 1]
             return {
-              items: [],
+              items: [
+                new CompletionFormatter(model, position).format(
+                  suggestion.insertText,
+                  suggestion.range,
+                ),
+              ],
             }
           }
 
-          return {
-            items: localSuggestions.map((suggestion) =>
-              new CompletionFormatter(model, position).format(
-                suggestion.insertText,
-                suggestion.range,
-              ),
-            ),
+          // Fetch new suggestion with debouncing
+          try {
+            // Clear existing timeout
+            if (debounceTimeout.current) {
+              clearTimeout(debounceTimeout.current)
+            }
+
+            // Cancel existing request
+            if (currentRequest.current) {
+              currentRequest.current.abort()
+            }
+
+            const suggestionText = await new Promise<string | null>(
+              (resolve) => {
+                debounceTimeout.current = window.setTimeout(async () => {
+                  if (!ollamaProvider) {
+                    resolve(null)
+                    return
+                  }
+
+                  try {
+                    // Create new abort controller
+                    currentRequest.current = new AbortController()
+
+                    const currentLine = model.getLineContent(
+                      position.lineNumber,
+                    )
+                    const offset = model.getOffsetAt(position)
+                    const textBeforeCursor = model
+                      .getValue()
+                      .substring(0, offset - currentLine.length)
+                    const textBeforeCursorOnCurrentLine = currentLine.substring(
+                      0,
+                      position.column - 1,
+                    )
+
+                    if (!textBeforeCursor) {
+                      resolve(null)
+                      return
+                    }
+
+                    const response = await generateText({
+                      model: ollamaProvider('gemma3'),
+                      messages: [
+                        generateInstructions(),
+                        { content: textBeforeCursor, role: 'user' },
+                        {
+                          content: textBeforeCursorOnCurrentLine,
+                          role: 'user',
+                        },
+                      ],
+                      temperature: 0.8,
+                      abortSignal: currentRequest.current.signal,
+                    })
+
+                    resolve(response.text)
+                  } catch (error) {
+                    if (error instanceof Error && error.name === 'AbortError') {
+                      resolve(null)
+                    } else {
+                      resolve(null)
+                    }
+                  }
+                }, debounceDelay)
+              },
+            )
+
+            if (!suggestionText) {
+              return { items: [] }
+            }
+
+            // Create new suggestion
+            const newSuggestion = {
+              insertText: suggestionText,
+              range: {
+                startLineNumber: position.lineNumber,
+                startColumn: position.column,
+                endLineNumber:
+                  position.lineNumber +
+                  (suggestionText.match(/\n/g) || []).length,
+                endColumn: position.column + suggestionText.length,
+              },
+            }
+
+            // Add to cache (keeping last 10 items like your original solution)
+            setCachedSuggestions((prev) =>
+              [...prev, newSuggestion].slice(-suggestionCacheSize),
+            )
+
+            return {
+              items: [
+                new CompletionFormatter(model, position).format(
+                  newSuggestion.insertText,
+                  newSuggestion.range,
+                ),
+              ],
+            }
+          } catch {
+            return { items: [] }
           }
         },
         // @ts-expect-error For some reason, this is now typed properly, but the editor expects it
@@ -95,102 +184,15 @@ export function useInlineCompletion({
     )
 
     return () => provider.dispose()
-  }, [cachedSuggestions, monaco])
+  }, [
+    monaco,
+    ollamaProvider,
+    debounceDelay,
+    suggestionCacheSize,
+    cachedSuggestions,
+    setCachedSuggestions,
+  ])
 
-  async function fetchSuggestions() {
-    if (!editor || !ollamaProvider) {
-      return
-    }
-
-    const model = editor.getModel()
-
-    if (!model) {
-      setCachedSuggestions([])
-      return
-    }
-
-    const position = editor.getPosition()
-
-    if (!position) {
-      return
-    }
-
-    const currentLine = model.getLineContent(position.lineNumber)
-    const offset = model.getOffsetAt(position)
-    const textBeforeCursor = model
-      .getValue()
-      .substring(0, offset - currentLine.length)
-
-    const textBeforeCursorOnCurrentLine = currentLine.substring(
-      0,
-      position.column - 1,
-    )
-
-    if (!textBeforeCursor) {
-      return
-    }
-
-    const response = await generateText({
-      model: ollamaProvider('gemma3'),
-      messages: [
-        generateInstructions(),
-        { content: textBeforeCursor, role: 'user' },
-        { content: textBeforeCursorOnCurrentLine, role: 'user' },
-      ],
-      temperature: 0.8,
-    })
-
-    const newCompletion = response.text
-    const newSuggestion = {
-      insertText: newCompletion,
-      range: {
-        startLineNumber: position.lineNumber,
-        startColumn: position.column,
-        endLineNumber:
-          // Calculate the number of new lines in the completion text and add it to the current line number
-          position.lineNumber + (newCompletion.match(/\n/g) || []).length,
-        // If the suggestion is on the same line, return the length of the completion text
-        endColumn: position.column + newCompletion.length,
-      },
-    }
-
-    setCachedSuggestions((prev) =>
-      [...prev, newSuggestion].slice(-suggestionCacheSize),
-    )
-  }
-
-  // const debouncedFetchSuggestions = useDebounceCallback(fetchSuggestions, 750, {
-  //   leading: true,
-  // })
-
-  function triggerCompletion() {
-    // Check if the fetching interval is not already set
-    if (fetchSuggestionsIntervalRef.current == null) {
-      // Immediately invoke suggestions once
-      fetchSuggestions()
-
-      // Set an interval to fetch suggestions every refresh interval
-      // (default is 500ms which seems to align will with the
-      // average typing speed and latency of OpenAI API calls)
-      fetchSuggestionsIntervalRef.current = setInterval(
-        fetchSuggestions,
-        suggestionRefetchDelay,
-      ) as unknown as number // Cast to number as setInterval returns a NodeJS.Timeout in Node environments
-    }
-
-    // Clear any previous timeout to reset the timer
-    if (timeoutRef.current != null) {
-      clearTimeout(timeoutRef.current)
-    }
-
-    // Set a new timeout to stop fetching suggestions if no typing occurs for 2x the refresh interval
-    timeoutRef.current = setTimeout(() => {
-      if (fetchSuggestionsIntervalRef.current != null) {
-        window.clearInterval(fetchSuggestionsIntervalRef.current)
-        fetchSuggestionsIntervalRef.current = null
-      }
-    }, suggestionRefetchDelay * 2) as unknown as number
-  }
-
-  return { triggerCompletion }
+  // Return empty object since Monaco handles everything automatically now
+  return {}
 }

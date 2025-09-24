@@ -23,15 +23,12 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     ref,
   ) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
-    const { triggerCompletion } = useInlineCompletion({
-      editor: editorRef.current,
-    })
+
+    // Enable inline completion for the Monaco Editor
+    useInlineCompletion()
 
     function handleEditorChange(value: string | undefined) {
       onChange?.(value || '')
-
-      // Trigger autocomplete
-      triggerCompletion()
     }
 
     function handleEditorDidMount(

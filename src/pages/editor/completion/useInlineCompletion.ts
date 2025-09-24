@@ -1,30 +1,49 @@
 import { useMonaco } from '@monaco-editor/react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { generateInstructions } from './prompt'
-import { createOllama } from 'ollama-ai-provider-v2'
 import { generateText } from 'ai'
 import * as monaco from 'monaco-editor'
 import { CompletionFormatter } from './CompletionFormatter'
+import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 
 export interface UseInlineCompletionOptions {
   editor: monaco.editor.IStandaloneCodeEditor | null
-  cacheSize?: number
+  suggestionCacheSize?: number
+  suggestionRefetchDelay?: number
 }
 
 export function useInlineCompletion({
   editor,
-  cacheSize = 10,
+  suggestionCacheSize = 10,
+  suggestionRefetchDelay = 500,
 }: UseInlineCompletionOptions) {
-  const ollama = useRef(
-    createOllama({
-      // TODO: Set up the Ollama provider based on the config that's stored in the DB.
-      baseURL: 'http://localhost:11434/api',
-    }),
-  )
   const monaco = useMonaco()
   const [cachedSuggestions, setCachedSuggestions] = useState<
     { insertText: string; range: monaco.IRange }[]
   >([])
+
+  const fetchSuggestionsIntervalRef = useRef<number>(null)
+  const timeoutRef = useRef<number>(null)
+
+  const { ollamaProvider } = useOllamaConfig()
+
+  useEffect(() => {
+    return () => {
+      // Clear the interval and timeout when the component is unmounted
+      if (fetchSuggestionsIntervalRef.current != null) {
+        window.clearInterval(fetchSuggestionsIntervalRef.current)
+      }
+
+      if (timeoutRef.current != null) {
+        window.clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
+
+  const provideInlineCompletions = useCallback(
+    (model: monaco.editor.ITextModel, position: monaco.Position) => {},
+    [cachedSuggestions],
+  )
 
   useEffect(() => {
     if (!monaco) {
@@ -79,7 +98,7 @@ export function useInlineCompletion({
   }, [cachedSuggestions, monaco])
 
   async function fetchSuggestions() {
-    if (!editor || !ollama.current) {
+    if (!editor || !ollamaProvider) {
       return
     }
 
@@ -112,7 +131,7 @@ export function useInlineCompletion({
     }
 
     const response = await generateText({
-      model: ollama.current('gemma3'),
+      model: ollamaProvider('gemma3'),
       messages: [
         generateInstructions(),
         { content: textBeforeCursor, role: 'user' },
@@ -135,8 +154,43 @@ export function useInlineCompletion({
       },
     }
 
-    setCachedSuggestions((prev) => [...prev, newSuggestion].slice(-cacheSize))
+    setCachedSuggestions((prev) =>
+      [...prev, newSuggestion].slice(-suggestionCacheSize),
+    )
   }
 
-  return { fetchSuggestions }
+  // const debouncedFetchSuggestions = useDebounceCallback(fetchSuggestions, 750, {
+  //   leading: true,
+  // })
+
+  function triggerCompletion() {
+    // Check if the fetching interval is not already set
+    if (fetchSuggestionsIntervalRef.current == null) {
+      // Immediately invoke suggestions once
+      fetchSuggestions()
+
+      // Set an interval to fetch suggestions every refresh interval
+      // (default is 500ms which seems to align will with the
+      // average typing speed and latency of OpenAI API calls)
+      fetchSuggestionsIntervalRef.current = setInterval(
+        fetchSuggestions,
+        suggestionRefetchDelay,
+      ) as unknown as number // Cast to number as setInterval returns a NodeJS.Timeout in Node environments
+    }
+
+    // Clear any previous timeout to reset the timer
+    if (timeoutRef.current != null) {
+      clearTimeout(timeoutRef.current)
+    }
+
+    // Set a new timeout to stop fetching suggestions if no typing occurs for 2x the refresh interval
+    timeoutRef.current = setTimeout(() => {
+      if (fetchSuggestionsIntervalRef.current != null) {
+        window.clearInterval(fetchSuggestionsIntervalRef.current)
+        fetchSuggestionsIntervalRef.current = null
+      }
+    }, suggestionRefetchDelay * 2) as unknown as number
+  }
+
+  return { triggerCompletion }
 }

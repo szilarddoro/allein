@@ -2,7 +2,6 @@ import { forwardRef, useRef } from 'react'
 import MonacoEditor, { Monaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { Card } from '@/components/ui/card'
-import { DebouncedState, useDebounceCallback } from 'usehooks-ts'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { useInlineCompletion } from './completion/useInlineCompletion'
 
@@ -24,21 +23,15 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     ref,
   ) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
-    const { fetchSuggestions } = useInlineCompletion({
+    const { triggerCompletion } = useInlineCompletion({
       editor: editorRef.current,
     })
-
-    const debouncedFetchSuggestionRef =
-      useRef<DebouncedState<() => Promise<void>>>(null)
-    const debouncedFetchSuggestion = useDebounceCallback(fetchSuggestions, 750)
 
     function handleEditorChange(value: string | undefined) {
       onChange?.(value || '')
 
-      // Debounce calls to the AI API
-      debouncedFetchSuggestionRef.current?.cancel()
-      debouncedFetchSuggestionRef.current = debouncedFetchSuggestion
-      debouncedFetchSuggestionRef.current()
+      // Trigger autocomplete
+      triggerCompletion()
     }
 
     function handleEditorDidMount(

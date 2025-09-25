@@ -1,7 +1,7 @@
-use tauri_plugin_sql::{Migration, MigrationKind};
-use std::path::PathBuf;
-use std::fs;
 use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::PathBuf;
+use tauri_plugin_sql::{Migration, MigrationKind};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileInfo {
@@ -20,10 +20,10 @@ pub struct FileContent {
 fn get_docs_dir() -> Result<PathBuf, String> {
     let home = dirs::home_dir().ok_or("Could not find home directory")?;
     let docs_dir = home.join(".allein").join("docs");
-    
+
     // Create directory if it doesn't exist
     fs::create_dir_all(&docs_dir).map_err(|e| format!("Failed to create docs directory: {}", e))?;
-    
+
     Ok(docs_dir)
 }
 
@@ -31,24 +31,28 @@ fn get_docs_dir() -> Result<PathBuf, String> {
 async fn list_files() -> Result<Vec<FileInfo>, String> {
     let docs_dir = get_docs_dir()?;
     let mut files = Vec::new();
-    
-    let entries = fs::read_dir(&docs_dir)
-        .map_err(|e| format!("Failed to read docs directory: {}", e))?;
-    
+
+    let entries =
+        fs::read_dir(&docs_dir).map_err(|e| format!("Failed to read docs directory: {}", e))?;
+
     for entry in entries {
         let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
         let path = entry.path();
-        
+
         if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
-            let metadata = entry.metadata().map_err(|e| format!("Failed to read file metadata: {}", e))?;
-            let modified = metadata.modified()
+            let metadata = entry
+                .metadata()
+                .map_err(|e| format!("Failed to read file metadata: {}", e))?;
+            let modified = metadata
+                .modified()
                 .map_err(|e| format!("Failed to get file modification time: {}", e))?
                 .duration_since(std::time::UNIX_EPOCH)
                 .map_err(|e| format!("Failed to convert modification time: {}", e))?
                 .as_secs();
-            
+
             files.push(FileInfo {
-                name: path.file_name()
+                name: path
+                    .file_name()
                     .and_then(|n| n.to_str())
                     .unwrap_or("unknown")
                     .to_string(),
@@ -58,18 +62,18 @@ async fn list_files() -> Result<Vec<FileInfo>, String> {
             });
         }
     }
-    
+
     // Sort by modification time (newest first)
     files.sort_by(|a, b| b.modified.cmp(&a.modified));
-    
+
     Ok(files)
 }
 
 #[tauri::command]
 async fn read_file(file_path: String) -> Result<FileContent, String> {
-    let content = fs::read_to_string(&file_path)
-        .map_err(|e| format!("Failed to read file: {}", e))?;
-    
+    let content =
+        fs::read_to_string(&file_path).map_err(|e| format!("Failed to read file: {}", e))?;
+
     Ok(FileContent {
         content,
         path: file_path,
@@ -78,16 +82,15 @@ async fn read_file(file_path: String) -> Result<FileContent, String> {
 
 #[tauri::command]
 async fn write_file(file_path: String, content: String) -> Result<(), String> {
-    fs::write(&file_path, content)
-        .map_err(|e| format!("Failed to write file: {}", e))?;
-    
+    fs::write(&file_path, content).map_err(|e| format!("Failed to write file: {}", e))?;
+
     Ok(())
 }
 
 #[tauri::command]
 async fn create_file() -> Result<FileContent, String> {
     let docs_dir = get_docs_dir()?;
-    
+
     // Find the next available untitled file number
     let mut counter = 1;
     let mut file_path;
@@ -98,10 +101,10 @@ async fn create_file() -> Result<FileContent, String> {
         }
         counter += 1;
     }
-    
+
     // Create empty file
     fs::write(&file_path, "").map_err(|e| format!("Failed to create file: {}", e))?;
-    
+
     Ok(FileContent {
         content: String::new(),
         path: file_path.to_string_lossy().to_string(),
@@ -110,9 +113,8 @@ async fn create_file() -> Result<FileContent, String> {
 
 #[tauri::command]
 async fn delete_file(file_path: String) -> Result<(), String> {
-    fs::remove_file(&file_path)
-        .map_err(|e| format!("Failed to delete file: {}", e))?;
-    
+    fs::remove_file(&file_path).map_err(|e| format!("Failed to delete file: {}", e))?;
+
     Ok(())
 }
 
@@ -121,10 +123,9 @@ async fn rename_file(old_path: String, new_name: String) -> Result<String, Strin
     let old_path_buf = PathBuf::from(&old_path);
     let parent = old_path_buf.parent().ok_or("Invalid file path")?;
     let new_path = parent.join(&new_name);
-    
-    fs::rename(&old_path, &new_path)
-        .map_err(|e| format!("Failed to rename file: {}", e))?;
-    
+
+    fs::rename(&old_path, &new_path).map_err(|e| format!("Failed to rename file: {}", e))?;
+
     Ok(new_path.to_string_lossy().to_string())
 }
 
@@ -144,6 +145,7 @@ pub fn run() {
     }];
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(
             tauri_plugin_sql::Builder::new()

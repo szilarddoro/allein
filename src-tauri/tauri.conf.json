@@ -18,7 +18,11 @@
         "height": 900,
         "hiddenTitle": true,
         "titleBarStyle": "Overlay",
-        "acceptFirstMouse": true
+        "acceptFirstMouse": true,
+        "trafficLightPosition": {
+          "x": 16,
+          "y": 28
+        }
       }
     ],
     "security": { "csp": null }

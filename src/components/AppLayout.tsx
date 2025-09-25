@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { Link, Outlet } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Cog, PanelLeft } from 'lucide-react'
-import { IS_TAURI } from '@/lib/constants'
+import { CURRENT_PLATFORM, IS_TAURI } from '@/lib/constants'
 import { Sidebar } from '@/components/Sidebar'
 import { useCreateFile } from '@/lib/files/useCreateFile'
+import { cn } from '@/lib/utils'
 
 export function AppLayout() {
   const [showSidebar, setShowSidebar] = useState(true)
@@ -12,7 +13,12 @@ export function AppLayout() {
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-slate-50 overflow-hidden">
-      <header className="relative pl-4 pr-6 py-3 flex justify-between items-center">
+      <header
+        className={cn(
+          'relative pl-4 pr-6 py-2 flex justify-between items-center',
+          CURRENT_PLATFORM === 'macos' && 'pl-22',
+        )}
+      >
         {IS_TAURI() && (
           <div
             className="absolute left-0 top-0 size-full z-10"
@@ -27,7 +33,7 @@ export function AppLayout() {
 
         <div className="flex items-center gap-2 relative z-20">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={() => setShowSidebar(!showSidebar)}
           >
@@ -36,7 +42,7 @@ export function AppLayout() {
         </div>
 
         <div className="flex items-center gap-2 relative z-20">
-          <Button variant="outline" size="icon" asChild>
+          <Button variant="ghost" size="icon" asChild>
             <Link draggable={false} to="/settings" className="cursor-default">
               <span className="sr-only">Open settings</span>
               <Cog className="w-4 h-4" />

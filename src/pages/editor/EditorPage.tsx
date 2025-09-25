@@ -54,7 +54,10 @@ Try editing this text!`)
       event.preventDefault()
     }
 
-    if (event.keyCode === monaco.KeyCode.Escape) {
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      event.keyCode === monaco.KeyCode.Escape
+    ) {
       previewButtonRef.current?.focus()
     }
   }

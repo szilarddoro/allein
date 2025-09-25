@@ -10,11 +10,12 @@ export interface UseInlineCompletionOptions {
 }
 
 export function useInlineCompletion({
-  debounceDelay = 750,
+  debounceDelay = 500,
 }: UseInlineCompletionOptions = {}) {
   const monaco = useMonaco()
   const currentRequest = useRef<AbortController | null>(null)
   const debounceTimeout = useRef<number | null>(null)
+  const lastSuggestionTime = useRef<number>(0)
   const { ollamaProvider, ollamaModel } = useOllamaConfig()
 
   useEffect(() => {
@@ -38,6 +39,13 @@ export function useInlineCompletion({
       'markdown',
       {
         provideInlineCompletions: async (model, position) => {
+          const now = Date.now()
+
+          // Prevent immediate re-triggering after providing a suggestion
+          if (now - lastSuggestionTime.current < 1000) {
+            return { items: [] }
+          }
+
           // Get current line content
           const currentLine = model.getLineContent(position.lineNumber)
           const textBeforeCursorOnCurrentLine = currentLine.substring(
@@ -49,14 +57,20 @@ export function useInlineCompletion({
           const lastChar = textBeforeCursorOnCurrentLine.slice(-1)
           const isWordEnd =
             lastChar === ' ' ||
-            lastChar === '.' ||
             lastChar === ',' ||
-            lastChar === '!' ||
-            lastChar === '?' ||
             lastChar === ';' ||
             lastChar === ':' ||
             textBeforeCursorOnCurrentLine.trim() === '' ||
             position.column === 1
+
+          // Don't trigger on sentence endings (periods, exclamation, question marks)
+          // as these usually indicate the end of a thought
+          const isSentenceEnd =
+            lastChar === '.' || lastChar === '!' || lastChar === '?'
+
+          if (isSentenceEnd) {
+            return { items: [] }
+          }
 
           // Only trigger completion at word boundaries
           if (!isWordEnd) {
@@ -127,6 +141,9 @@ export function useInlineCompletion({
                   model,
                   position,
                 ).format(response.text, range)
+
+                // Update timestamp when we provide a suggestion
+                lastSuggestionTime.current = now
 
                 resolve({ items: [completionItem] })
               } catch (error) {

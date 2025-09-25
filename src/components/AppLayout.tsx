@@ -48,7 +48,7 @@ export function AppLayout() {
       <main className="flex-auto overflow-hidden flex">
         {showSidebar && <Sidebar onNewFile={createFile} />}
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-auto">
           <Outlet />
         </div>
       </main>

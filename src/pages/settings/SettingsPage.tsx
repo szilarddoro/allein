@@ -80,15 +80,16 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="p-6 pb-32">
+    <div className="p-6 pb-32 flex-1">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col items-start gap-4">
           <Link
             to="/"
+            draggable={false}
             className="flex items-center gap-2 hover:underline focus:ring-[3px] focus:ring-ring/50 focus:outline-none rounded-sm px-0.5"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to the editor
+            Back to the home page
           </Link>
 
           <H1 className="mb-0">Settings</H1>

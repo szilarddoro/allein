@@ -37,7 +37,7 @@ export function AppLayout() {
 
         <div className="flex items-center gap-2 relative z-20">
           <Button variant="outline" size="icon" asChild>
-            <Link to="/settings" className="cursor-default">
+            <Link draggable={false} to="/settings" className="cursor-default">
               <span className="sr-only">Open settings</span>
               <Cog className="w-4 h-4" />
             </Link>

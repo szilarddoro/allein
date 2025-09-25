@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Home, NotebookPen } from 'lucide-react'
+import { Home, NotebookPen, Trash2, Edit3, Copy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { Link, useLocation, useNavigate } from 'react-router'
@@ -11,6 +11,15 @@ import { getDisplayName } from '@/lib/files/fileUtils'
 import { FileContent } from '@/lib/files/types'
 import { useToast } from '@/lib/useToast'
 import { useHotkeys } from 'react-hotkeys-hook'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu'
+import { useDeleteFile } from '@/lib/files/useDeleteFile'
+import { useState } from 'react'
 
 interface SidebarProps {
   onNewFile: () => Promise<FileContent>
@@ -22,6 +31,8 @@ export function Sidebar({ onNewFile }: SidebarProps) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [currentFilePath] = useCurrentFilePath()
+  const deleteFileMutation = useDeleteFile()
+  const [deletingFile, setDeletingFile] = useState<string | null>(null)
 
   async function handleCreateFile() {
     try {
@@ -29,6 +40,33 @@ export function Sidebar({ onNewFile }: SidebarProps) {
       navigate(`/editor?file=${path}`)
     } catch {
       toast.error('Failed to create file')
+    }
+  }
+
+  async function handleDeleteFile(filePath: string, fileName: string) {
+    try {
+      setDeletingFile(filePath)
+      await deleteFileMutation.mutateAsync(filePath)
+
+      // Navigate to home if deleting the currently edited file
+      if (currentFilePath === filePath) {
+        navigate('/')
+      }
+
+      toast.success(`Deleted ${getDisplayName(fileName)}`)
+    } catch {
+      toast.error('Failed to delete file')
+    } finally {
+      setDeletingFile(null)
+    }
+  }
+
+  async function handleCopyFilePath(filePath: string) {
+    try {
+      await navigator.clipboard.writeText(filePath)
+      toast.success('File path copied to clipboard')
+    } catch {
+      toast.error('Failed to copy file path')
     }
   }
 
@@ -43,6 +81,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
         <Button variant="ghost" size="sm" asChild>
           <Link
             to="/"
+            draggable={false}
             className="flex items-center gap-2 w-full text-left justify-start cursor-default"
             aria-current={pathname === '/'}
           >
@@ -89,33 +128,74 @@ export function Sidebar({ onNewFile }: SidebarProps) {
           </P>
         ) : (
           <ul className="flex flex-col gap-2 w-full">
-            {files.map((file) => (
-              <li key={file.path} className="w-full">
-                <Button asChild variant="ghost" size="sm" className="w-full">
-                  <Link
-                    to={`/editor?file=${file.path}`}
-                    aria-current={currentFilePath === file.path}
-                    className={cn(
-                      'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
-                      currentFilePath === file.path
-                        ? 'bg-gray-200/60 hover:bg-gray-200/80'
-                        : 'hover:bg-gray-100',
-                    )}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="flex-1 text-sm truncate"
-                    >
-                      {getDisplayName(file.name)}
-                    </span>
+            {files
+              .sort(
+                (a, b) =>
+                  new Date(b.modified).getTime() -
+                  new Date(a.modified).getTime(),
+              )
+              .map((file) => (
+                <li key={file.path} className="w-full">
+                  <ContextMenu>
+                    <ContextMenuTrigger asChild>
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <Link
+                          to={`/editor?file=${file.path}`}
+                          aria-current={currentFilePath === file.path}
+                          draggable={false}
+                          className={cn(
+                            'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
+                            currentFilePath === file.path
+                              ? 'bg-gray-200/60 hover:bg-gray-200/80'
+                              : 'hover:bg-gray-100',
+                            deletingFile === file.path && 'opacity-50',
+                          )}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="flex-1 text-sm truncate"
+                          >
+                            {getDisplayName(file.name)}
+                          </span>
 
-                    <span className="sr-only">
-                      Open file {getDisplayName(file.name)}
-                    </span>
-                  </Link>
-                </Button>
-              </li>
-            ))}
+                          <span className="sr-only">
+                            Open file {getDisplayName(file.name)}
+                          </span>
+                        </Link>
+                      </Button>
+                    </ContextMenuTrigger>
+
+                    <ContextMenuContent className="w-48" loop>
+                      <ContextMenuItem
+                        onClick={() => navigate(`/editor?file=${file.path}`)}
+                      >
+                        <Edit3 className="w-4 h-4 mr-2" />
+                        Open
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onClick={() => handleCopyFilePath(file.path)}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy path
+                      </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem
+                        onClick={() => handleDeleteFile(file.path, file.name)}
+                        disabled={deletingFile === file.path}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2 text-red-600" />
+                        {deletingFile === file.path ? 'Deleting...' : 'Delete'}
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                </li>
+              ))}
           </ul>
         )}
       </div>

@@ -15,6 +15,6 @@ export function useReadFile(filePath: string | null) {
         filePath: filePath!,
       }),
     enabled: !!filePath,
-    retry: 3,
+    retry: false,
   })
 }

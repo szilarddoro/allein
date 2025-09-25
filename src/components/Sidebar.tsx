@@ -10,6 +10,7 @@ import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { FileContent } from '@/lib/files/types'
 import { useToast } from '@/lib/useToast'
+import { useHotkeys } from 'react-hotkeys-hook'
 
 interface SidebarProps {
   onNewFile: () => Promise<FileContent>
@@ -20,7 +21,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
   const { files, isLoading, error } = useFileList()
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const currentFilePath = useCurrentFilePath()
+  const [currentFilePath] = useCurrentFilePath()
 
   async function handleCreateFile() {
     try {
@@ -30,6 +31,10 @@ export function Sidebar({ onNewFile }: SidebarProps) {
       toast.error('Failed to create file')
     }
   }
+
+  useHotkeys(['cmd+r', 'ctrl+r'], () => {
+    navigate('/')
+  })
 
   return (
     <div className="max-w-64 w-full h-full flex flex-col">

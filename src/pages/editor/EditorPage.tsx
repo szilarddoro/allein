@@ -1,7 +1,7 @@
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { Button } from '@/components/ui/button'
 import { P } from '@/components/ui/typography'
-import { getDisplayName, removeMdExtension } from '@/lib/files/fileUtils'
+import { removeMdExtension } from '@/lib/files/fileUtils'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useReadFile } from '@/lib/files/useReadFile'
 import { useRenameFile } from '@/lib/files/useRenameFile'
@@ -9,7 +9,13 @@ import { useWriteFile } from '@/lib/files/useWriteFile'
 import { validateFileName } from '@/lib/files/validation'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
-import { Eye, EyeOff, RefreshCw, TriangleAlert } from 'lucide-react'
+import {
+  CircleAlert,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  TriangleAlert,
+} from 'lucide-react'
 import * as monaco from 'monaco-editor'
 import React, { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -17,9 +23,9 @@ import { useOnClickOutside } from 'usehooks-ts'
 import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
 import { useFileList } from '@/lib/files/useFileList'
-import { useNavigate } from 'react-router'
 
 const AUTO_SAVE_DELAY = 2000
+const RENAME_DELAY = 250
 
 export function EditorPage() {
   const { toast } = useToast()
@@ -32,8 +38,7 @@ export function EditorPage() {
   const { files } = useFileList()
   const { mutateAsync: writeFile } = useWriteFile()
   const { mutateAsync: renameFile } = useRenameFile()
-  const currentFilePath = useCurrentFilePath()
-  const navigate = useNavigate()
+  const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const {
     data: currentFile,
     status: currentFileStatus,
@@ -58,7 +63,6 @@ export function EditorPage() {
   }, [currentFile])
 
   useEffect(() => {
-    console.log(currentFilePath)
     if (currentFilePath) {
       setFileName(removeMdExtension(currentFilePath.split('/').pop() || ''))
     }
@@ -128,7 +132,13 @@ export function EditorPage() {
 
     setFileName(inputValue)
 
-    if (files.some((file) => removeMdExtension(file.name) === inputValue)) {
+    if (
+      files.some(
+        (file) =>
+          removeMdExtension(file.name) === inputValue &&
+          file.path !== currentFile?.path,
+      )
+    ) {
       setFileNameValidationErrorType('duplicate')
       return
     }
@@ -152,12 +162,12 @@ export function EditorPage() {
             newName: inputValue,
           })
 
-          navigate(`/editor?file=${newName}`)
+          updateCurrentFilePath(newName)
         } catch {
           toast.error('Failed to rename file')
         }
       }
-    }, 500)
+    }, RENAME_DELAY)
   }
 
   if (currentFileStatus === 'pending') {
@@ -171,8 +181,9 @@ export function EditorPage() {
   if (currentFileError) {
     return (
       <div className="h-full flex flex-col gap-2 items-center justify-center">
-        <P className="text-red-600 text-sm">
-          Failed to load file. Please try again.
+        <P className="flex flex-row gap-1 items-center text-red-600 text-sm">
+          <CircleAlert className="w-4 h-4" />
+          Failed to load file. It might have been moved or deleted.
         </P>
         <Button
           variant="outline"
@@ -180,7 +191,7 @@ export function EditorPage() {
           onClick={() => refetchCurrentFile()}
         >
           <RefreshCw className="w-4 h-4" />
-          Retry
+          Reload file
         </Button>
       </div>
     )

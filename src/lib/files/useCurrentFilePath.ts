@@ -1,7 +1,12 @@
-import { useLocation } from 'react-router'
+import { useSearchParams } from 'react-router'
 
 export function useCurrentFilePath() {
-  const { search } = useLocation()
-  const searchParams = new URLSearchParams(search)
-  return searchParams.get('file') || ''
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  function updateCurrentFilePath(filePath: string) {
+    searchParams.set('file', filePath)
+    setSearchParams(searchParams)
+  }
+
+  return [searchParams.get('file') || '', updateCurrentFilePath] as const
 }

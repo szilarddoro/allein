@@ -19,6 +19,32 @@ export function useRenameFile() {
       const fullFileName = ensureMdExtension(newName)
       return invoke<string>('rename_file', { oldPath, newName: fullFileName })
     },
+    onMutate: async ({ oldPath, newName }) => {
+      // Cancel outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({
+        queryKey: READ_FILE_QUERY_KEY(oldPath),
+      })
+
+      // Snapshot the previous value
+      const previousFile = queryClient.getQueryData(
+        READ_FILE_QUERY_KEY(oldPath),
+      )
+
+      // Optimistically update the file path
+      const newPath = oldPath.replace(/[^/]+$/, ensureMdExtension(newName))
+      queryClient.setQueryData(READ_FILE_QUERY_KEY(newPath), previousFile)
+
+      return { previousFile, newPath }
+    },
+    onError: (_err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousFile) {
+        queryClient.setQueryData(
+          READ_FILE_QUERY_KEY(variables.oldPath),
+          context.previousFile,
+        )
+      }
+    },
     onSuccess: (newPath) => {
       queryClient.invalidateQueries({ queryKey: FILES_QUERY_KEY() })
       queryClient.invalidateQueries({ queryKey: READ_FILE_QUERY_KEY(newPath) })

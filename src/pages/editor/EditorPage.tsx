@@ -1,21 +1,23 @@
-import React, { useRef, useState, useEffect } from 'react'
-import { TextEditor } from './TextEditor'
-import MarkdownPreview from './MarkdownPreview'
-import { cn } from '@/lib/utils'
-import { useHotkeys } from 'react-hotkeys-hook'
-import * as monaco from 'monaco-editor'
-import { useDebounceCallback, useOnClickOutside } from 'usehooks-ts'
-import { Button } from '@/components/ui/button'
-import { Eye, EyeOff, RefreshCw } from 'lucide-react'
-import { useToast } from '@/lib/useToast'
-import { sanitizeFileName } from '@/lib/files/validation'
-import { useWriteFile } from '@/lib/files/useWriteFile'
-import { useRenameFile } from '@/lib/files/useRenameFile'
-import { useReadFile } from '@/lib/files/useReadFile'
-import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
-import { removeMdExtension } from '@/lib/files/fileUtils'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { Button } from '@/components/ui/button'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { P } from '@/components/ui/typography'
+import { removeMdExtension } from '@/lib/files/fileUtils'
+import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
+import { useReadFile } from '@/lib/files/useReadFile'
+import { useRenameFile } from '@/lib/files/useRenameFile'
+import { useWriteFile } from '@/lib/files/useWriteFile'
+import { validateFileName } from '@/lib/files/validation'
+import { useToast } from '@/lib/useToast'
+import { cn } from '@/lib/utils'
+import { Eye, EyeOff, RefreshCw } from 'lucide-react'
+import * as monaco from 'monaco-editor'
+import React, { useEffect, useRef, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
+import { useOnClickOutside } from 'usehooks-ts'
+import MarkdownPreview from './MarkdownPreview'
+import { TextEditor } from './TextEditor'
+import { useFileList } from '@/lib/files/useFileList'
 
 const AUTO_SAVE_DELAY = 2000
 
@@ -26,13 +28,12 @@ export function EditorPage() {
   const [showPreview, setShowPreview] = useState(false)
   const [markdownContent, setMarkdownContent] = useState('')
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const debouncedRenameRef = useRef<ReturnType<
-    typeof useDebounceCallback<typeof handleRename>
-  > | null>(null)
 
+  const { files } = useFileList()
   const { mutateAsync: writeFile } = useWriteFile()
   const { mutateAsync: renameFile } = useRenameFile()
   const currentFilePath = useCurrentFilePath()
+  console.log(currentFilePath)
   const {
     data: currentFile,
     status: currentFileStatus,
@@ -42,6 +43,10 @@ export function EditorPage() {
   const [fileName, setFileName] = useState(
     removeMdExtension(currentFilePath.split('/').pop() || ''),
   )
+  const [fileNameValidationErrorType, setFileNameValidationErrorType] =
+    useState<'invalid' | 'duplicate' | 'none'>('none')
+  const fileNameInputRef = useRef<HTMLInputElement>(null)
+  const renameTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Sync content when current file changes
   useEffect(() => {
@@ -62,7 +67,7 @@ export function EditorPage() {
   const handleEditorChange = (content: string) => {
     setMarkdownContent(content)
 
-    // TODO: Replace this with a debounced function
+    // TODO: Write the file immediately when navigating to a new file
     if (currentFile) {
       // Clear existing timeout
       if (saveTimeoutRef.current) {
@@ -110,30 +115,46 @@ export function EditorPage() {
     }
   })
 
-  async function handleRename(newName: string) {
-    if (!currentFile) {
+  async function handleFileNameChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const inputValue = event.target.value
+    const { isValid } = validateFileName(inputValue)
+
+    setFileName(inputValue)
+
+    if (files.some((file) => file.name === inputValue)) {
+      setFileNameValidationErrorType('duplicate')
       return
     }
 
-    try {
-      await renameFile({ oldPath: currentFile.path, newName })
-    } catch {
-      toast.error('Failed to rename file')
+    if (!isValid && inputValue.length > 0) {
+      setFileNameValidationErrorType('invalid')
+      return
     }
-  }
 
-  const debouncedHandleRename = useDebounceCallback(handleRename, 500)
+    setFileNameValidationErrorType('none')
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { sanitized: sanitizedFileName } = sanitizeFileName(
-      event.target.value,
-    )
+    if (renameTimeoutRef.current) {
+      clearTimeout(renameTimeoutRef.current)
+    }
 
-    setFileName(sanitizedFileName)
+    renameTimeoutRef.current = setTimeout(async () => {
+      if (inputValue.length > 0) {
+        if (!currentFile) {
+          return
+        }
 
-    debouncedRenameRef.current?.cancel()
-    debouncedRenameRef.current = debouncedHandleRename
-    debouncedRenameRef.current?.(sanitizedFileName)
+        try {
+          const newName = await renameFile({
+            oldPath: currentFile.path,
+            newName: inputValue,
+          })
+        } catch {
+          toast.error('Failed to rename file')
+        }
+      }
+    }, 500)
   }
 
   if (currentFileStatus === 'pending') {
@@ -186,15 +207,32 @@ export function EditorPage() {
             File name
           </label>
 
-          <input
-            id="file-name"
-            value={fileName}
-            onChange={handleFileChange}
-            className="w-full focus:outline-none"
-            maxLength={255}
-            spellCheck={false}
-            autoCorrect="off"
-          />
+          <Popover open={fileNameValidationErrorType !== 'none'}>
+            <PopoverAnchor>
+              <input
+                ref={fileNameInputRef}
+                id="file-name"
+                defaultValue={fileName}
+                onChange={handleFileNameChange}
+                className="w-full focus:outline-none"
+                maxLength={255}
+                spellCheck={false}
+                autoCorrect="off"
+                aria-invalid={fileNameValidationErrorType !== 'none'}
+                aria-describedby="file-name-error"
+              />
+            </PopoverAnchor>
+
+            <PopoverContent
+              id="file-name-error"
+              align="start"
+              className="border-red-300 bg-red-100 text-sm py-1 px-2"
+            >
+              {fileNameValidationErrorType === 'invalid'
+                ? 'File name is invalid.'
+                : 'File name is already taken.'}
+            </PopoverContent>
+          </Popover>
         </div>
 
         <Button

@@ -6,13 +6,16 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import * as monaco from 'monaco-editor'
 import { useDebounceCallback, useOnClickOutside } from 'usehooks-ts'
 import { Button } from '@/components/ui/button'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, RefreshCw } from 'lucide-react'
 import { useToast } from '@/lib/useToast'
 import { sanitizeFileName } from '@/lib/files/validation'
 import { useWriteFile } from '@/lib/files/useWriteFile'
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import { useReadFile } from '@/lib/files/useReadFile'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
+import { removeMdExtension } from '@/lib/files/fileUtils'
+import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { P } from '@/components/ui/typography'
 
 const AUTO_SAVE_DELAY = 2000
 
@@ -30,9 +33,14 @@ export function EditorPage() {
   const { mutateAsync: writeFile } = useWriteFile()
   const { mutateAsync: renameFile } = useRenameFile()
   const currentFilePath = useCurrentFilePath()
-  const { data: currentFile } = useReadFile(currentFilePath)
+  const {
+    data: currentFile,
+    status: currentFileStatus,
+    error: currentFileError,
+    refetch: refetchCurrentFile,
+  } = useReadFile(currentFilePath)
   const [fileName, setFileName] = useState(
-    currentFilePath.split('/').pop() || '',
+    removeMdExtension(currentFilePath.split('/').pop() || ''),
   )
 
   // Sync content when current file changes
@@ -46,7 +54,7 @@ export function EditorPage() {
 
   useEffect(() => {
     if (currentFilePath) {
-      setFileName(currentFilePath.split('/').pop() || '')
+      setFileName(removeMdExtension(currentFilePath.split('/').pop() || ''))
     }
   }, [currentFilePath])
 
@@ -126,6 +134,32 @@ export function EditorPage() {
     debouncedRenameRef.current?.cancel()
     debouncedRenameRef.current = debouncedHandleRename
     debouncedRenameRef.current?.(sanitizedFileName)
+  }
+
+  if (currentFileStatus === 'pending') {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <ActivityIndicator>Loading file...</ActivityIndicator>
+      </div>
+    )
+  }
+
+  if (currentFileError) {
+    return (
+      <div className="h-full flex flex-col gap-2 items-center justify-center">
+        <P className="text-red-600 text-sm">
+          Failed to load file. Please try again.
+        </P>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetchCurrentFile()}
+        >
+          <RefreshCw className="w-4 h-4" />
+          Retry
+        </Button>
+      </div>
+    )
   }
 
   // Show empty state when no file is selected

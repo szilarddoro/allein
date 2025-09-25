@@ -2,20 +2,34 @@ import { Button } from '@/components/ui/button'
 import { Home, NotebookPen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
-import { Link, useLocation } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { H2, P } from '@/components/ui/typography'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { useFileList } from '@/lib/files/useFileList'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
+import { getDisplayName } from '@/lib/files/fileUtils'
+import { FileContent } from '@/lib/files/types'
+import { useToast } from '@/lib/useToast'
 
 interface SidebarProps {
-  onNewFile: () => void
+  onNewFile: () => Promise<FileContent>
 }
 
 export function Sidebar({ onNewFile }: SidebarProps) {
+  const { toast } = useToast()
   const { files, isLoading, error } = useFileList()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const currentFilePath = useCurrentFilePath()
+
+  async function handleCreateFile() {
+    try {
+      const { path } = await onNewFile()
+      navigate(`/editor?file=${path}`)
+    } catch {
+      toast.error('Failed to create file')
+    }
+  }
 
   return (
     <div className="max-w-64 w-full h-full flex flex-col">
@@ -34,7 +48,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
         </Button>
 
         <Button
-          onClick={onNewFile}
+          onClick={handleCreateFile}
           disabled={isLoading}
           className="w-full justify-start gap-2 text-left"
           variant="ghost"
@@ -87,10 +101,12 @@ export function Sidebar({ onNewFile }: SidebarProps) {
                       aria-hidden="true"
                       className="flex-1 text-sm truncate"
                     >
-                      {file.name}
+                      {getDisplayName(file.name)}
                     </span>
 
-                    <span className="sr-only">Open file {file.name}</span>
+                    <span className="sr-only">
+                      Open file {getDisplayName(file.name)}
+                    </span>
                   </Link>
                 </Button>
               </li>

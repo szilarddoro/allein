@@ -80,7 +80,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="p-6 pb-32 flex-1">
+    <div className="p-6 pb-32 flex-1 select-none">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col items-start gap-4">
           <Link

@@ -109,8 +109,8 @@ export function Sidebar({ onNewFile }: SidebarProps) {
       </div>
 
       {/* Files List */}
-      <div className="flex-1 overflow-y-auto py-4 px-2 flex flex-col gap-2">
-        <H2 className="text-sm font-medium text-muted-foreground px-3">
+      <div className="flex-1 overflow-y-auto pt-4 pb-12 px-2 flex flex-col gap-2">
+        <H2 className="text-sm font-medium text-muted-foreground px-3 select-none">
           Files
         </H2>
 

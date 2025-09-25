@@ -1,8 +1,7 @@
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { Button } from '@/components/ui/button'
-import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { P } from '@/components/ui/typography'
-import { removeMdExtension } from '@/lib/files/fileUtils'
+import { getDisplayName, removeMdExtension } from '@/lib/files/fileUtils'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useReadFile } from '@/lib/files/useReadFile'
 import { useRenameFile } from '@/lib/files/useRenameFile'
@@ -18,6 +17,7 @@ import { useOnClickOutside } from 'usehooks-ts'
 import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
 import { useFileList } from '@/lib/files/useFileList'
+import { useNavigate } from 'react-router'
 
 const AUTO_SAVE_DELAY = 2000
 
@@ -33,7 +33,7 @@ export function EditorPage() {
   const { mutateAsync: writeFile } = useWriteFile()
   const { mutateAsync: renameFile } = useRenameFile()
   const currentFilePath = useCurrentFilePath()
-  console.log(currentFilePath)
+  const navigate = useNavigate()
   const {
     data: currentFile,
     status: currentFileStatus,
@@ -121,9 +121,15 @@ export function EditorPage() {
     const inputValue = event.target.value
     const { isValid } = validateFileName(inputValue)
 
+    if (renameTimeoutRef.current) {
+      clearTimeout(renameTimeoutRef.current)
+    }
+
     setFileName(inputValue)
 
-    if (files.some((file) => file.name === inputValue)) {
+    console.log(files)
+
+    if (files.some((file) => getDisplayName(file.name) === inputValue)) {
       setFileNameValidationErrorType('duplicate')
       return
     }
@@ -134,10 +140,6 @@ export function EditorPage() {
     }
 
     setFileNameValidationErrorType('none')
-
-    if (renameTimeoutRef.current) {
-      clearTimeout(renameTimeoutRef.current)
-    }
 
     renameTimeoutRef.current = setTimeout(async () => {
       if (inputValue.length > 0) {
@@ -150,6 +152,8 @@ export function EditorPage() {
             oldPath: currentFile.path,
             newName: inputValue,
           })
+
+          navigate(`/editor?file=${newName}`)
         } catch {
           toast.error('Failed to rename file')
         }
@@ -202,37 +206,34 @@ export function EditorPage() {
   return (
     <div className="h-full flex flex-col gap-1 overflow-hidden">
       <div className="flex items-center justify-between gap-2 pl-4 pr-6 py-1 grow-0 shrink-0">
-        <div className="flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto">
+        <div className="relative flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto">
           <label className="sr-only" htmlFor="file-name">
             File name
           </label>
 
-          <Popover open={fileNameValidationErrorType !== 'none'}>
-            <PopoverAnchor>
-              <input
-                ref={fileNameInputRef}
-                id="file-name"
-                defaultValue={fileName}
-                onChange={handleFileNameChange}
-                className="w-full focus:outline-none"
-                maxLength={255}
-                spellCheck={false}
-                autoCorrect="off"
-                aria-invalid={fileNameValidationErrorType !== 'none'}
-                aria-describedby="file-name-error"
-              />
-            </PopoverAnchor>
+          <input
+            ref={fileNameInputRef}
+            id="file-name"
+            defaultValue={fileName}
+            onChange={handleFileNameChange}
+            className="w-full focus:outline-none"
+            maxLength={255}
+            spellCheck={false}
+            autoCorrect="off"
+            aria-invalid={fileNameValidationErrorType !== 'none'}
+            aria-describedby="file-name-error"
+          />
 
-            <PopoverContent
+          {fileNameValidationErrorType !== 'none' && (
+            <div
               id="file-name-error"
-              align="start"
-              className="border-red-300 bg-red-100 text-sm py-1 px-2"
+              className="absolute -bottom-1 left-0 translate-y-full rounded-sm border border-red-300 bg-red-100 text-xs py-1 px-2 text-red-700 font-normal z-1000"
             >
               {fileNameValidationErrorType === 'invalid'
                 ? 'File name is invalid.'
                 : 'File name is already taken.'}
-            </PopoverContent>
-          </Popover>
+            </div>
+          )}
         </div>
 
         <Button

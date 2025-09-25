@@ -5,7 +5,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router'
 import { AppLayout } from '@/components/AppLayout'
 import { EditorPage } from '@/pages/editor/EditorPage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
-import { QueryProvider } from '@/lib/queryClient'
+import { QueryProvider } from '@/lib/QueryProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { BrowserPage } from '@/pages/browser/BrowserPage'
 

@@ -1,35 +1,39 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router'
 import { TextEditor } from './TextEditor'
 import MarkdownPreview from './MarkdownPreview'
 import { cn } from '@/lib/utils'
 import { useHotkeys } from 'react-hotkeys-hook'
 import * as monaco from 'monaco-editor'
-import { useOnClickOutside } from 'usehooks-ts'
-import { FileContent } from '@/lib/files/types'
+import { useDebounceCallback, useOnClickOutside } from 'usehooks-ts'
+import { Button } from '@/components/ui/button'
+import { Eye, EyeOff } from 'lucide-react'
+import { useToast } from '@/lib/useToast'
+import { sanitizeFileName } from '@/lib/files/validation'
+import { useWriteFile } from '@/lib/files/useWriteFile'
+import { useRenameFile } from '@/lib/files/useRenameFile'
+import { useReadFile } from '@/lib/files/useReadFile'
+import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 
-interface OutletContext {
-  showPreview: boolean
-  setShowPreview: (showPreview: boolean) => void
-  previewButtonRef: React.RefObject<HTMLButtonElement>
-  currentFile: FileContent | null
-  writeFile: (filePath: string, content: string) => Promise<void>
-  setCurrentFile: (file: FileContent | null) => void
-}
+const AUTO_SAVE_DELAY = 2000
 
 export function EditorPage() {
+  const { toast } = useToast()
   const editorRef = useRef<HTMLDivElement>(null)
-  const {
-    showPreview,
-    setShowPreview,
-    previewButtonRef,
-    currentFile,
-    writeFile,
-  } = useOutletContext<OutletContext>()
-
+  const previewButtonRef = useRef<HTMLButtonElement>(null)
+  const [showPreview, setShowPreview] = useState(false)
   const [markdownContent, setMarkdownContent] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const debouncedRenameRef = useRef<ReturnType<
+    typeof useDebounceCallback<typeof handleRename>
+  > | null>(null)
+
+  const { mutateAsync: writeFile } = useWriteFile()
+  const { mutateAsync: renameFile } = useRenameFile()
+  const currentFilePath = useCurrentFilePath()
+  const { data: currentFile } = useReadFile(currentFilePath)
+  const [fileName, setFileName] = useState(
+    currentFilePath.split('/').pop() || '',
+  )
 
   // Sync content when current file changes
   useEffect(() => {
@@ -40,10 +44,17 @@ export function EditorPage() {
     }
   }, [currentFile])
 
+  useEffect(() => {
+    if (currentFilePath) {
+      setFileName(currentFilePath.split('/').pop() || '')
+    }
+  }, [currentFilePath])
+
   // Auto-save functionality
   const handleEditorChange = (content: string) => {
     setMarkdownContent(content)
 
+    // TODO: Replace this with a debounced function
     if (currentFile) {
       // Clear existing timeout
       if (saveTimeoutRef.current) {
@@ -53,14 +64,11 @@ export function EditorPage() {
       // Set new timeout for auto-save
       saveTimeoutRef.current = setTimeout(async () => {
         try {
-          setIsSaving(true)
-          await writeFile(currentFile.path, content)
+          await writeFile({ filePath: currentFile.path, content })
         } catch {
-          // Handle save error silently for now
-        } finally {
-          setIsSaving(false)
+          toast.error('Failed to save file')
         }
-      }, 2000) // 2 second debounce
+      }, AUTO_SAVE_DELAY)
     }
   }
 
@@ -69,9 +77,7 @@ export function EditorPage() {
     () => {
       setShowPreview(!showPreview)
     },
-    {
-      preventDefault: true,
-    },
+    { preventDefault: true },
   )
 
   const handleKeyDown = (event: monaco.IKeyboardEvent) => {
@@ -96,6 +102,32 @@ export function EditorPage() {
     }
   })
 
+  async function handleRename(newName: string) {
+    if (!currentFile) {
+      return
+    }
+
+    try {
+      await renameFile({ oldPath: currentFile.path, newName })
+    } catch {
+      toast.error('Failed to rename file')
+    }
+  }
+
+  const debouncedHandleRename = useDebounceCallback(handleRename, 500)
+
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { sanitized: sanitizedFileName } = sanitizeFileName(
+      event.target.value,
+    )
+
+    setFileName(sanitizedFileName)
+
+    debouncedRenameRef.current?.cancel()
+    debouncedRenameRef.current = debouncedHandleRename
+    debouncedRenameRef.current?.(sanitizedFileName)
+  }
+
   // Show empty state when no file is selected
   if (!currentFile) {
     return (
@@ -113,30 +145,68 @@ export function EditorPage() {
   }
 
   return (
-    <div className="h-full flex overflow-hidden">
-      <div
-        ref={editorRef}
-        className={cn('w-full pl-4 pr-4 pb-4', showPreview && 'w-1/2 pr-2')}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600">
-            {currentFile.path.split('/').pop()}
-            {isSaving && <span className="ml-2 text-blue-500">Saving...</span>}
-          </span>
+    <div className="h-full flex flex-col gap-1 overflow-hidden">
+      <div className="flex items-center justify-between gap-2 pl-4 pr-6 py-1 grow-0 shrink-0">
+        <div className="flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto">
+          <label className="sr-only" htmlFor="file-name">
+            File name
+          </label>
+
+          <input
+            id="file-name"
+            value={fileName}
+            onChange={handleFileChange}
+            className="w-full focus:outline-none"
+            maxLength={255}
+            spellCheck={false}
+            autoCorrect="off"
+          />
         </div>
-        <TextEditor
-          value={markdownContent}
-          onChange={handleEditorChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Start writing your markdown..."
-        />
+
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => {
+            setShowPreview(!showPreview)
+          }}
+          ref={previewButtonRef}
+        >
+          <span className="sr-only">
+            {showPreview
+              ? 'Preview visible. Click to hide.'
+              : 'Preview hidden. Click to show.'}
+          </span>
+
+          {showPreview ? (
+            <EyeOff className="w-4 h-4" />
+          ) : (
+            <Eye className="w-4 h-4" />
+          )}
+        </Button>
       </div>
 
-      {showPreview && (
-        <div className="w-1/2 pl-2 pr-4 pb-4">
-          <MarkdownPreview content={markdownContent} />
+      <div className="w-full flex flex-auto min-h-0">
+        <div
+          ref={editorRef}
+          className={cn(
+            'w-full h-full pl-2 pr-4 pb-4',
+            showPreview && 'w-1/2 pr-2',
+          )}
+        >
+          <TextEditor
+            value={markdownContent}
+            onChange={handleEditorChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Start writing your markdown..."
+          />
         </div>
-      )}
+
+        {showPreview && (
+          <div className="w-1/2 pl-2 pr-4 pb-4">
+            <MarkdownPreview content={markdownContent} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

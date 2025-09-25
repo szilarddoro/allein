@@ -1,31 +1,18 @@
-import { useRef, useState } from 'react'
-import { Link, Outlet, useLocation } from 'react-router'
+import { useState } from 'react'
+import { Link, Outlet } from 'react-router'
 import { Button } from '@/components/ui/button'
-import { Eye, EyeOff, Cog, PanelLeft } from 'lucide-react'
+import { Cog, PanelLeft } from 'lucide-react'
 import { IS_TAURI } from '@/lib/constants'
 import { Sidebar } from '@/components/Sidebar'
-import { useFiles } from '@/lib/files/useFiles'
+import { useCreateFile } from '@/lib/files/useCreateFile'
 
 export function AppLayout() {
-  const previewButtonRef = useRef<HTMLButtonElement>(null)
-  const [showPreview, setShowPreview] = useState(true)
   const [showSidebar, setShowSidebar] = useState(true)
-  const { pathname } = useLocation()
-  const isEditorPage = pathname === '/editor'
-
-  // File management
-  const {
-    files,
-    currentFile,
-    isLoading,
-    createFile,
-    writeFile,
-    setCurrentFile,
-  } = useFiles()
+  const { mutateAsync: createFile } = useCreateFile()
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-slate-50 overflow-hidden">
-      <header className="relative px-4 py-3 flex justify-between items-center">
+      <header className="relative pl-4 pr-6 py-3 flex justify-between items-center">
         {IS_TAURI() && (
           <div
             className="absolute left-0 top-0 size-full z-10"
@@ -49,28 +36,6 @@ export function AppLayout() {
         </div>
 
         <div className="flex items-center gap-2 relative z-20">
-          {isEditorPage && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                setShowPreview(!showPreview)
-              }}
-              ref={previewButtonRef}
-            >
-              <span className="sr-only">
-                {showPreview
-                  ? 'Preview visible. Click to hide.'
-                  : 'Preview hidden. Click to show.'}
-              </span>
-              {showPreview ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
-            </Button>
-          )}
-
           <Button variant="outline" size="icon" asChild>
             <Link to="/settings" className="cursor-default">
               <span className="sr-only">Open settings</span>
@@ -81,25 +46,10 @@ export function AppLayout() {
       </header>
 
       <main className="flex-auto overflow-hidden flex">
-        {showSidebar && (
-          <Sidebar
-            files={files}
-            currentFilePath={currentFile?.path}
-            onNewFile={createFile}
-            isLoading={isLoading}
-          />
-        )}
+        {showSidebar && <Sidebar onNewFile={createFile} />}
+
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Outlet
-            context={{
-              showPreview,
-              setShowPreview,
-              previewButtonRef,
-              currentFile,
-              writeFile,
-              setCurrentFile,
-            }}
-          />
+          <Outlet />
         </div>
       </main>
     </div>

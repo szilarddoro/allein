@@ -1,26 +1,21 @@
 import { Button } from '@/components/ui/button'
-import { FileInfo } from '@/lib/files/types'
-import { FileText, Home, NotebookPen } from 'lucide-react'
+import { Home, NotebookPen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { Link, useLocation } from 'react-router'
 import { H2, P } from '@/components/ui/typography'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { useFileList } from '@/lib/files/useFileList'
+import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 
 interface SidebarProps {
-  files: FileInfo[]
-  currentFilePath?: string
   onNewFile: () => void
-  isLoading?: boolean
 }
 
-export function Sidebar({
-  files,
-  currentFilePath,
-  onNewFile,
-  isLoading = false,
-}: SidebarProps) {
+export function Sidebar({ onNewFile }: SidebarProps) {
+  const { files, isLoading, error } = useFileList()
   const { pathname } = useLocation()
+  const currentFilePath = useCurrentFilePath()
 
   return (
     <div className="max-w-64 w-full h-full flex flex-col">
@@ -65,6 +60,10 @@ export function Sidebar({
           <ActivityIndicator className="self-center">
             Loading files...
           </ActivityIndicator>
+        ) : error ? (
+          <P className="text-xs text-muted-foreground px-2 text-center mt-2">
+            {error}
+          </P>
         ) : files.length === 0 ? (
           <P className="text-xs text-muted-foreground px-2 text-center mt-2">
             No files were found.
@@ -78,14 +77,12 @@ export function Sidebar({
                     to={`/editor?file=${file.path}`}
                     aria-current={currentFilePath === file.path}
                     className={cn(
-                      'group flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors',
+                      'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
                       currentFilePath === file.path
-                        ? 'bg-gray-200'
-                        : 'hover:bg-sidebar-accent/50 text-sidebar-foreground',
+                        ? 'bg-gray-100 hover:bg-gray-200/70'
+                        : 'hover:bg-gray-100',
                     )}
                   >
-                    <FileText className="w-4 h-4 flex-shrink-0" />
-
                     <span
                       aria-hidden="true"
                       className="flex-1 text-sm truncate"

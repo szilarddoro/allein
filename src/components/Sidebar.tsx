@@ -79,7 +79,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
                     className={cn(
                       'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
                       currentFilePath === file.path
-                        ? 'bg-gray-100 hover:bg-gray-200/70'
+                        ? 'bg-gray-200/60 hover:bg-gray-200/80'
                         : 'hover:bg-gray-100',
                     )}
                   >

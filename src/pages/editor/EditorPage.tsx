@@ -9,7 +9,7 @@ import { useWriteFile } from '@/lib/files/useWriteFile'
 import { validateFileName } from '@/lib/files/validation'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
-import { Eye, EyeOff, RefreshCw } from 'lucide-react'
+import { Eye, EyeOff, RefreshCw, TriangleAlert } from 'lucide-react'
 import * as monaco from 'monaco-editor'
 import React, { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -58,6 +58,7 @@ export function EditorPage() {
   }, [currentFile])
 
   useEffect(() => {
+    console.log(currentFilePath)
     if (currentFilePath) {
       setFileName(removeMdExtension(currentFilePath.split('/').pop() || ''))
     }
@@ -127,9 +128,7 @@ export function EditorPage() {
 
     setFileName(inputValue)
 
-    console.log(files)
-
-    if (files.some((file) => getDisplayName(file.name) === inputValue)) {
+    if (files.some((file) => removeMdExtension(file.name) === inputValue)) {
       setFileNameValidationErrorType('duplicate')
       return
     }
@@ -214,7 +213,7 @@ export function EditorPage() {
           <input
             ref={fileNameInputRef}
             id="file-name"
-            defaultValue={fileName}
+            value={fileName}
             onChange={handleFileNameChange}
             className="w-full focus:outline-none"
             maxLength={255}
@@ -227,8 +226,9 @@ export function EditorPage() {
           {fileNameValidationErrorType !== 'none' && (
             <div
               id="file-name-error"
-              className="absolute -bottom-1 left-0 translate-y-full rounded-sm border border-red-300 bg-red-100 text-xs py-1 px-2 text-red-700 font-normal z-1000"
+              className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 text-xs py-1 px-2 text-yellow-700 font-normal z-1000"
             >
+              <TriangleAlert className="w-3 h-3" />
               {fileNameValidationErrorType === 'invalid'
                 ? 'File name is invalid.'
                 : 'File name is already taken.'}

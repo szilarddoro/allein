@@ -7,6 +7,7 @@ import { EditorPage } from '@/pages/editor/EditorPage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
 import { QueryProvider } from '@/lib/queryClient'
 import { Toaster } from '@/components/ui/sonner'
+import { BrowserPage } from '@/pages/browser/BrowserPage'
 
 const router = createBrowserRouter([
   {
@@ -15,6 +16,10 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        element: <BrowserPage />,
+      },
+      {
+        path: 'editor',
         element: <EditorPage />,
       },
       {

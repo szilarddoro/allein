@@ -1,4 +1,3 @@
-import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { Button } from '@/components/ui/button'
 import { P } from '@/components/ui/typography'
 import { removeMdExtension } from '@/lib/files/fileUtils'
@@ -194,14 +193,6 @@ export function EditorPage() {
     setFileNameValidationErrorType('none')
   }
 
-  if (currentFileStatus === 'pending') {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <ActivityIndicator>Loading file...</ActivityIndicator>
-      </div>
-    )
-  }
-
   if (currentFileError) {
     return (
       <div className="h-full flex flex-col gap-2 items-center justify-center">
@@ -222,7 +213,7 @@ export function EditorPage() {
   }
 
   // Show empty state when no file is selected
-  if (!currentFile) {
+  if (!currentFilePath) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center">
@@ -328,6 +319,9 @@ export function EditorPage() {
             value={markdownContent}
             onChange={handleEditorChange}
             onKeyDown={handleKeyDown}
+            placeholder={
+              currentFileStatus === 'pending' ? '' : 'Start writing...'
+            }
           />
         </div>
 

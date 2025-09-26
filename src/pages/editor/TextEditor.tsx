@@ -13,10 +13,7 @@ export interface TextEditorProps {
 }
 
 export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
-  (
-    { value = '', onChange, placeholder = 'Start writing...', onKeyDown },
-    ref,
-  ) => {
+  ({ value = '', onChange, placeholder, onKeyDown }, ref) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
     // Enable inline completion for the Monaco Editor

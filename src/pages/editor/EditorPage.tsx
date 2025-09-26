@@ -215,10 +215,10 @@ export function EditorPage() {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-600 mb-2">
+          <h2 className="text-2xl font-semibold text-zinc-600 mb-2">
             No file selected
           </h2>
-          <p className="text-gray-500 mb-4">
+          <p className="text-zinc-500 mb-4">
             Create a new file or select an existing one from the sidebar
           </p>
         </div>
@@ -256,7 +256,7 @@ export function EditorPage() {
               {fileNameValidationErrorType !== 'none' && (
                 <div
                   id="file-name-error"
-                  className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 text-xs py-1 px-2 text-yellow-700 font-normal z-1000"
+                  className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-600 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-300 font-normal z-1000"
                 >
                   <TriangleAlert className="w-3 h-3" />
                   {fileNameValidationErrorType === 'invalid'

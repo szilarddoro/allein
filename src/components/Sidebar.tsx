@@ -82,7 +82,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
           <Link
             to="/"
             draggable={false}
-            className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-gray-200/40"
+            className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40"
             aria-current={pathname === '/'}
           >
             <Home className="w-4 h-4" />
@@ -94,7 +94,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
         <Button
           onClick={handleCreateFile}
           disabled={isLoading}
-          className="w-full justify-start gap-2 text-left hover:bg-gray-200/40"
+          className="w-full justify-start gap-2 text-left hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40"
           variant="ghost"
           size="sm"
         >
@@ -151,8 +151,8 @@ export function Sidebar({ onNewFile }: SidebarProps) {
                           className={cn(
                             'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
                             currentFilePath === file.path
-                              ? 'bg-gray-200/60 hover:bg-gray-200/90'
-                              : 'hover:bg-gray-200/40',
+                              ? 'bg-zinc-200/60 hover:bg-zinc-200/90 dark:bg-zinc-700/60 dark:hover:bg-zinc-700/90'
+                              : 'hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40',
                             deletingFile === file.path && 'opacity-50',
                           )}
                         >

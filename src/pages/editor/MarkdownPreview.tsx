@@ -17,7 +17,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
   return (
     <div className="flex flex-col h-full">
       <Card className="flex-1 overflow-auto p-4">
-        <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-gray-800 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:text-gray-600 [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_li_ul]:ml-4 [&_li_ol]:ml-4">
+        <div className="prose prose-sm max-w-none prose-headings:text-zinc-900 prose-p:text-zinc-700 prose-strong:text-zinc-900 prose-code:text-zinc-800 prose-code:bg-zinc-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-zinc-50 prose-pre:border prose-pre:border-zinc-200 prose-blockquote:border-l-4 prose-blockquote:border-zinc-300 prose-blockquote:text-zinc-600 [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_li_ul]:ml-4 [&_li_ol]:ml-4">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeHighlight]}
@@ -28,7 +28,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 </h1>
               ),
               h2: ({ children }) => (
-                <h2 className="scroll-m-20 border-b border-gray-200 pb-2 text-3xl/tight font-semibold mb-2">
+                <h2 className="scroll-m-20 border-b border-zinc-200 pb-2 text-3xl/tight font-semibold mb-2">
                   {children}
                 </h2>
               ),
@@ -46,7 +46,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 <p className="leading-relaxed mb-4">{children}</p>
               ),
               code: ({ children }) => (
-                <code className="bg-gray-100 text-gray-700 text-sm/tight px-1 py-0.5 rounded">
+                <code className="bg-zinc-100 text-zinc-700 text-sm/tight px-1 py-0.5 rounded">
                   {children}
                 </code>
               ),
@@ -62,7 +62,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               ),
               li: ({ children }) => <li className="my-1">{children}</li>,
               blockquote: ({ children }) => (
-                <blockquote className="border-l-4 border-gray-300 pl-4 mb-4">
+                <blockquote className="border-l-4 border-zinc-300 pl-4 mb-4">
                   {children}
                 </blockquote>
               ),

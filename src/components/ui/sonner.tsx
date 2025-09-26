@@ -1,10 +1,13 @@
 import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react'
 import { Toaster as Sonner, ToasterProps } from 'sonner'
+import { useTheme } from 'next-themes'
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  const { theme } = useTheme()
+
   return (
     <Sonner
-      theme="light"
+      theme={theme as 'light' | 'dark' | 'system'}
       duration={3000}
       icons={{
         info: <Info aria-hidden="true" className="w-4 h-4 text-blue-700" />,

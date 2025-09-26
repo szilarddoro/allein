@@ -19,7 +19,7 @@ export function AppLayout() {
   const { isFullscreen } = useWindowState()
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-slate-50 overflow-hidden">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-900/70 overflow-hidden">
       <header
         className={cn(
           'relative pl-4 pr-2 py-2 flex justify-start items-center gap-0.5',

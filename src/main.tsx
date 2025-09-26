@@ -8,6 +8,7 @@ import { SettingsPage } from '@/pages/settings/SettingsPage'
 import { QueryProvider } from '@/lib/QueryProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { BrowserPage } from '@/pages/browser/BrowserPage'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 const router = createBrowserRouter([
   {
@@ -32,9 +33,16 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <QueryProvider>
-      <RouterProvider router={router} />
-      <Toaster />
-    </QueryProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <QueryProvider>
+        <RouterProvider router={router} />
+        <Toaster />
+      </QueryProvider>
+    </ThemeProvider>
   </React.StrictMode>,
 )

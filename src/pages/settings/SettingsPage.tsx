@@ -18,6 +18,8 @@ import { useConfig } from '@/lib/db/useConfig'
 import { useUpdateConfig } from '@/lib/db/useUpdateConfig'
 import { ModelListItem } from './ModelListItem'
 import { toast } from 'sonner'
+import { useTheme } from 'next-themes'
+import { Moon, Sun, Monitor } from 'lucide-react'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
@@ -26,6 +28,7 @@ export function SettingsPage() {
   const { mutate: updateConfig } = useUpdateConfig({
     onSuccess: refetchConfig,
   })
+  const { theme, setTheme } = useTheme()
 
   const ollamaUrl = config?.find((c) => c.key === 'ollama_url')?.value || null
 
@@ -201,6 +204,61 @@ export function SettingsPage() {
                     </P>
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section>
+          <Card>
+            <CardHeader className="gap-0">
+              <CardTitle>
+                <H2 className="text-xl">Appearance</H2>
+              </CardTitle>
+              <CardDescription>
+                <P className="!mt-0.5 text-muted-foreground text-sm">
+                  Customize the appearance of the application.
+                </P>
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Theme</Label>
+                  <P className="text-muted-foreground text-sm mb-3">
+                    Choose your preferred theme for the application.
+                  </P>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={theme === 'light' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('light')}
+                      className="flex items-center gap-2"
+                    >
+                      <Sun className="w-4 h-4" />
+                      Light
+                    </Button>
+                    <Button
+                      variant={theme === 'dark' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('dark')}
+                      className="flex items-center gap-2"
+                    >
+                      <Moon className="w-4 h-4" />
+                      Dark
+                    </Button>
+                    <Button
+                      variant={theme === 'system' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('system')}
+                      className="flex items-center gap-2"
+                    >
+                      <Monitor className="w-4 h-4" />
+                      System
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

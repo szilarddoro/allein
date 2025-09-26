@@ -109,12 +109,10 @@ export function EditorPage() {
       event.keyCode === monaco.KeyCode.KeyS
     ) {
       event.preventDefault()
+      toast.info('We are saving the file automatically.')
     }
 
-    if (
-      (event.ctrlKey || event.metaKey) &&
-      event.keyCode === monaco.KeyCode.Escape
-    ) {
+    if (event.ctrlKey && event.keyCode === monaco.KeyCode.Escape) {
       previewButtonRef.current?.focus()
     }
   }
@@ -270,6 +268,7 @@ export function EditorPage() {
           ) : (
             <Tooltip>
               <TooltipTrigger
+                asChild
                 className="cursor-default hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-opacity-50 rounded"
                 onClick={handleFileNameClick}
               >
@@ -279,32 +278,41 @@ export function EditorPage() {
               </TooltipTrigger>
 
               <TooltipContent align="center" side="right">
-                Click to edit file name.
+                Click to edit file name
               </TooltipContent>
             </Tooltip>
           )}
         </div>
 
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => {
-            setShowPreview(!showPreview)
-          }}
-          ref={previewButtonRef}
-        >
-          <span className="sr-only">
-            {showPreview
-              ? 'Preview visible. Click to hide.'
-              : 'Preview hidden. Click to show.'}
-          </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setShowPreview(!showPreview)
+              }}
+              ref={previewButtonRef}
+            >
+              {showPreview ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
 
-          {showPreview ? (
-            <EyeOff className="w-4 h-4" />
-          ) : (
-            <Eye className="w-4 h-4" />
-          )}
-        </Button>
+          <TooltipContent align="center" side="left">
+            <span className="sr-only">
+              {showPreview
+                ? 'Preview visible. Click to hide.'
+                : 'Preview hidden. Click to show.'}
+            </span>
+            <span aria-hidden="true">
+              {showPreview ? 'Hide preview' : 'Show preview'}
+            </span>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <div className="w-full flex flex-auto min-h-0">

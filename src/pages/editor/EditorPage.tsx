@@ -282,16 +282,13 @@ export function EditorPage() {
                 className="cursor-default hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-opacity-50 rounded"
                 onClick={handleFileNameClick}
               >
-                <button onClick={handleFileNameClick}>{fileName}</button>
+                <button onClick={handleFileNameClick} className="text-left">
+                  {fileName}
+                </button>
               </TooltipTrigger>
 
-              <TooltipContent align="start" side="bottom">
-                <span aria-hidden="true">
-                  Edit file name. Press the button to rename.
-                </span>
-                <span className="sr-only">
-                  Edit file name. {fileName}. Press the button to rename.
-                </span>
+              <TooltipContent align="center" side="right">
+                Click to edit file name.
               </TooltipContent>
             </Tooltip>
           )}

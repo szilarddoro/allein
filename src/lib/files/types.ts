@@ -8,4 +8,5 @@ export interface FileInfo {
 export interface FileContent {
   content: string
   path: string
+  name: string
 }

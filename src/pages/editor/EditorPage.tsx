@@ -23,9 +23,13 @@ import { useOnClickOutside } from 'usehooks-ts'
 import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
 import { useFileList } from '@/lib/files/useFileList'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 const AUTO_SAVE_DELAY = 2000
-const RENAME_DELAY = 250
 
 export function EditorPage() {
   const { toast } = useToast()
@@ -45,28 +49,30 @@ export function EditorPage() {
     error: currentFileError,
     refetch: refetchCurrentFile,
   } = useReadFile(currentFilePath)
-  const [fileName, setFileName] = useState(
-    removeMdExtension(currentFilePath.split('/').pop() || ''),
-  )
+  const [fileName, setFileName] = useState('')
   const [fileNameValidationErrorType, setFileNameValidationErrorType] =
     useState<'invalid' | 'duplicate' | 'none'>('none')
+  const [isEditingFileName, setIsEditingFileName] = useState(false)
   const fileNameInputRef = useRef<HTMLInputElement>(null)
-  const renameTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Sync content when current file changes
   useEffect(() => {
     if (currentFile) {
       setMarkdownContent(currentFile.content)
+      setFileName(removeMdExtension(currentFile.name))
     } else {
       setMarkdownContent('')
+      setFileName('')
     }
   }, [currentFile])
 
+  // Focus input when editing mode is enabled
   useEffect(() => {
-    if (currentFilePath) {
-      setFileName(removeMdExtension(currentFilePath.split('/').pop() || ''))
+    if (isEditingFileName && fileNameInputRef.current) {
+      fileNameInputRef.current.focus()
+      fileNameInputRef.current.select()
     }
-  }, [currentFilePath])
+  }, [isEditingFileName])
 
   // Auto-save functionality
   const handleEditorChange = (content: string) => {
@@ -120,17 +126,34 @@ export function EditorPage() {
     }
   })
 
-  async function handleFileNameChange(
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) {
-    const inputValue = event.target.value
+  function handleFileNameClick() {
+    setIsEditingFileName(true)
+    setFileNameValidationErrorType('none')
+  }
+
+  function handleFileNameKeyDown(event: React.KeyboardEvent) {
+    if (event.key === 'Enter') {
+      handleFileNameBlur()
+    } else if (event.key === 'Escape') {
+      // Reset to original name first
+      if (currentFile) {
+        setFileName(removeMdExtension(currentFile.name))
+      }
+      setFileNameValidationErrorType('none')
+      setIsEditingFileName(false)
+    }
+  }
+
+  async function handleFileNameBlur() {
+    if (!currentFile) return
+
+    const inputValue = fileName.trim()
     const { isValid } = validateFileName(inputValue)
 
-    if (renameTimeoutRef.current) {
-      clearTimeout(renameTimeoutRef.current)
+    if (!isValid) {
+      setFileNameValidationErrorType('invalid')
+      return
     }
-
-    setFileName(inputValue)
 
     if (
       files.some(
@@ -143,31 +166,32 @@ export function EditorPage() {
       return
     }
 
-    if (!isValid && inputValue.length > 0) {
-      setFileNameValidationErrorType('invalid')
+    setFileNameValidationErrorType('none')
+    setIsEditingFileName(false)
+
+    if (
+      inputValue.length === 0 ||
+      inputValue === removeMdExtension(currentFile.name)
+    ) {
       return
     }
 
+    try {
+      const newName = await renameFile({
+        oldPath: currentFile.path,
+        newName: inputValue,
+      })
+
+      updateCurrentFilePath(newName)
+      toast.success('File renamed successfully')
+    } catch {
+      toast.error('Failed to rename file')
+    }
+  }
+
+  function handleFileNameChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setFileName(event.target.value)
     setFileNameValidationErrorType('none')
-
-    renameTimeoutRef.current = setTimeout(async () => {
-      if (inputValue.length > 0) {
-        if (!currentFile) {
-          return
-        }
-
-        try {
-          const newName = await renameFile({
-            oldPath: currentFile.path,
-            newName: inputValue,
-          })
-
-          updateCurrentFilePath(newName)
-        } catch {
-          toast.error('Failed to rename file')
-        }
-      }
-    }, RENAME_DELAY)
   }
 
   if (currentFileStatus === 'pending') {
@@ -217,33 +241,59 @@ export function EditorPage() {
     <div className="h-full flex flex-col gap-1 overflow-hidden">
       <div className="flex items-center justify-between gap-2 pl-4 pr-6 py-1 grow-0 shrink-0">
         <div className="relative flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto">
-          <label className="sr-only" htmlFor="file-name">
-            File name
-          </label>
+          {isEditingFileName ? (
+            <>
+              <label className="sr-only" htmlFor="file-name">
+                File name
+              </label>
 
-          <input
-            ref={fileNameInputRef}
-            id="file-name"
-            value={fileName}
-            onChange={handleFileNameChange}
-            className="w-full focus:outline-none"
-            maxLength={255}
-            spellCheck={false}
-            autoCorrect="off"
-            aria-invalid={fileNameValidationErrorType !== 'none'}
-            aria-describedby="file-name-error"
-          />
+              <input
+                ref={fileNameInputRef}
+                id="file-name"
+                value={fileName}
+                onChange={handleFileNameChange}
+                onBlur={handleFileNameBlur}
+                onKeyDown={handleFileNameKeyDown}
+                className="w-full focus:outline-none"
+                maxLength={255}
+                spellCheck={false}
+                autoCorrect="off"
+                aria-invalid={fileNameValidationErrorType !== 'none'}
+                aria-describedby="file-name-error"
+                aria-label="File name"
+                autoFocus
+              />
 
-          {fileNameValidationErrorType !== 'none' && (
-            <div
-              id="file-name-error"
-              className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 text-xs py-1 px-2 text-yellow-700 font-normal z-1000"
-            >
-              <TriangleAlert className="w-3 h-3" />
-              {fileNameValidationErrorType === 'invalid'
-                ? 'File name is invalid.'
-                : 'File name is already taken.'}
-            </div>
+              {fileNameValidationErrorType !== 'none' && (
+                <div
+                  id="file-name-error"
+                  className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 text-xs py-1 px-2 text-yellow-700 font-normal z-1000"
+                >
+                  <TriangleAlert className="w-3 h-3" />
+                  {fileNameValidationErrorType === 'invalid'
+                    ? 'File name is invalid.'
+                    : 'File name is already taken.'}
+                </div>
+              )}
+            </>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger
+                className="cursor-default hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-opacity-50 rounded"
+                onClick={handleFileNameClick}
+              >
+                <button onClick={handleFileNameClick}>{fileName}</button>
+              </TooltipTrigger>
+
+              <TooltipContent align="start" side="bottom">
+                <span aria-hidden="true">
+                  Edit file name. Press the button to rename.
+                </span>
+                <span className="sr-only">
+                  Edit file name. {fileName}. Press the button to rename.
+                </span>
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
 

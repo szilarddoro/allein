@@ -31,7 +31,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [currentFilePath] = useCurrentFilePath()
-  const deleteFileMutation = useDeleteFile()
+  const { mutateAsync: deleteFile } = useDeleteFile()
   const [deletingFile, setDeletingFile] = useState<string | null>(null)
 
   async function handleCreateFile() {
@@ -46,7 +46,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
   async function handleDeleteFile(filePath: string, fileName: string) {
     try {
       setDeletingFile(filePath)
-      await deleteFileMutation.mutateAsync(filePath)
+      await deleteFile(filePath)
 
       // Navigate to home if deleting the currently edited file
       if (currentFilePath === filePath) {
@@ -82,7 +82,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
           <Link
             to="/"
             draggable={false}
-            className="flex items-center gap-2 w-full text-left justify-start cursor-default"
+            className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-gray-200/40"
             aria-current={pathname === '/'}
           >
             <Home className="w-4 h-4" />
@@ -94,7 +94,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
         <Button
           onClick={handleCreateFile}
           disabled={isLoading}
-          className="w-full justify-start gap-2 text-left"
+          className="w-full justify-start gap-2 text-left hover:bg-gray-200/40"
           variant="ghost"
           size="sm"
         >
@@ -151,8 +151,8 @@ export function Sidebar({ onNewFile }: SidebarProps) {
                           className={cn(
                             'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
                             currentFilePath === file.path
-                              ? 'bg-gray-200/60 hover:bg-gray-200/80'
-                              : 'hover:bg-gray-100',
+                              ? 'bg-gray-200/60 hover:bg-gray-200/90'
+                              : 'hover:bg-gray-200/40',
                             deletingFile === file.path && 'opacity-50',
                           )}
                         >
@@ -174,13 +174,13 @@ export function Sidebar({ onNewFile }: SidebarProps) {
                       <ContextMenuItem
                         onClick={() => navigate(`/editor?file=${file.path}`)}
                       >
-                        <Edit3 className="w-4 h-4 mr-2" />
+                        <Edit3 className="w-4 h-4 mr-2 text-current" />
                         Open
                       </ContextMenuItem>
                       <ContextMenuItem
                         onClick={() => handleCopyFilePath(file.path)}
                       >
-                        <Copy className="w-4 h-4 mr-2" />
+                        <Copy className="w-4 h-4 mr-2 text-current" />
                         Copy path
                       </ContextMenuItem>
                       <ContextMenuSeparator />
@@ -189,8 +189,8 @@ export function Sidebar({ onNewFile }: SidebarProps) {
                         disabled={deletingFile === file.path}
                         className="text-red-600 focus:text-red-600"
                       >
-                        <Trash2 className="w-4 h-4 mr-2 text-red-600" />
-                        {deletingFile === file.path ? 'Deleting...' : 'Delete'}
+                        <Trash2 className="w-4 h-4 mr-2 text-current" />
+                        Delete
                       </ContextMenuItem>
                     </ContextMenuContent>
                   </ContextMenu>

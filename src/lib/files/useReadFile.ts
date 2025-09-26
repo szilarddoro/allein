@@ -10,10 +10,17 @@ export const READ_FILE_QUERY_KEY = (filePath: string | null) => [
 export function useReadFile(filePath: string | null) {
   return useQuery({
     queryKey: READ_FILE_QUERY_KEY(filePath),
-    queryFn: () =>
-      invoke<FileContent>('read_file', {
+    queryFn: async () => {
+      const fileContent = await invoke<FileContent>('read_file', {
         filePath: filePath!,
-      }),
+      })
+
+      // Enhance the response with the file name
+      return {
+        ...fileContent,
+        name: filePath!.split('/').pop() || '',
+      }
+    },
     enabled: !!filePath,
     retry: false,
   })

@@ -9,8 +9,7 @@ import { H1, H2, H3, InlineCode, P } from '@/components/ui/typography'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
-import { Link } from 'react-router'
+import { CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import { useOllamaModels } from '@/lib/ollama/useOllamaModels'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { useDebounceCallback } from 'usehooks-ts'
@@ -80,20 +79,9 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="p-6 pb-32 flex-1 select-none">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex flex-col items-start gap-4">
-          <Link
-            to="/"
-            draggable={false}
-            className="flex items-center gap-2 hover:underline focus:ring-[3px] focus:ring-ring/50 focus:outline-none rounded-sm px-0.5"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to the main page
-          </Link>
-
-          <H1 className="mb-0">Settings</H1>
-        </div>
+    <div className="p-6 pt-4 pb-32 flex-1 select-none">
+      <div className="max-w-4xl mx-auto flex flex-col gap-6">
+        <H1>Settings</H1>
 
         <section>
           <Card>

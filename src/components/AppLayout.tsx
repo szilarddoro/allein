@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, Outlet } from 'react-router'
 import { Button } from '@/components/ui/button'
-import { Cog, PanelLeftOpenIcon } from 'lucide-react'
+import { Cog, PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react'
 import { CURRENT_PLATFORM, IS_TAURI } from '@/lib/constants'
 import { Sidebar } from '@/components/Sidebar'
 import { useCreateFile } from '@/lib/files/useCreateFile'
@@ -47,12 +47,16 @@ export function AppLayout() {
                 size="icon"
                 onClick={() => setShowSidebar(!showSidebar)}
               >
-                <PanelLeftOpenIcon aria-hidden="true" />
+                {showSidebar ? (
+                  <PanelLeftCloseIcon aria-hidden="true" />
+                ) : (
+                  <PanelLeftOpenIcon aria-hidden="true" />
+                )}
               </Button>
             </TooltipTrigger>
 
             <TooltipContent align="center" side="bottom">
-              {showSidebar ? 'Close Sidebar' : 'Open Sidebar'}
+              {showSidebar ? 'Hide Sidebar' : 'Show Sidebar'}
             </TooltipContent>
           </Tooltip>
         </div>

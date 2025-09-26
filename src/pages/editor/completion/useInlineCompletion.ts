@@ -10,12 +10,13 @@ export interface UseInlineCompletionOptions {
 }
 
 export function useInlineCompletion({
-  debounceDelay = 500,
+  debounceDelay = 800,
 }: UseInlineCompletionOptions = {}) {
   const monaco = useMonaco()
   const currentRequest = useRef<AbortController | null>(null)
   const debounceTimeout = useRef<number | null>(null)
   const lastSuggestionTime = useRef<number>(0)
+  const lastTriggerTime = useRef<number>(0)
   const { ollamaProvider, ollamaModel } = useOllamaConfig()
 
   useEffect(() => {
@@ -42,7 +43,12 @@ export function useInlineCompletion({
           const now = Date.now()
 
           // Prevent immediate re-triggering after providing a suggestion
-          if (now - lastSuggestionTime.current < 1000) {
+          if (now - lastSuggestionTime.current < 2000) {
+            return { items: [] }
+          }
+
+          // Aggressive debouncing - prevent too frequent calls
+          if (now - lastTriggerTime.current < 300) {
             return { items: [] }
           }
 
@@ -76,6 +82,9 @@ export function useInlineCompletion({
           if (!isWordEnd) {
             return { items: [] }
           }
+
+          // Update trigger time
+          lastTriggerTime.current = now
 
           // Clear any existing timeout
           if (debounceTimeout.current) {

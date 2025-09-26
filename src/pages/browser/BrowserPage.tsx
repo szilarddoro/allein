@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button'
 import { H1, H2, P } from '@/components/ui/typography'
 
 export function BrowserPage() {
@@ -11,10 +10,6 @@ export function BrowserPage() {
           Allein is a modern note-taking app that allows you to take notes,
           create documents, and more.
         </P>
-
-        <Button variant="default" className="self-center">
-          Get started
-        </Button>
       </div>
     </div>
   )

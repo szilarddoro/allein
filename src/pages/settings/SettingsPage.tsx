@@ -89,7 +89,7 @@ export function SettingsPage() {
             className="flex items-center gap-2 hover:underline focus:ring-[3px] focus:ring-ring/50 focus:outline-none rounded-sm px-0.5"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to the home page
+            Back to the main page
           </Link>
 
           <H1 className="mb-0">Settings</H1>

@@ -19,10 +19,10 @@ export function AppLayout() {
   const { isFullscreen } = useWindowState()
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-slate-50 overflow-hidden">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-100 to-gray-200/70 overflow-hidden">
       <header
         className={cn(
-          'relative pl-4 pr-6 py-2 flex justify-between items-center',
+          'relative pl-4 pr-2 py-2 flex justify-start items-center gap-0.5',
           CURRENT_PLATFORM === 'macos' ? (isFullscreen ? 'pl-2' : 'pl-22') : '',
         )}
       >
@@ -51,19 +51,30 @@ export function AppLayout() {
               </Button>
             </TooltipTrigger>
 
-            <TooltipContent align="center" side="right">
-              Open Sidebar
+            <TooltipContent align="center" side="bottom">
+              {showSidebar ? 'Close Sidebar' : 'Open Sidebar'}
             </TooltipContent>
           </Tooltip>
         </div>
 
         <div className="flex items-center gap-2 relative z-20">
-          <Button variant="ghost" size="icon" asChild>
-            <Link draggable={false} to="/settings" className="cursor-default">
-              <span className="sr-only">Open settings</span>
-              <Cog className="w-4 h-4" />
-            </Link>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" asChild>
+                <Link
+                  draggable={false}
+                  to="/settings"
+                  className="cursor-default"
+                >
+                  <Cog className="w-4 h-4" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+
+            <TooltipContent align="center" side="bottom">
+              Open Settings
+            </TooltipContent>
+          </Tooltip>
         </div>
       </header>
 

@@ -281,7 +281,6 @@ export function EditorPage() {
             value={markdownContent}
             onChange={handleEditorChange}
             onKeyDown={handleKeyDown}
-            placeholder="Start writing your markdown..."
           />
         </div>
 

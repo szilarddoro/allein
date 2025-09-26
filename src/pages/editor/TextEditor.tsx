@@ -14,12 +14,7 @@ export interface TextEditorProps {
 
 export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
   (
-    {
-      value = '',
-      onChange,
-      placeholder = 'Start writing your markdown...',
-      onKeyDown,
-    },
+    { value = '', onChange, placeholder = 'Start writing...', onKeyDown },
     ref,
   ) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)

@@ -112,7 +112,7 @@ export function EditorPage() {
       event.keyCode === monaco.KeyCode.KeyS
     ) {
       event.preventDefault()
-      toast.info('The file is being saved automatically.')
+      toast.success('The file is being saved automatically.')
     }
 
     if (event.ctrlKey && event.keyCode === monaco.KeyCode.Escape) {

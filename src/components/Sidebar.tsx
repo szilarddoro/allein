@@ -18,6 +18,16 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useState } from 'react'
 
@@ -31,8 +41,12 @@ export function Sidebar({ onNewFile }: SidebarProps) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [currentFilePath] = useCurrentFilePath()
-  const { mutateAsync: deleteFile } = useDeleteFile()
-  const [deletingFile, setDeletingFile] = useState<string | null>(null)
+  const { mutateAsync: deleteFile, isPending: isDeletingFile } = useDeleteFile()
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [fileToDelete, setFileToDelete] = useState<{
+    path: string
+    name: string
+  } | null>(null)
 
   async function handleCreateFile() {
     try {
@@ -43,21 +57,31 @@ export function Sidebar({ onNewFile }: SidebarProps) {
     }
   }
 
-  async function handleDeleteFile(filePath: string, fileName: string) {
+  function handleDeleteFile(filePath: string, fileName: string) {
+    setFileToDelete({ path: filePath, name: fileName })
+    setIsDeleteDialogOpen(true)
+  }
+
+  async function confirmDeleteFile() {
+    if (!fileToDelete) return
+
     try {
-      setDeletingFile(filePath)
-      await deleteFile(filePath)
+      await deleteFile(fileToDelete.path)
 
       // Navigate to home if deleting the currently edited file
-      if (currentFilePath === filePath) {
+      if (currentFilePath === fileToDelete.path) {
         navigate('/')
       }
 
-      toast.success(`Deleted ${getDisplayName(fileName)}`)
+      toast.success(`Deleted ${getDisplayName(fileToDelete.name)}`)
     } catch {
       toast.error('Failed to delete file')
     } finally {
-      setDeletingFile(null)
+      setIsDeleteDialogOpen(false)
+
+      setTimeout(() => {
+        setFileToDelete(null)
+      }, 150)
     }
   }
 
@@ -153,7 +177,6 @@ export function Sidebar({ onNewFile }: SidebarProps) {
                             currentFilePath === file.path
                               ? 'bg-zinc-200/60 hover:bg-zinc-200/90 dark:bg-zinc-700/60 dark:hover:bg-zinc-700/90'
                               : 'hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40',
-                            deletingFile === file.path && 'opacity-50',
                           )}
                         >
                           <span
@@ -186,7 +209,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
                       <ContextMenuSeparator />
                       <ContextMenuItem
                         onClick={() => handleDeleteFile(file.path, file.name)}
-                        disabled={deletingFile === file.path}
+                        disabled={isDeletingFile}
                         className="text-red-600 focus:text-red-600"
                       >
                         <Trash2 className="w-4 h-4 mr-2 text-current" />
@@ -199,6 +222,39 @@ export function Sidebar({ onNewFile }: SidebarProps) {
           </ul>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsDeleteDialogOpen(false)
+            // Keep fileToDelete until dialog is fully closed to prevent text jump
+            setTimeout(() => setFileToDelete(null), 150)
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete File</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;
+              {fileToDelete ? getDisplayName(fileToDelete.name) : ''}&quot;?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteFile}
+              disabled={isDeletingFile}
+              variant="destructive"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

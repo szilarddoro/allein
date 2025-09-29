@@ -46,7 +46,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       <Card className="flex flex-col h-full p-0 overflow-hidden" ref={ref}>
         <div className="flex-1">
           <MonacoEditor
-            className="pl-2 h-full"
+            className="h-full"
             theme={
               theme === 'dark' || systemTheme === 'dark' ? 'vs-dark' : 'vs'
             }

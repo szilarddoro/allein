@@ -114,8 +114,29 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   html,
   body {
     @apply overflow-hidden bg-transparent text-foreground;
   }
+}
+
+.monaco-editor .editor-scrollable {
+  @apply !pl-2;
+}
+
+.monaco-editor .find-widget {
+  @apply !transition-transform !bg-secondary !ring-1 !ring-zinc-200 dark:!ring-zinc-700 !translate-y-0 !-translate-x-2 !shadow-md dark:!shadow-none !border-none !font-sans !rounded-sm !p-2 !h-auto;
+}
+
+.monaco-editor .find-widget.visible {
+  @apply !translate-y-4;
+}
+
+.monaco-editor .find-widget .find-part {
+  @apply !mt-0;
+}
+
+.monaco-editor .find-widget .monaco-sash {
+  @apply !hidden;
 }

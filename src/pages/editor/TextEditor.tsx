@@ -40,7 +40,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       })
     }
 
-    console.log(theme, systemTheme)
     return (
       <Card className="flex flex-col h-full p-0 overflow-hidden" ref={ref}>
         <div className="flex-1">

@@ -23,6 +23,8 @@ import { Moon, Sun, Monitor } from 'lucide-react'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
+const RECOMMENDED_MODEL = 'gemma3:latest'
+
 export function SettingsPage() {
   const { data: config, refetch: refetchConfig } = useConfig()
   const { mutate: updateConfig } = useUpdateConfig({
@@ -76,7 +78,7 @@ export function SettingsPage() {
   }
 
   async function handleCopyOllamaPullCommand() {
-    await writeText('ollama pull gemma3:latest')
+    await writeText(`ollama pull ${RECOMMENDED_MODEL}`)
 
     toast.success('Command copied to clipboard')
   }
@@ -194,10 +196,10 @@ export function SettingsPage() {
                         onClick={handleCopyOllamaPullCommand}
                         size="sm"
                         className="mx-1 p-0 h-auto rounded-sm"
-                        aria-label='Copy "ollama pull gemma3:latest" to clipboard'
+                        aria-label={`Copy "ollama pull ${RECOMMENDED_MODEL}" to clipboard`}
                       >
                         <InlineCode className="cursor-default">
-                          ollama pull gemma3:latest
+                          ollama pull {RECOMMENDED_MODEL}
                         </InlineCode>
                       </Button>{' '}
                       in your terminal.

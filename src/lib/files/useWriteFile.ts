@@ -13,7 +13,10 @@ export function useWriteFile() {
       content: string
     }) => invoke('write_file', { filePath, content }),
     onSuccess: (_, { filePath }) => {
-      queryClient.invalidateQueries({ queryKey: READ_FILE_QUERY_KEY(filePath) })
+      queryClient.invalidateQueries({
+        queryKey: READ_FILE_QUERY_KEY(filePath),
+        refetchType: 'none',
+      })
     },
   })
 }

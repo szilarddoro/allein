@@ -30,7 +30,7 @@ import {
 import { AppLayoutContextProps } from '@/lib/types'
 import { useOutletContext } from 'react-router'
 
-const AUTO_SAVE_DELAY = 2000
+const AUTO_SAVE_DELAY = 1000
 
 export function EditorPage() {
   const { showSidebar } = useOutletContext<AppLayoutContextProps>()

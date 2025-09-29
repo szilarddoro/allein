@@ -27,10 +27,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { AppLayoutContextProps } from '@/lib/types'
+import { useOutletContext } from 'react-router'
 
 const AUTO_SAVE_DELAY = 2000
 
 export function EditorPage() {
+  const { showSidebar } = useOutletContext<AppLayoutContextProps>()
   const { toast } = useToast()
   const editorRef = useRef<HTMLDivElement>(null)
   const previewButtonRef = useRef<HTMLButtonElement>(null)
@@ -228,7 +231,12 @@ export function EditorPage() {
 
   return (
     <div className="h-full flex flex-col gap-1 overflow-hidden">
-      <div className="flex items-center justify-between gap-2 pl-4 pr-6 py-1 grow-0 shrink-0">
+      <div
+        className={cn(
+          'flex items-center justify-between gap-2 pl-4 pr-6 py-1 grow-0 shrink-0',
+          !showSidebar && 'pl-6',
+        )}
+      >
         <div className="relative flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto">
           {isEditingFileName ? (
             <>
@@ -269,7 +277,7 @@ export function EditorPage() {
             <Tooltip>
               <TooltipTrigger
                 asChild
-                className="cursor-default hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-opacity-50 rounded"
+                className="cursor-default hover:text-foreground transition-colors focus:outline-none focus:ring-[3px] focus:ring-ring/50 rounded"
                 onClick={handleFileNameClick}
               >
                 <button onClick={handleFileNameClick} className="text-left">
@@ -321,6 +329,7 @@ export function EditorPage() {
           className={cn(
             'w-full h-full pl-2 pr-4 pb-4',
             showPreview && 'w-1/2 pr-2',
+            !showSidebar && 'pl-4',
           )}
         >
           <TextEditor

@@ -1,14 +1,16 @@
 import '@/App.css'
+import { AppLayout } from '@/components/AppLayout'
+import { ThemeProvider } from '@/components/ThemeProvider'
+import { Toaster } from '@/components/ui/sonner'
+import { QueryProvider } from '@/lib/QueryProvider'
+import { BrowserPage } from '@/pages/browser/BrowserPage'
+import { EditorPage } from '@/pages/editor/EditorPage'
+import { SettingsPage } from '@/pages/settings/SettingsPage'
+import '@fontsource-variable/inter'
+import '@fontsource-variable/noto-sans-mono'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router'
-import { AppLayout } from '@/components/AppLayout'
-import { EditorPage } from '@/pages/editor/EditorPage'
-import { SettingsPage } from '@/pages/settings/SettingsPage'
-import { QueryProvider } from '@/lib/QueryProvider'
-import { Toaster } from '@/components/ui/sonner'
-import { BrowserPage } from '@/pages/browser/BrowserPage'
-import { ThemeProvider } from '@/components/ThemeProvider'
 
 const router = createBrowserRouter([
   {

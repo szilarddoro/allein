@@ -121,8 +121,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                 invisibleCharacters: false,
                 nonBasicASCII: false,
               },
-              fontFamily:
-                'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+              fontFamily: 'var(--font-mono)',
               fontSize: 14,
               lineHeight: 1.6,
               padding: { top: 12, bottom: 32 },

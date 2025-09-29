@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useWindowState } from '@/hooks/useWindowState'
+import { AppLayoutContextProps } from '@/lib/types'
 
 export function AppLayout() {
   const [showSidebar, setShowSidebar] = useState(true)
@@ -86,7 +87,7 @@ export function AppLayout() {
         {showSidebar && <Sidebar onNewFile={createFile} />}
 
         <div className="flex-1 flex flex-col overflow-auto">
-          <Outlet />
+          <Outlet context={{ showSidebar } as AppLayoutContextProps} />
         </div>
       </main>
     </div>

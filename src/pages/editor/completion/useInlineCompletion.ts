@@ -7,10 +7,12 @@ import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 
 export interface UseInlineCompletionOptions {
   debounceDelay?: number
+  disabled?: boolean
 }
 
 export function useInlineCompletion({
   debounceDelay = 800,
+  disabled = false,
 }: UseInlineCompletionOptions = {}) {
   const monaco = useMonaco()
   const currentRequest = useRef<AbortController | null>(null)
@@ -32,7 +34,7 @@ export function useInlineCompletion({
   }, [])
 
   useEffect(() => {
-    if (!monaco) {
+    if (!monaco || disabled) {
       return
     }
 
@@ -172,5 +174,5 @@ export function useInlineCompletion({
     )
 
     return () => provider.dispose()
-  }, [monaco, debounceDelay, ollamaProvider, ollamaModel])
+  }, [monaco, debounceDelay, ollamaProvider, ollamaModel, disabled])
 }

@@ -2,7 +2,7 @@ import Database from '@tauri-apps/plugin-sql'
 
 const DATABASE_FILE = 'database.db'
 
-export type ConfigKey = 'ollama_url' | 'ollama_model'
+export type ConfigKey = 'ollama_url' | 'ollama_model' | 'ai_assistance_enabled'
 
 export interface ConfigModel {
   key: ConfigKey

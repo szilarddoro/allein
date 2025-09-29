@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { useInlineCompletion } from './completion/useInlineCompletion'
 import { useTheme } from 'next-themes'
+import { useAIConfig } from '@/lib/ai/useAIConfig'
 
 export interface TextEditorProps {
   value?: string
@@ -17,9 +18,10 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
   ({ value = '', onChange, placeholder, onKeyDown }, ref) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
     const { theme, systemTheme } = useTheme()
+    const { aiAssistanceEnabled } = useAIConfig()
 
     // Enable inline completion for the Monaco Editor
-    useInlineCompletion()
+    useInlineCompletion({ disabled: !aiAssistanceEnabled })
 
     function handleEditorChange(value: string | undefined) {
       onChange?.(value || '')

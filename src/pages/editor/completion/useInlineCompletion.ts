@@ -154,6 +154,10 @@ export function useInlineCompletion({
             position.column - 1,
           )
 
+          // Check if we're on a new empty line
+          const isOnNewLine =
+            textBeforeCursorOnCurrentLine.trim() === '' && position.column === 1
+
           // Check if we're at the end of a word (space, punctuation, or end of line)
           const lastChar = textBeforeCursorOnCurrentLine.slice(-1)
           const isWordEnd =
@@ -161,12 +165,12 @@ export function useInlineCompletion({
             lastChar === ',' ||
             lastChar === ';' ||
             lastChar === ':' ||
-            textBeforeCursorOnCurrentLine.trim() === '' ||
-            position.column === 1
+            isOnNewLine
 
-          // Don't trigger on sentence endings (periods, exclamation, question marks)
+          // Don't trigger on sentence endings (unless we're on a new line)
           const isSentenceEnd =
-            lastChar === '.' || lastChar === '!' || lastChar === '?'
+            !isOnNewLine &&
+            (lastChar === '.' || lastChar === '!' || lastChar === '?')
 
           if (isSentenceEnd) {
             return { items: [] }
@@ -196,10 +200,8 @@ export function useInlineCompletion({
                   return
                 }
 
-                if (
-                  !textBeforeCursor.trim() ||
-                  !textBeforeCursorOnCurrentLine.trim()
-                ) {
+                // Require document context, but allow empty current line (for new lines)
+                if (!textBeforeCursor.trim()) {
                   resolve({ items: [] })
                   return
                 }
@@ -207,14 +209,18 @@ export function useInlineCompletion({
                 // Create new abort controller for this request
                 currentRequest.current = new AbortController()
 
-                // Generate suggestion with two separate messages
+                // Build messages array - on new line, only send document context
+                const messages = [generateInstructions(), { content: textBeforeCursor, role: 'user' }]
+
+                // Only add second message if current line has content
+                if (textBeforeCursorOnCurrentLine.trim()) {
+                  messages.push({ content: textBeforeCursorOnCurrentLine, role: 'user' })
+                }
+
+                // Generate suggestion
                 const response = await generateText({
                   model: ollamaProvider(ollamaModel),
-                  messages: [
-                    generateInstructions(),
-                    { content: textBeforeCursor, role: 'user' },
-                    { content: textBeforeCursorOnCurrentLine, role: 'user' },
-                  ],
+                  messages,
                   temperature: 0.8,
                   abortSignal: currentRequest.current.signal,
                 })

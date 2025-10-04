@@ -12,10 +12,11 @@ export interface TextEditorProps {
   onChange?: (value: string) => void
   placeholder?: string
   onKeyDown?: (event: monaco.IKeyboardEvent) => void
+  onEditorReady?: (editor: monaco.editor.IStandaloneCodeEditor) => void
 }
 
 export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
-  ({ value = '', onChange, placeholder, onKeyDown }, ref) => {
+  ({ value = '', onChange, placeholder, onKeyDown, onEditorReady }, ref) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
     const { theme, systemTheme } = useTheme()
     const { aiAssistanceEnabled } = useAIConfig()
@@ -40,6 +41,9 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       editor.onContextMenu(({ event }: monaco.editor.IEditorMouseEvent) => {
         event.preventDefault()
       })
+
+      // Notify parent that editor is ready
+      onEditorReady?.(editor)
     }
 
     return (

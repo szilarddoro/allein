@@ -8,6 +8,7 @@ import { useWriteFile } from '@/lib/files/useWriteFile'
 import { validateFileName } from '@/lib/files/validation'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
+import { applyBoldFormatting } from '@/lib/editor/formatting'
 import {
   CircleAlert,
   Eye,
@@ -36,6 +37,7 @@ export function EditorPage() {
   const { showSidebar } = useOutletContext<AppLayoutContextProps>()
   const { toast } = useToast()
   const editorRef = useRef<HTMLDivElement>(null)
+  const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const previewButtonRef = useRef<HTMLButtonElement>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [markdownContent, setMarkdownContent] = useState('')
@@ -113,6 +115,16 @@ export function EditorPage() {
     ) {
       event.preventDefault()
       toast.success('The file is being saved automatically.')
+    }
+
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      event.keyCode === monaco.KeyCode.KeyB
+    ) {
+      event.preventDefault()
+      if (monacoEditorRef.current) {
+        applyBoldFormatting(monacoEditorRef.current)
+      }
     }
 
     if (event.ctrlKey && event.keyCode === monaco.KeyCode.Escape) {
@@ -336,6 +348,9 @@ export function EditorPage() {
             value={markdownContent}
             onChange={handleEditorChange}
             onKeyDown={handleKeyDown}
+            onEditorReady={(editor) => {
+              monacoEditorRef.current = editor
+            }}
             placeholder={
               currentFileStatus === 'pending' ? '' : 'Start writing...'
             }

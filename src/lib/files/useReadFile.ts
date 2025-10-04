@@ -19,7 +19,7 @@ export function useReadFile(filePath: string | null) {
       return {
         ...fileContent,
         name: filePath!.split('/').pop() || '',
-      }
+      } as FileContent
     },
     enabled: !!filePath,
     retry: false,

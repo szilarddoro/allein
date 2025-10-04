@@ -129,3 +129,40 @@ Hook: `useCurrentFilePath()` syncs query param with URL state.
 - Monaco Editor theme switches with app theme (vs/vs-dark)
 - All file operations are async and handled via React Query mutations
 - Toast notifications use `sonner` library via custom `useToast()` hook
+
+## Code Organization Guidelines
+
+### Component and File Co-location
+
+**IMPORTANT**: Keep related components, hooks, and utilities co-located with their primary usage context. Do NOT move files to high-level shared directories unless they are genuinely used across multiple unrelated features.
+
+**Preferred structure**:
+```
+src/pages/editor/
+├── EditorPage.tsx           # Main page component
+├── EditorHeader.tsx         # Header component (used only by EditorPage)
+├── FileNameEditor.tsx       # File name editor (used only by EditorHeader)
+├── TextEditor.tsx           # Monaco wrapper
+├── useAutoSave.ts          # Auto-save hook (used only by EditorPage)
+├── useEditorKeyBindings.ts # Keybindings hook (used only by EditorPage)
+└── completion/             # Completion-related code
+    ├── useInlineCompletion.ts
+    └── CompletionFormatter.ts
+```
+
+**Avoid**:
+```
+src/components/editor/       # ❌ Don't create generic shared folders
+src/hooks/editor/            # ❌ Don't separate by file type
+```
+
+**When to extract to shared locations**:
+- Component is used in 3+ unrelated features
+- Hook is genuinely generic (e.g., `useToast`, `useCurrentFilePath`)
+- Utility functions are domain-agnostic
+
+**Benefits of co-location**:
+- Easier to understand component dependencies
+- Simpler refactoring and deletion
+- Clear ownership and context
+- Reduced cognitive load when navigating code

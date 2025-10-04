@@ -10,6 +10,12 @@ export interface UseInlineCompletionOptions {
   disabled?: boolean
 }
 
+interface CachedSuggestion {
+  text: string
+  position: { lineNumber: number; column: number }
+  contextBefore: string
+}
+
 export function useInlineCompletion({
   debounceDelay = 800,
   disabled = false,
@@ -17,8 +23,7 @@ export function useInlineCompletion({
   const monaco = useMonaco()
   const currentRequest = useRef<AbortController | null>(null)
   const debounceTimeout = useRef<number | null>(null)
-  const lastSuggestionTime = useRef<number>(0)
-  const lastTriggerTime = useRef<number>(0)
+  const activeSuggestion = useRef<CachedSuggestion | null>(null)
   const { ollamaProvider, ollamaModel } = useOllamaConfig()
 
   useEffect(() => {
@@ -42,20 +47,65 @@ export function useInlineCompletion({
       'markdown',
       {
         provideInlineCompletions: async (model, position) => {
-          const now = Date.now()
-
-          // Prevent immediate re-triggering after providing a suggestion
-          if (now - lastSuggestionTime.current < 2000) {
-            return { items: [] }
-          }
-
-          // Aggressive debouncing - prevent too frequent calls
-          if (now - lastTriggerTime.current < 300) {
-            return { items: [] }
-          }
-
           // Get current line content
           const currentLine = model.getLineContent(position.lineNumber)
+          const textBeforeCursor = model
+            .getValue()
+            .substring(0, model.getOffsetAt(position))
+
+          // Phase 2: If we have an active suggestion, check if it's still valid
+          if (activeSuggestion.current) {
+            const cached = activeSuggestion.current
+
+            // Check if cursor moved to different line
+            if (position.lineNumber !== cached.position.lineNumber) {
+              activeSuggestion.current = null
+              return { items: [] }
+            }
+
+            // Check if user typed non-matching characters or deleted text
+            if (!textBeforeCursor.startsWith(cached.contextBefore)) {
+              activeSuggestion.current = null
+              return { items: [] }
+            }
+
+            // Calculate what user has typed since suggestion appeared
+            const typedSinceCompletion = textBeforeCursor.substring(
+              cached.contextBefore.length,
+            )
+
+            // Check if what they typed matches the beginning of suggestion
+            if (!cached.text.startsWith(typedSinceCompletion)) {
+              activeSuggestion.current = null
+              return { items: [] }
+            }
+
+            // Return remaining part of cached suggestion
+            const remainingSuggestion = cached.text.substring(
+              typedSinceCompletion.length,
+            )
+
+            if (!remainingSuggestion) {
+              activeSuggestion.current = null
+              return { items: [] }
+            }
+
+            return {
+              items: [
+                {
+                  insertText: remainingSuggestion,
+                  range: {
+                    startLineNumber: position.lineNumber,
+                    startColumn: position.column,
+                    endLineNumber: position.lineNumber,
+                    endColumn: position.column,
+                  },
+                },
+              ],
+            }
+          }
+
+          // Phase 1: Fetch new suggestion
           const textBeforeCursorOnCurrentLine = currentLine.substring(
             0,
             position.column - 1,
@@ -72,7 +122,6 @@ export function useInlineCompletion({
             position.column === 1
 
           // Don't trigger on sentence endings (periods, exclamation, question marks)
-          // as these usually indicate the end of a thought
           const isSentenceEnd =
             lastChar === '.' || lastChar === '!' || lastChar === '?'
 
@@ -84,9 +133,6 @@ export function useInlineCompletion({
           if (!isWordEnd) {
             return { items: [] }
           }
-
-          // Update trigger time
-          lastTriggerTime.current = now
 
           // Clear any existing timeout
           if (debounceTimeout.current) {
@@ -106,11 +152,6 @@ export function useInlineCompletion({
                   resolve({ items: [] })
                   return
                 }
-
-                // Get text before cursor (excluding current line)
-                const textBeforeCursor = model
-                  .getValue()
-                  .substring(0, model.getOffsetAt(position))
 
                 if (
                   !textBeforeCursor.trim() ||
@@ -153,8 +194,15 @@ export function useInlineCompletion({
                   position,
                 ).format(response.text, range)
 
-                // Update timestamp when we provide a suggestion
-                lastSuggestionTime.current = now
+                // Cache the suggestion for persistence
+                activeSuggestion.current = {
+                  text: completionItem.insertText,
+                  position: {
+                    lineNumber: position.lineNumber,
+                    column: position.column,
+                  },
+                  contextBefore: textBeforeCursor,
+                }
 
                 resolve({ items: [completionItem] })
               } catch (error) {

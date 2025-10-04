@@ -10,9 +10,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as 'light' | 'dark' | 'system'}
       duration={3000}
       icons={{
-        info: <Info aria-hidden="true" className="w-4 h-4 text-blue-700" />,
+        info: <Info aria-hidden="true" className="w-4 h-4 text-blue-600" />,
         success: (
-          <CheckCircle aria-hidden="true" className="w-4 h-4 text-green-700" />
+          <CheckCircle aria-hidden="true" className="w-4 h-4 text-green-600" />
         ),
         error: <XCircle aria-hidden="true" className="w-4 h-4 text-red-600" />,
         warning: (
@@ -25,7 +25,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group select-none"
       toastOptions={{
         classNames: {
-          success: 'bg-green-500',
+          default: '!bg-secondary !text-foreground !border !border-input',
         },
       }}
       {...props}

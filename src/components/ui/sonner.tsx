@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react'
-import { Toaster as Sonner, ToasterProps } from 'sonner'
 import { useTheme } from 'next-themes'
+import { Toaster as Sonner, ToasterProps } from 'sonner'
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme()
@@ -22,7 +22,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           />
         ),
       }}
-      className="toaster group"
+      className="toaster group select-none"
       toastOptions={{
         classNames: {
           success: 'bg-green-500',

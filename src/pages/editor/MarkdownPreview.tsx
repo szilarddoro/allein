@@ -1,9 +1,18 @@
+import { Card } from '@/components/ui/card'
+import {
+  Blockquote,
+  H1,
+  H2,
+  H3,
+  H4,
+  InlineCode,
+  P,
+} from '@/components/ui/typography'
+import { openUrl } from '@tauri-apps/plugin-opener'
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
-import { Card } from '@/components/ui/card'
-import { openUrl } from '@tauri-apps/plugin-opener'
+import remarkGfm from 'remark-gfm'
 
 interface MarkdownPreviewProps {
   content: string
@@ -22,34 +31,12 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeHighlight]}
             components={{
-              h1: ({ children }) => (
-                <h1 className="scroll-m-20 text-4xl/tight font-bold mb-4">
-                  {children}
-                </h1>
-              ),
-              h2: ({ children }) => (
-                <h2 className="scroll-m-20 border-b border-zinc-200 pb-2 text-3xl/tight font-semibold mb-2">
-                  {children}
-                </h2>
-              ),
-              h3: ({ children }) => (
-                <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-                  {children}
-                </h3>
-              ),
-              h4: ({ children }) => (
-                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  {children}
-                </h4>
-              ),
-              p: ({ children }) => (
-                <p className="leading-relaxed mb-4">{children}</p>
-              ),
-              code: ({ children }) => (
-                <code className="bg-zinc-100 text-zinc-700 text-sm/tight px-1 py-0.5 rounded">
-                  {children}
-                </code>
-              ),
+              h1: ({ children }) => <H1>{children}</H1>,
+              h2: ({ children }) => <H2>{children}</H2>,
+              h3: ({ children }) => <H3>{children}</H3>,
+              h4: ({ children }) => <H4>{children}</H4>,
+              p: ({ children }) => <P>{children}</P>,
+              code: ({ children }) => <InlineCode>{children}</InlineCode>,
               ul: ({ children }) => (
                 <ul className="list-disc list-outside my-2 ml-4 space-y-1">
                   {children}
@@ -60,12 +47,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                   {children}
                 </ol>
               ),
-              li: ({ children }) => <li className="my-1">{children}</li>,
-              blockquote: ({ children }) => (
-                <blockquote className="border-l-4 border-zinc-300 pl-4 mb-4">
-                  {children}
-                </blockquote>
-              ),
+              li: ({ children }) => <li className="my-1 ml-4">{children}</li>,
+              blockquote: ({ children }) => <Blockquote>{children}</Blockquote>,
               a: ({ children, href }) => (
                 <a
                   href={href}

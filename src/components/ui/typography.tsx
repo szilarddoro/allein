@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
-import { forwardRef } from 'react'
 import * as React from 'react'
+import { forwardRef } from 'react'
 
 // H1 Component
 export const H1 = forwardRef<
@@ -10,7 +10,7 @@ export const H1 = forwardRef<
   <h1
     ref={ref}
     className={cn(
-      'scroll-m-20 text-4xl font-bold tracking-tight text-balance',
+      'scroll-m-20 text-4xl font-bold tracking-tight text-balance my-4 first:mt-0',
       className,
     )}
     {...props}
@@ -26,7 +26,7 @@ export const H2 = forwardRef<
   <h2
     ref={ref}
     className={cn(
-      'scroll-m-20 text-3xl font-semibold tracking-tight transition-colors first:mt-0',
+      'scroll-m-20 text-3xl font-semibold tracking-tight transition-colors first:mt-0 my-4',
       className,
     )}
     {...props}
@@ -42,7 +42,7 @@ export const H3 = forwardRef<
   <h3
     ref={ref}
     className={cn(
-      'scroll-m-20 text-2xl font-semibold tracking-tight',
+      'scroll-m-20 text-2xl font-semibold tracking-tight first:mt-0 my-2',
       className,
     )}
     {...props}
@@ -71,7 +71,7 @@ export const P = forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p ref={ref} className={cn('leading-7', className)} {...props} />
+  <p ref={ref} className={cn('leading-7 my-2', className)} {...props} />
 ))
 P.displayName = 'P'
 

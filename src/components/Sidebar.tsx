@@ -1,23 +1,4 @@
-import { Button } from '@/components/ui/button'
-import { Home, NotebookPen, Trash2, Edit3, Copy } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Separator } from '@/components/ui/separator'
-import { Link, useLocation, useNavigate } from 'react-router'
-import { H2, P } from '@/components/ui/typography'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
-import { useFileList } from '@/lib/files/useFileList'
-import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
-import { getDisplayName } from '@/lib/files/fileUtils'
-import { FileContent } from '@/lib/files/types'
-import { useToast } from '@/lib/useToast'
-import { useHotkeys } from 'react-hotkeys-hook'
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,8 +9,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu'
+import { Separator } from '@/components/ui/separator'
+import { H2, P } from '@/components/ui/typography'
+import { getDisplayName } from '@/lib/files/fileUtils'
+import { FileContent } from '@/lib/files/types'
+import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
+import { useFileList } from '@/lib/files/useFileList'
+import { useToast } from '@/lib/useToast'
+import { cn } from '@/lib/utils'
+import { Copy, Edit3, Home, NotebookPen, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
+import { Link, useLocation, useNavigate } from 'react-router'
 
 interface SidebarProps {
   onNewFile: () => Promise<FileContent>
@@ -134,7 +134,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
 
       {/* Files List */}
       <div className="flex-1 overflow-y-auto pt-4 pb-12 px-2 flex flex-col gap-2">
-        <H2 className="text-sm font-medium text-muted-foreground px-3 select-none">
+        <H2 className="text-sm font-medium text-muted-foreground px-3 select-none mb-0">
           Files
         </H2>
 

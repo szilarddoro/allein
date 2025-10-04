@@ -21,7 +21,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     const { aiAssistanceEnabled } = useAIConfig()
 
     // Enable inline completion for the Monaco Editor
-    useInlineCompletion({ disabled: !aiAssistanceEnabled })
+    useInlineCompletion({ disabled: !aiAssistanceEnabled, editorRef })
 
     function handleEditorChange(value: string | undefined) {
       onChange?.(value || '')

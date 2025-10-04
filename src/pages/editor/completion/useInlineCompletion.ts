@@ -1,5 +1,6 @@
 import { useMonaco } from '@monaco-editor/react'
 import { useEffect, useRef } from 'react'
+import * as monaco from 'monaco-editor'
 import { generateInstructions } from './prompt'
 import { generateText } from 'ai'
 import { CompletionFormatter } from './CompletionFormatter'
@@ -8,6 +9,7 @@ import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 export interface UseInlineCompletionOptions {
   debounceDelay?: number
   disabled?: boolean
+  editorRef?: React.RefObject<monaco.editor.IStandaloneCodeEditor | null>
 }
 
 interface CachedSuggestion {
@@ -19,12 +21,43 @@ interface CachedSuggestion {
 export function useInlineCompletion({
   debounceDelay = 800,
   disabled = false,
+  editorRef,
 }: UseInlineCompletionOptions = {}) {
-  const monaco = useMonaco()
+  const monacoInstance = useMonaco()
   const currentRequest = useRef<AbortController | null>(null)
   const debounceTimeout = useRef<number | null>(null)
   const activeSuggestion = useRef<CachedSuggestion | null>(null)
+  const lastDocumentLength = useRef<number>(0)
   const { ollamaProvider, ollamaModel } = useOllamaConfig()
+
+  // Listen to editor changes to detect backspace
+  useEffect(() => {
+    const editor = editorRef?.current
+    if (!editor || disabled) {
+      return
+    }
+
+    const model = editor.getModel()
+    if (!model) {
+      return
+    }
+
+    const disposable = model.onDidChangeContent((e) => {
+      const currentLength = model.getValueLength()
+
+      // If text got shorter (backspace/delete), clear the cached suggestion
+      if (currentLength < lastDocumentLength.current) {
+        activeSuggestion.current = null
+      }
+
+      lastDocumentLength.current = currentLength
+    })
+
+    // Initialize the document length
+    lastDocumentLength.current = model.getValueLength()
+
+    return () => disposable.dispose()
+  }, [editorRef, disabled])
 
   useEffect(() => {
     return () => {
@@ -39,11 +72,11 @@ export function useInlineCompletion({
   }, [])
 
   useEffect(() => {
-    if (!monaco || disabled) {
+    if (!monacoInstance || disabled) {
       return
     }
 
-    const provider = monaco.languages.registerInlineCompletionsProvider(
+    const provider = monacoInstance.languages.registerInlineCompletionsProvider(
       'markdown',
       {
         provideInlineCompletions: async (model, position) => {
@@ -63,7 +96,13 @@ export function useInlineCompletion({
               return { items: [] }
             }
 
-            // Check if user typed non-matching characters or deleted text
+            // Check if user deleted text (backspace) - text is now shorter
+            if (textBeforeCursor.length < cached.contextBefore.length) {
+              activeSuggestion.current = null
+              return { items: [] }
+            }
+
+            // Check if user typed non-matching characters
             if (!textBeforeCursor.startsWith(cached.contextBefore)) {
               activeSuggestion.current = null
               return { items: [] }
@@ -74,8 +113,12 @@ export function useInlineCompletion({
               cached.contextBefore.length,
             )
 
-            // Check if what they typed matches the beginning of suggestion
-            if (!cached.text.startsWith(typedSinceCompletion)) {
+            // Check if what they typed matches the beginning of suggestion (case-insensitive)
+            if (
+              !cached.text
+                .toLowerCase()
+                .startsWith(typedSinceCompletion.toLowerCase())
+            ) {
               activeSuggestion.current = null
               return { items: [] }
             }
@@ -222,5 +265,5 @@ export function useInlineCompletion({
     )
 
     return () => provider.dispose()
-  }, [monaco, debounceDelay, ollamaProvider, ollamaModel, disabled])
+  }, [monacoInstance, debounceDelay, ollamaProvider, ollamaModel, disabled])
 }

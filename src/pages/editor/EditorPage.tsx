@@ -8,7 +8,7 @@ import { useWriteFile } from '@/lib/files/useWriteFile'
 import { validateFileName } from '@/lib/files/validation'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
-import { applyBoldFormatting } from '@/lib/editor/formatting'
+import { applyBoldFormatting, applyItalicFormatting } from '@/lib/editor/formatting'
 import {
   CircleAlert,
   Eye,
@@ -99,6 +99,25 @@ export function EditorPage() {
     }
   }
 
+  const handleEditorReady = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    monacoEditorRef.current = editor
+
+    // Override CMD+P to toggle preview
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {
+      setShowPreview((prev) => !prev)
+    })
+
+    // Override CMD+I for italic formatting
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => {
+      applyItalicFormatting(editor)
+    })
+
+    // Override CMD+B for bold formatting
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyB, () => {
+      applyBoldFormatting(editor)
+    })
+  }
+
   const handleKeyDown = (event: monaco.IKeyboardEvent) => {
     if (
       (event.ctrlKey || event.metaKey) &&
@@ -106,16 +125,6 @@ export function EditorPage() {
     ) {
       event.preventDefault()
       toast.success('The file is being saved automatically.')
-    }
-
-    if (
-      (event.ctrlKey || event.metaKey) &&
-      event.keyCode === monaco.KeyCode.KeyB
-    ) {
-      event.preventDefault()
-      if (monacoEditorRef.current) {
-        applyBoldFormatting(monacoEditorRef.current)
-      }
     }
 
     if (event.ctrlKey && event.keyCode === monaco.KeyCode.Escape) {
@@ -339,17 +348,7 @@ export function EditorPage() {
             value={markdownContent}
             onChange={handleEditorChange}
             onKeyDown={handleKeyDown}
-            onEditorReady={(editor) => {
-              monacoEditorRef.current = editor
-
-              // Add CMD+P to toggle preview
-              editor.addCommand(
-                monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
-                () => {
-                  setShowPreview((prev) => !prev)
-                },
-              )
-            }}
+            onEditorReady={handleEditorReady}
             placeholder={
               currentFileStatus === 'pending' ? '' : 'Start writing...'
             }

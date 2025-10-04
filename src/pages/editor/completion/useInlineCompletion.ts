@@ -1,10 +1,10 @@
-import { useMonaco } from '@monaco-editor/react'
-import { useEffect, useRef } from 'react'
-import * as monaco from 'monaco-editor'
-import { generateInstructions } from './prompt'
-import { generateText } from 'ai'
-import { CompletionFormatter } from './CompletionFormatter'
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
+import { useMonaco } from '@monaco-editor/react'
+import { generateText } from 'ai'
+import * as monaco from 'monaco-editor'
+import React, { useEffect, useRef } from 'react'
+import { CompletionFormatter } from './CompletionFormatter'
+import { generateInstructions } from './prompt'
 
 export interface UseInlineCompletionOptions {
   debounceDelay?: number
@@ -42,7 +42,7 @@ export function useInlineCompletion({
       return
     }
 
-    const disposable = model.onDidChangeContent((e) => {
+    const disposable = model.onDidChangeContent(() => {
       const currentLength = model.getValueLength()
 
       // If text got shorter (backspace/delete), clear the cached suggestion
@@ -210,11 +210,17 @@ export function useInlineCompletion({
                 currentRequest.current = new AbortController()
 
                 // Build messages array - on new line, only send document context
-                const messages = [generateInstructions(), { content: textBeforeCursor, role: 'user' }]
+                const messages = [
+                  generateInstructions(),
+                  { content: textBeforeCursor, role: 'user' as const },
+                ]
 
                 // Only add second message if current line has content
                 if (textBeforeCursorOnCurrentLine.trim()) {
-                  messages.push({ content: textBeforeCursorOnCurrentLine, role: 'user' })
+                  messages.push({
+                    content: textBeforeCursorOnCurrentLine,
+                    role: 'user' as const,
+                  })
                 }
 
                 // Generate suggestion
@@ -223,6 +229,9 @@ export function useInlineCompletion({
                   messages,
                   temperature: 0.8,
                   abortSignal: currentRequest.current.signal,
+                  experimental_telemetry: {
+                    isEnabled: false,
+                  },
                 })
 
                 if (!response.text.trim()) {

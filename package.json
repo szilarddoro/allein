@@ -11,7 +11,14 @@
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src/ --fix",
     "typecheck": "tsc --noEmit",
-    "check": "pnpm typecheck && pnpm lint"
+    "check": "pnpm typecheck && pnpm lint",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "bash -c 'pnpm typecheck'"
+    ]
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
@@ -70,6 +77,8 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.3",
     "prettier": "^3.6.2",
     "shadcn": "^3.3.1",
     "tailwindcss": "^4.1.13",

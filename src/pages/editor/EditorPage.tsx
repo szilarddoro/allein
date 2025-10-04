@@ -18,7 +18,6 @@ import {
 } from 'lucide-react'
 import * as monaco from 'monaco-editor'
 import React, { useEffect, useRef, useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
 import { useOnClickOutside } from 'usehooks-ts'
 import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
@@ -99,14 +98,6 @@ export function EditorPage() {
       }, AUTO_SAVE_DELAY)
     }
   }
-
-  useHotkeys(
-    ['ctrl+i', 'meta+i'],
-    () => {
-      setShowPreview(!showPreview)
-    },
-    { preventDefault: true },
-  )
 
   const handleKeyDown = (event: monaco.IKeyboardEvent) => {
     if (
@@ -350,6 +341,14 @@ export function EditorPage() {
             onKeyDown={handleKeyDown}
             onEditorReady={(editor) => {
               monacoEditorRef.current = editor
+
+              // Add CMD+P to toggle preview
+              editor.addCommand(
+                monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
+                () => {
+                  setShowPreview((prev) => !prev)
+                },
+              )
             }}
             placeholder={
               currentFileStatus === 'pending' ? '' : 'Start writing...'

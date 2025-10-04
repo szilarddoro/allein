@@ -14,7 +14,11 @@ pnpm dev              # Start Vite dev server only
 pnpm build            # Build frontend (TypeScript + Vite)
 pnpm lint             # Run ESLint
 pnpm lint:fix         # Fix ESLint issues automatically
+pnpm typecheck        # Run TypeScript type checking
+pnpm check            # Run both typecheck and lint
 ```
+
+**Note**: Pre-commit hooks automatically run ESLint (with auto-fix) and TypeScript type checking on staged files before each commit.
 
 ### Tauri Development
 ```bash
@@ -111,12 +115,6 @@ Rules enforced when renaming:
 - No leading/trailing whitespace
 - Must be unique among existing files
 - Validation errors shown inline during edit
-
-### Keyboard Shortcuts
-
-- `Cmd/Ctrl+I`: Toggle markdown preview
-- `Cmd/Ctrl+R`: Navigate to home
-- `Ctrl+Escape` (in editor): Focus preview toggle button
 
 ### React Router Query Params
 

@@ -15,6 +15,8 @@ import { useOutletContext } from 'react-router'
 import { useAutoSave } from './useAutoSave'
 import { useEditorKeyBindings } from './useEditorKeyBindings'
 import { EditorHeader } from './EditorHeader'
+import { ImprovementDialog } from './ImprovementDialog'
+import { useConfig } from '@/lib/db/useConfig'
 
 export function EditorPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -24,6 +26,8 @@ export function EditorPage() {
   const previewButtonRef = useRef<HTMLButtonElement>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [markdownContent, setMarkdownContent] = useState('')
+  const [showImprovementDialog, setShowImprovementDialog] = useState(false)
+  const [selectedText, setSelectedText] = useState('')
 
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const {
@@ -33,11 +37,34 @@ export function EditorPage() {
     refetch: refetchCurrentFile,
   } = useReadFile(currentFilePath)
 
+  const { data: config } = useConfig()
+  const aiEnabled =
+    config?.find((c) => c.key === 'ai_assistance_enabled')?.value === 'true'
+
   const { saveContent } = useAutoSave()
   const { handleEditorReady } = useEditorKeyBindings({
     onTogglePreview: () => setShowPreview((prev) => !prev),
     onOpenCommandPopover: () => {
-      // TODO: Implement command popover
+      const editor = monacoEditorRef.current
+      if (!editor) return
+
+      const selection = editor.getSelection()
+      const text = selection
+        ? editor.getModel()?.getValueInRange(selection) || ''
+        : ''
+
+      if (!text.trim()) {
+        toast.error('Please select some text to improve')
+        return
+      }
+
+      if (!aiEnabled) {
+        toast.error('AI assistance is disabled. Enable it in settings.')
+        return
+      }
+
+      setSelectedText(text)
+      setShowImprovementDialog(true)
     },
   })
 
@@ -53,6 +80,28 @@ export function EditorPage() {
   const handleEditorChange = (content: string) => {
     setMarkdownContent(content)
     saveContent(currentFile || null, content)
+  }
+
+  const handleReplaceText = (improvedText: string) => {
+    const editor = monacoEditorRef.current
+    if (!editor) return
+
+    const selection = editor.getSelection()
+    if (!selection) return
+
+    editor.executeEdits('improve-writing', [
+      {
+        range: selection,
+        text: improvedText,
+      },
+    ])
+
+    // Update state and trigger auto-save
+    const newContent = editor.getValue()
+    setMarkdownContent(newContent)
+    saveContent(currentFile || null, newContent)
+
+    toast.success('Text replaced successfully')
   }
 
   const handleEditorReadyWithRef = (
@@ -154,6 +203,13 @@ export function EditorPage() {
           </div>
         )}
       </div>
+
+      <ImprovementDialog
+        open={showImprovementDialog}
+        onOpenChange={setShowImprovementDialog}
+        originalText={selectedText}
+        onReplace={handleReplaceText}
+      />
     </div>
   )
 }

@@ -1,0 +1,110 @@
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Loader2 } from 'lucide-react'
+import { useEffect } from 'react'
+import { useImproveWriting } from './useImproveWriting'
+
+interface ImprovementDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  originalText: string
+  onReplace: (improvedText: string) => void
+}
+
+export function ImprovementDialog({
+  open,
+  onOpenChange,
+  originalText,
+  onReplace,
+}: ImprovementDialogProps) {
+  const {
+    improveTextAsync,
+    isLoading,
+    error,
+    improvedText,
+    reset,
+  } = useImproveWriting()
+
+  // Auto-trigger improvement when dialog opens
+  useEffect(() => {
+    if (open && originalText) {
+      reset()
+      improveTextAsync(originalText)
+    }
+  }, [open, originalText, improveTextAsync, reset])
+
+  const handleReplace = () => {
+    if (improvedText) {
+      onReplace(improvedText)
+      onOpenChange(false)
+    }
+  }
+
+  const handleCancel = () => {
+    onOpenChange(false)
+    reset()
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Improve Writing</DialogTitle>
+          <DialogDescription>
+            AI-powered text improvement using Ollama
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto space-y-4">
+          {/* Original Text */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Original</h3>
+            <div className="p-3 rounded-md bg-muted text-sm whitespace-pre-wrap">
+              {originalText}
+            </div>
+          </div>
+
+          {/* Improved Text */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Improved</h3>
+            {isLoading ? (
+              <div className="p-6 rounded-md bg-muted flex items-center justify-center">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="ml-2 text-sm text-muted-foreground">
+                  Improving text...
+                </span>
+              </div>
+            ) : error ? (
+              <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+                {error instanceof Error ? error.message : 'Failed to improve text'}
+              </div>
+            ) : improvedText ? (
+              <div className="p-3 rounded-md bg-muted text-sm whitespace-pre-wrap">
+                {improvedText}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleReplace}
+            disabled={isLoading || !improvedText || !!error}
+          >
+            Replace
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

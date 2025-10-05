@@ -16,13 +16,14 @@ import { useAutoSave } from './useAutoSave'
 import { useEditorKeyBindings } from './useEditorKeyBindings'
 import { EditorHeader } from './EditorHeader'
 import { ImprovementDialog } from './ImprovementDialog'
-import { useConfig } from '@/lib/db/useConfig'
 
 export function EditorPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
   const { toast } = useToast()
   const editorRef = useRef<HTMLDivElement>(null)
-  const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
+  const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
+    null,
+  )
   const previewButtonRef = useRef<HTMLButtonElement>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [markdownContent, setMarkdownContent] = useState('')
@@ -37,10 +38,6 @@ export function EditorPage() {
     refetch: refetchCurrentFile,
   } = useReadFile(currentFilePath)
 
-  const { data: config } = useConfig()
-  const aiEnabled =
-    config?.find((c) => c.key === 'ai_assistance_enabled')?.value === 'true'
-
   const { saveContent } = useAutoSave()
   const { handleEditorReady } = useEditorKeyBindings({
     onTogglePreview: () => setShowPreview((prev) => !prev),
@@ -54,12 +51,7 @@ export function EditorPage() {
         : ''
 
       if (!text.trim()) {
-        toast.error('Please select some text to improve')
-        return
-      }
-
-      if (!aiEnabled) {
-        toast.error('AI assistance is disabled. Enable it in settings.')
+        toast.warning('Please select some text to improve')
         return
       }
 
@@ -209,6 +201,11 @@ export function EditorPage() {
         onOpenChange={setShowImprovementDialog}
         originalText={selectedText}
         onReplace={handleReplaceText}
+        onClose={() => {
+          requestAnimationFrame(() => {
+            monacoEditorRef.current?.focus()
+          })
+        }}
       />
     </div>
   )

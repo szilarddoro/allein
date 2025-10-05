@@ -10,12 +10,14 @@ import {
 import { Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
 import { useImproveWriting } from './useImproveWriting'
+import { H3 } from '@/components/ui/typography'
 
 interface ImprovementDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   originalText: string
   onReplace: (improvedText: string) => void
+  onClose?: () => void
 }
 
 export function ImprovementDialog({
@@ -23,49 +25,63 @@ export function ImprovementDialog({
   onOpenChange,
   originalText,
   onReplace,
+  onClose,
 }: ImprovementDialogProps) {
   const {
-    improveTextAsync,
-    isLoading,
+    mutateAsync: improveText,
+    isPending,
     error,
-    improvedText,
+    data: improvedText,
     reset,
   } = useImproveWriting()
 
-  // Auto-trigger improvement when dialog opens
   useEffect(() => {
-    if (open && originalText) {
-      reset()
-      improveTextAsync(originalText)
+    async function handleOpen() {
+      if (open && originalText) {
+        reset()
+        await improveText(originalText)
+      }
     }
-  }, [open, originalText, improveTextAsync, reset])
+
+    handleOpen()
+  }, [improveText, open, originalText, reset])
+
+  const handleOpenChange = (open: boolean) => {
+    onOpenChange?.(open)
+
+    if (!open) {
+      onClose?.()
+    }
+  }
 
   const handleReplace = () => {
     if (improvedText) {
       onReplace(improvedText)
-      onOpenChange(false)
+      handleOpenChange(false)
+      onClose?.()
     }
   }
 
   const handleCancel = () => {
-    onOpenChange(false)
+    handleOpenChange(false)
     reset()
+    onClose?.()
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col select-none">
         <DialogHeader>
           <DialogTitle>Improve Writing</DialogTitle>
-          <DialogDescription>
-            AI-powered text improvement using Ollama
+          <DialogDescription className="sr-only">
+            AI-powered text improvement
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4">
           {/* Original Text */}
           <div>
-            <h3 className="text-sm font-medium mb-2">Original</h3>
+            <H3 className="text-sm font-medium mb-2">Original</H3>
             <div className="p-3 rounded-md bg-muted text-sm whitespace-pre-wrap">
               {originalText}
             </div>
@@ -73,8 +89,8 @@ export function ImprovementDialog({
 
           {/* Improved Text */}
           <div>
-            <h3 className="text-sm font-medium mb-2">Improved</h3>
-            {isLoading ? (
+            <H3 className="text-sm font-medium mb-2">Improved</H3>
+            {isPending ? (
               <div className="p-6 rounded-md bg-muted flex items-center justify-center">
                 <Loader2 className="w-5 h-5 animate-spin" />
                 <span className="ml-2 text-sm text-muted-foreground">
@@ -83,7 +99,9 @@ export function ImprovementDialog({
               </div>
             ) : error ? (
               <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-                {error instanceof Error ? error.message : 'Failed to improve text'}
+                {error instanceof Error
+                  ? error.message
+                  : 'Failed to improve text'}
               </div>
             ) : improvedText ? (
               <div className="p-3 rounded-md bg-muted text-sm whitespace-pre-wrap">
@@ -99,7 +117,7 @@ export function ImprovementDialog({
           </Button>
           <Button
             onClick={handleReplace}
-            disabled={isLoading || !improvedText || !!error}
+            disabled={isPending || !improvedText || !!error}
           >
             Replace
           </Button>

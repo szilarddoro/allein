@@ -1,7 +1,7 @@
 import { generateText } from 'ai'
 import { useMutation } from '@tanstack/react-query'
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
-import { useConfig } from '@/lib/db/useConfig'
+import { useAIConfig } from '@/lib/ai/useAIConfig'
 
 const IMPROVE_WRITING_PROMPT = `Act as a spelling corrector, content writer, and text improver/editor. Reply to each message only with the rewritten text
 Strictly follow these rules:
@@ -22,14 +22,11 @@ Improved Text:`
 
 export function useImproveWriting() {
   const { ollamaProvider, ollamaModel } = useOllamaConfig()
-  const { data: config } = useConfig()
+  const { aiAssistanceEnabled } = useAIConfig()
 
-  const aiEnabled =
-    config?.find((c) => c.key === 'ai_assistance_enabled')?.value === 'true'
-
-  const mutation = useMutation({
+  return useMutation({
     mutationFn: async (text: string): Promise<string> => {
-      if (!aiEnabled) {
+      if (!aiAssistanceEnabled) {
         throw new Error('AI assistance is disabled. Enable it in settings.')
       }
 
@@ -46,14 +43,4 @@ export function useImproveWriting() {
       return result.text.trim()
     },
   })
-
-  return {
-    improveText: mutation.mutate,
-    improveTextAsync: mutation.mutateAsync,
-    isLoading: mutation.isPending,
-    error: mutation.error,
-    improvedText: mutation.data,
-    reset: mutation.reset,
-    aiEnabled,
-  }
 }

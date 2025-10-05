@@ -14,8 +14,9 @@ export function ActivityIndicator({
 }: ActivityIndicatorProps) {
   return (
     <div
+      role="progressbar"
       className={cn(
-        'flex gap-1 items-center text-sm text-muted-foreground',
+        'flex gap-1 items-center text-sm/tight text-muted-foreground',
         className,
       )}
     >

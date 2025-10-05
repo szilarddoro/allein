@@ -7,10 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
 import { useImproveWriting } from './useImproveWriting'
-import { H3 } from '@/components/ui/typography'
+import { ActivityIndicator } from '@/components/ActivityIndicator'
 
 interface ImprovementDialogProps {
   open: boolean
@@ -55,11 +54,13 @@ export function ImprovementDialog({
   }
 
   const handleReplace = () => {
-    if (improvedText) {
-      onReplace(improvedText)
-      handleOpenChange(false)
-      onClose?.()
+    if (!improvedText) {
+      return
     }
+
+    onReplace(improvedText)
+    handleOpenChange(false)
+    onClose?.()
   }
 
   const handleCancel = () => {
@@ -68,9 +69,14 @@ export function ImprovementDialog({
     onClose?.()
   }
 
+  const handleTryAgain = () => {
+    reset()
+    improveText(originalText)
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col select-none">
+      <DialogContent className="max-w-6xl max-h-[85vh] flex flex-col select-none p-6">
         <DialogHeader>
           <DialogTitle>Improve Writing</DialogTitle>
           <DialogDescription className="sr-only">
@@ -78,37 +84,42 @@ export function ImprovementDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4">
-          {/* Original Text */}
-          <div>
-            <H3 className="text-sm font-medium mb-2">Original</H3>
-            <div className="p-3 rounded-md bg-muted text-sm whitespace-pre-wrap">
-              {originalText}
+        <div className="flex-1 overflow-hidden">
+          {isPending ? (
+            <div className="h-full flex items-center justify-center py-2 bg-muted rounded-md">
+              <ActivityIndicator>Improving text...</ActivityIndicator>
             </div>
-          </div>
-
-          {/* Improved Text */}
-          <div>
-            <H3 className="text-sm font-medium mb-2">Improved</H3>
-            {isPending ? (
-              <div className="p-6 rounded-md bg-muted flex items-center justify-center">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span className="ml-2 text-sm text-muted-foreground">
-                  Improving text...
-                </span>
-              </div>
-            ) : error ? (
-              <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+          ) : error ? (
+            <div className="h-full flex flex-col gap-1.5 items-center justify-center py-2 bg-destructive/10 text-destructive text-sm/tight rounded-md">
+              <span>
                 {error instanceof Error
                   ? error.message
-                  : 'Failed to improve text'}
+                  : 'Failed to improve text.'}
+              </span>
+
+              <button className="underline" onClick={handleTryAgain}>
+                Try again
+              </button>
+            </div>
+          ) : improvedText ? (
+            <div className="grid grid-cols-2 gap-4 h-full">
+              {/* Original Text */}
+              <div className="flex flex-col overflow-hidden">
+                <h3 className="text-sm font-medium mb-2">Original</h3>
+                <div className="flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
+                  {originalText}
+                </div>
               </div>
-            ) : improvedText ? (
-              <div className="p-3 rounded-md bg-muted text-sm whitespace-pre-wrap">
-                {improvedText}
+
+              {/* Improved Text */}
+              <div className="flex flex-col overflow-hidden">
+                <h3 className="text-sm font-medium mb-2">Improved</h3>
+                <div className="flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
+                  {improvedText}
+                </div>
               </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
 
         <DialogFooter>

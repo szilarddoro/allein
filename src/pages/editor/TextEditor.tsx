@@ -7,6 +7,7 @@ import { useInlineCompletion } from './completion/useInlineCompletion'
 import { useTheme } from 'next-themes'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { cn } from '@/lib/utils'
+import { defineCustomThemes } from './monaco-themes'
 
 export interface TextEditorProps {
   value?: string
@@ -33,6 +34,10 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
 
     function handleEditorChange(value: string | undefined) {
       onChange?.(value || '')
+    }
+
+    function handleBeforeMount(monacoInstance: Monaco) {
+      defineCustomThemes(monacoInstance)
     }
 
     function handleEditorDidMount(
@@ -70,13 +75,17 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
 
         <div className="flex-1">
           <MonacoEditor
+            key={theme}
             className="h-full"
             theme={
-              theme === 'dark' || systemTheme === 'dark' ? 'vs-dark' : 'vs'
+              theme === 'dark' || (theme === 'system' && systemTheme === 'dark')
+                ? 'allein-dark'
+                : 'allein-light'
             }
             defaultLanguage="markdown"
             value={value}
             onChange={handleEditorChange}
+            beforeMount={handleBeforeMount}
             onMount={handleEditorDidMount}
             loading={<ActivityIndicator>Loading editor...</ActivityIndicator>}
             options={{

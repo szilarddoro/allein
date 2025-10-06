@@ -16,6 +16,7 @@ import { useAutoSave } from './useAutoSave'
 import { useEditorKeyBindings } from './useEditorKeyBindings'
 import { EditorHeader } from './EditorHeader'
 import { ImprovementDialog } from './ImprovementDialog'
+import { formatMarkdown } from '@/lib/editor/formatMarkdown'
 
 export function EditorPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -103,6 +104,31 @@ export function EditorPage() {
     handleEditorReady(editor)
   }
 
+  const handleFormatDocument = async () => {
+    const editor = monacoEditorRef.current
+    if (!editor) return
+
+    const model = editor.getModel()
+    if (!model) return
+
+    const position = editor.getPosition()
+    const content = model.getValue()
+
+    try {
+      const formatted = await formatMarkdown(content)
+      model.setValue(formatted)
+      if (position) {
+        editor.setPosition(position)
+        editor.revealPositionInCenter(position)
+      }
+      requestAnimationFrame(() => {
+        editor.focus()
+      })
+    } catch {
+      toast.error('Failed to format document')
+    }
+  }
+
   const handleKeyDown = (event: monaco.IKeyboardEvent) => {
     if (
       (event.ctrlKey || event.metaKey) &&
@@ -165,6 +191,7 @@ export function EditorPage() {
         showPreview={showPreview}
         sidebarOpen={sidebarOpen}
         onTogglePreview={() => setShowPreview(!showPreview)}
+        onFormatDocument={handleFormatDocument}
         onFileRenamed={updateCurrentFilePath}
         ref={previewButtonRef}
       />

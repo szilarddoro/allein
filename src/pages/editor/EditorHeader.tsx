@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/tooltip'
 import { FileContent } from '@/lib/files/types'
 import { cn } from '@/lib/utils'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, WandSparkles } from 'lucide-react'
 import { forwardRef } from 'react'
 import { FileNameEditor } from './FileNameEditor'
 
@@ -15,6 +15,7 @@ export interface EditorHeaderProps {
   showPreview: boolean
   sidebarOpen: boolean
   onTogglePreview: () => void
+  onFormatDocument: () => void
   onFileRenamed: (newPath: string) => void
 }
 
@@ -24,7 +25,14 @@ export interface EditorHeaderProps {
  */
 export const EditorHeader = forwardRef<HTMLButtonElement, EditorHeaderProps>(
   (
-    { currentFile, showPreview, sidebarOpen, onTogglePreview, onFileRenamed },
+    {
+      currentFile,
+      showPreview,
+      sidebarOpen,
+      onTogglePreview,
+      onFormatDocument,
+      onFileRenamed,
+    },
     ref,
   ) => {
     return (
@@ -39,33 +47,47 @@ export const EditorHeader = forwardRef<HTMLButtonElement, EditorHeaderProps>(
           onFileRenamed={onFileRenamed}
         />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onTogglePreview}
-              ref={ref}
-            >
-              {showPreview ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
-            </Button>
-          </TooltipTrigger>
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={onFormatDocument}>
+                <WandSparkles className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
 
-          <TooltipContent align="center" side="left">
-            <span className="sr-only">
-              {showPreview
-                ? 'Preview visible. Click to hide.'
-                : 'Preview hidden. Click to show.'}
-            </span>
-            <span aria-hidden="true">
-              {showPreview ? 'Hide preview' : 'Show preview'}
-            </span>
-          </TooltipContent>
-        </Tooltip>
+            <TooltipContent align="center" side="bottom">
+              Format document
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onTogglePreview}
+                ref={ref}
+              >
+                {showPreview ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+
+            <TooltipContent align="end" side="bottom">
+              <span className="sr-only">
+                {showPreview
+                  ? 'Preview visible. Click to hide.'
+                  : 'Preview hidden. Click to show.'}
+              </span>
+              <span aria-hidden="true">
+                {showPreview ? 'Hide preview' : 'Show preview'}
+              </span>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
     )
   },

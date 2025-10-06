@@ -1,5 +1,5 @@
-import { generateText } from 'ai'
-import { useMutation } from '@tanstack/react-query'
+import { streamText } from 'ai'
+import { useCallback, useState } from 'react'
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 
@@ -25,24 +25,70 @@ Improved Text:`
 export function useImproveWriting() {
   const { ollamaProvider, ollamaModel } = useOllamaConfig()
   const { aiAssistanceEnabled } = useAIConfig()
+  const [isPending, setIsPending] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
+  const [improvedText, setImprovedText] = useState<string>('')
 
-  return useMutation({
-    mutationFn: async (text: string): Promise<string> => {
+  const improveText = useCallback(
+    async (text: string, onStreamUpdate?: (text: string) => void) => {
       if (!aiAssistanceEnabled) {
-        throw new Error('AI assistance is disabled. Enable it in settings.')
+        const err = new Error(
+          'AI assistance is disabled. Enable it in settings.',
+        )
+        setError(err)
+        throw err
       }
 
       if (!ollamaModel) {
-        throw new Error('No Ollama model selected. Configure it in settings.')
+        const err = new Error(
+          'No Ollama model selected. Configure it in settings.',
+        )
+        setError(err)
+        throw err
       }
 
-      const result = await generateText({
-        model: ollamaProvider(ollamaModel),
-        prompt: IMPROVE_WRITING_PROMPT.replace('{text}', text),
-        temperature: 0.7,
-      })
+      setIsPending(true)
+      setError(null)
+      setImprovedText('')
 
-      return result.text.trim()
+      try {
+        const { textStream } = streamText({
+          model: ollamaProvider(ollamaModel),
+          prompt: IMPROVE_WRITING_PROMPT.replace('{text}', text),
+          temperature: 0.7,
+        })
+
+        let fullText = ''
+        for await (const textPart of textStream) {
+          fullText += textPart
+          setImprovedText(fullText)
+          onStreamUpdate?.(fullText)
+        }
+
+        setIsPending(false)
+        return fullText.trim()
+      } catch (err) {
+        const error =
+          err instanceof Error ? err : new Error('Failed to improve text')
+        setError(error)
+        setIsPending(false)
+        throw error
+      }
     },
-  })
+    [ollamaProvider, ollamaModel, aiAssistanceEnabled],
+  )
+
+  const reset = useCallback(() => {
+    setIsPending(false)
+    setError(null)
+    setImprovedText('')
+  }, [])
+
+  return {
+    improveText,
+    isPending,
+    error,
+    improvedText,
+    reset,
+  }
 }

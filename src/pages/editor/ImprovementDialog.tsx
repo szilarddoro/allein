@@ -33,13 +33,8 @@ export function ImprovementDialog({
 }: ImprovementDialogProps) {
   const { toast } = useToast()
   const replaceButtonRef = useRef<HTMLButtonElement>(null)
-  const {
-    mutateAsync: improveText,
-    isPending,
-    error,
-    data: improvedText,
-    reset,
-  } = useImproveWriting()
+  const { improveText, isPending, error, improvedText, reset } =
+    useImproveWriting()
 
   const improveTextWithInfoToast = useCallback(
     async (text: string) => {
@@ -103,7 +98,7 @@ export function ImprovementDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col select-none p-6">
+      <DialogContent className="sm:max-w-5xl max-h-[85vh] flex flex-col select-none p-6">
         <DialogHeader>
           <DialogTitle>Improve Writing</DialogTitle>
           <DialogDescription className="sr-only">
@@ -124,7 +119,7 @@ export function ImprovementDialog({
             <div className="flex flex-col gap-2 flex-1/2">
               <H3 className="text-sm font-medium m-0">Improved Text</H3>
 
-              {isPending ? (
+              {isPending && improvedText.length === 0 ? (
                 <div className="h-full flex items-center justify-center py-2 border bg-muted rounded-md">
                   <ActivityIndicator>Generating text...</ActivityIndicator>
                 </div>

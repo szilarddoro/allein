@@ -28,7 +28,6 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { Copy, Edit3, Home, NotebookPen, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 interface SidebarProps {
@@ -93,10 +92,6 @@ export function Sidebar({ onNewFile }: SidebarProps) {
       toast.error('Failed to copy file path')
     }
   }
-
-  useHotkeys(['cmd+r', 'ctrl+r'], () => {
-    navigate('/')
-  })
 
   return (
     <div className="max-w-64 w-full h-full flex flex-col">

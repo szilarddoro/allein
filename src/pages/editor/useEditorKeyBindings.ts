@@ -1,6 +1,11 @@
 import { useCallback } from 'react'
 import * as monaco from 'monaco-editor'
-import { applyBoldFormatting, applyItalicFormatting, applyStrikethroughFormatting, applyHeadingFormatting } from '@/lib/editor/formatting'
+import {
+  applyBoldFormatting,
+  applyItalicFormatting,
+  applyStrikethroughFormatting,
+  applyHeadingFormatting,
+} from '@/lib/editor/formatting'
 
 interface UseEditorKeyBindingsProps {
   onTogglePreview: () => void
@@ -32,14 +37,22 @@ export function useEditorKeyBindings({
         applyBoldFormatting(editor)
       })
 
-      // Override CMD+K to open command popover
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK, () => {
+      // Override CMD+R to open command popover
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR, () => {
         onOpenCommandPopover()
       })
 
       // Override CMD+Shift+Minus for strikethrough formatting
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Minus, () => {
-        applyStrikethroughFormatting(editor)
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Minus,
+        () => {
+          applyStrikethroughFormatting(editor)
+        },
+      )
+
+      // Override CMD+0 for removing the heading level
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit0, () => {
+        applyHeadingFormatting(editor, 0)
       })
 
       // Override CMD+1 for heading level 1
@@ -60,6 +73,10 @@ export function useEditorKeyBindings({
       // Override CMD+4 for heading level 4
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit4, () => {
         applyHeadingFormatting(editor, 4)
+      })
+
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
+        // Note: Disable comments for now.
       })
 
       return editor

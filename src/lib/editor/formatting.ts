@@ -126,7 +126,13 @@ export function applyHeadingFormatting(
   let newText: string
   let newPosition: monaco.Position
 
-  if (currentLevel === level) {
+  if (level === 0) {
+    newText = lineContent.replace(/^#{1,6}\s/, '')
+    newPosition = new monaco.Position(
+      lineNumber,
+      Math.max(1, selection.positionColumn),
+    )
+  } else if (currentLevel === level) {
     // Remove heading
     newText = lineContent.replace(/^#{1,6}\s/, '')
     newPosition = new monaco.Position(
@@ -153,7 +159,12 @@ export function applyHeadingFormatting(
   // Apply the formatting to the entire line
   editor.executeEdits('heading-formatting', [
     {
-      range: new monaco.Range(lineNumber, 1, lineNumber, lineContent.length + 1),
+      range: new monaco.Range(
+        lineNumber,
+        1,
+        lineNumber,
+        lineContent.length + 1,
+      ),
       text: newText,
     },
   ])

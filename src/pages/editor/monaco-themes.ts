@@ -6,8 +6,8 @@ export const defineCustomThemes = (monaco: Monaco) => {
     base: 'vs',
     inherit: true,
     rules: [
-      { token: 'comment', foreground: '6a737d', fontStyle: 'italic' },
-      { token: 'keyword', foreground: '7f22fe', fontStyle: 'bold' },
+      { token: 'comment', foreground: '09090b' },
+      { token: 'keyword', foreground: '1447e6', fontStyle: 'bold' },
       { token: 'string', foreground: '22863a' },
       { token: 'number', foreground: '005cc5' },
       { token: 'type', foreground: '6f42c1' },
@@ -29,7 +29,7 @@ export const defineCustomThemes = (monaco: Monaco) => {
     base: 'vs-dark',
     inherit: true,
     rules: [
-      { token: 'comment', foreground: '6a9955', fontStyle: 'italic' },
+      { token: 'comment', foreground: 'fafafa' },
       { token: 'keyword', foreground: 'a684ff', fontStyle: 'bold' },
       { token: 'string', foreground: 'ce9178' },
       { token: 'number', foreground: 'b5cea8' },
@@ -41,8 +41,8 @@ export const defineCustomThemes = (monaco: Monaco) => {
       'editor.background': '#171717',
       'editor.foreground': '#fafafa',
       'editor.lineHighlightBackground': '#282828',
-      'editorCursor.foreground': '#00a63e',
-      'editor.selectionBackground': '#264f78',
+      'editorCursor.foreground': '#2b7fff',
+      'editor.selectionBackground': '#1c398e',
       'editorLineNumber.foreground': '#858585',
     },
   })

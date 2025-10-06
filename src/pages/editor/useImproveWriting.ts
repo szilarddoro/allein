@@ -13,6 +13,8 @@ Strictly follow these rules:
 - Opt for simpler, more accessible vocabulary when possible
 - ALWAYS ensure the original meaning and intention of the given text
 - ALWAYS maintain the existing tone of voice and style, e.g. formal, casual, polite, etc.
+- ALWAYS preserve existing Markdown formatting (e.g., **bold**, *italic*, headings, links, lists, code blocks)
+- NEVER add or remove Markdown formatting unless it improves clarity
 - NEVER surround the improved text with quotes or any additional formatting
 - If the text is already well-written and requires no improvement, don't change the given text
 

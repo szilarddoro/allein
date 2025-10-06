@@ -93,8 +93,6 @@ export function EditorPage() {
     const newContent = editor.getValue()
     setMarkdownContent(newContent)
     saveContent(currentFile || null, newContent)
-
-    toast.success('Text replaced successfully')
   }
 
   const handleEditorReadyWithRef = (

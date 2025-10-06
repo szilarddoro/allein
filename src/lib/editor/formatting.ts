@@ -101,3 +101,64 @@ export function applyStrikethroughFormatting(
 ): void {
   applyFormatting(editor, '~~', 'strikethrough-formatting')
 }
+
+/**
+ * Apply heading formatting to the current line
+ */
+export function applyHeadingFormatting(
+  editor: monaco.editor.IStandaloneCodeEditor,
+  level: number,
+): void {
+  const model = editor.getModel()
+  if (!model) return
+
+  const selection = editor.getSelection()
+  if (!selection) return
+
+  const lineNumber = selection.startLineNumber
+  const lineContent = model.getLineContent(lineNumber)
+  const headingMarker = '#'.repeat(level) + ' '
+
+  // Check if line already has this heading level
+  const currentHeadingMatch = lineContent.match(/^(#{1,6})\s/)
+  const currentLevel = currentHeadingMatch ? currentHeadingMatch[1].length : 0
+
+  let newText: string
+  let newPosition: monaco.Position
+
+  if (currentLevel === level) {
+    // Remove heading
+    newText = lineContent.replace(/^#{1,6}\s/, '')
+    newPosition = new monaco.Position(
+      lineNumber,
+      Math.max(1, selection.positionColumn - headingMarker.length),
+    )
+  } else if (currentLevel > 0) {
+    // Replace with new heading level
+    newText = lineContent.replace(/^#{1,6}\s/, headingMarker)
+    const columnDiff = headingMarker.length - currentHeadingMatch![0].length
+    newPosition = new monaco.Position(
+      lineNumber,
+      Math.max(1, selection.positionColumn + columnDiff),
+    )
+  } else {
+    // Add heading
+    newText = headingMarker + lineContent
+    newPosition = new monaco.Position(
+      lineNumber,
+      selection.positionColumn + headingMarker.length,
+    )
+  }
+
+  // Apply the formatting to the entire line
+  editor.executeEdits('heading-formatting', [
+    {
+      range: new monaco.Range(lineNumber, 1, lineNumber, lineContent.length + 1),
+      text: newText,
+    },
+  ])
+
+  // Restore cursor position
+  editor.setPosition(newPosition)
+  editor.focus()
+}

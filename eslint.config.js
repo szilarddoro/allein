@@ -24,6 +24,8 @@ export default defineConfig([
       globals: globals.browser,
       parser: tsParser,
       parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
         ecmaVersion: 'latest',
         sourceType: 'module',
         ecmaFeatures: {
@@ -63,6 +65,9 @@ export default defineConfig([
       'object-shorthand': ['warn', 'always'],
       'react/react-in-jsx-scope': 'off', // Not needed with React 17+
       'react/prop-types': 'off', // Using TypeScript for prop validation
+      'require-await': 'off',
+      '@typescript-eslint/require-await': 'error',
+      '@typescript-eslint/await-thenable': 'error',
     },
   },
 ])

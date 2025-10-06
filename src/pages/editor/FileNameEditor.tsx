@@ -201,7 +201,7 @@ export function FileNameEditor({
             </ContextMenuContent>
           </ContextMenu>
 
-          <TooltipContent align="center" side="right">
+          <TooltipContent align="center" side="bottom">
             Click to edit file name
           </TooltipContent>
         </Tooltip>

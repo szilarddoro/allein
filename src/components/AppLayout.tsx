@@ -70,7 +70,14 @@ export function AppLayout() {
               </Button>
             </TooltipTrigger>
 
-            <TooltipContent align="center" side="bottom">
+            <TooltipContent
+              align={
+                CURRENT_PLATFORM === 'macos' && isFullscreen
+                  ? 'start'
+                  : 'center'
+              }
+              side="bottom"
+            >
               {sidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
             </TooltipContent>
           </Tooltip>

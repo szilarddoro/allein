@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { DEFAULT_OLLAMA_URL } from './ollama'
+import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 
 // Test Ollama server connection
 export async function testOllamaConnection(
@@ -16,11 +17,13 @@ export async function testOllamaConnection(
 }
 
 export function useOllamaConnection(serverUrl?: string | null) {
+  const { ollamaUrl } = useOllamaConfig()
+
   return useQuery({
     queryKey: ['ollama-connection', serverUrl],
     queryFn: () => testOllamaConnection(serverUrl || ''),
     retry: false,
     refetchInterval: 10000,
-    enabled: !!serverUrl,
+    enabled: !!serverUrl && !!ollamaUrl,
   })
 }

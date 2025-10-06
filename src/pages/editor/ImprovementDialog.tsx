@@ -13,6 +13,9 @@ import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { H3 } from '@/components/ui/typography'
 import { RefreshCw, Info } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useAIConfig } from '@/lib/ai/useAIConfig'
+import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
+import { Link } from 'react-router'
 
 interface ImprovementDialogProps {
   open: boolean
@@ -34,10 +37,18 @@ export function ImprovementDialog({
   const replaceButtonRef = useRef<HTMLButtonElement>(null)
   const { improveText, isPending, error, improvedText, reset, cancel } =
     useImproveWriting()
+  const { aiAssistanceEnabled } = useAIConfig()
+  const { data: isConnected, status: connectionStatus } = useOllamaConnection()
 
+  const isAiAssistanceAvailable =
+    aiAssistanceEnabled && isConnected && connectionStatus === 'success'
   const showLongTextInfo = originalText.trim().length > IDEAL_TEXT_LENGTH
 
   useEffect(() => {
+    if (!isAiAssistanceAvailable) {
+      return
+    }
+
     async function handleOpen() {
       if (open && originalText) {
         reset()
@@ -46,7 +57,7 @@ export function ImprovementDialog({
     }
 
     handleOpen()
-  }, [improveText, open, originalText, reset])
+  }, [improveText, open, originalText, reset, isAiAssistanceAvailable])
 
   // Focus the Replace button when improved text is ready
   useEffect(() => {
@@ -108,7 +119,20 @@ export function ImprovementDialog({
             <div className="flex flex-col gap-2 flex-1/2">
               <H3 className="text-sm font-medium m-0">Improved Text</H3>
 
-              {isPending && improvedText.length === 0 ? (
+              {!isAiAssistanceAvailable ? (
+                <div className="h-full bg-muted flex items-center justify-center rounded-md border text-sm text-muted-foreground">
+                  <span>
+                    AI assistance is not available. Go to the{' '}
+                    <Link
+                      to="/settings"
+                      className="underline hover:text-foreground transition-colors"
+                    >
+                      Settings page
+                    </Link>{' '}
+                    to enable it.
+                  </span>
+                </div>
+              ) : isPending && improvedText.length === 0 ? (
                 <div className="h-full flex items-center justify-center py-2 border bg-muted rounded-md">
                   <ActivityIndicator>Generating text...</ActivityIndicator>
                 </div>
@@ -144,7 +168,7 @@ export function ImprovementDialog({
             </div>
           </div>
 
-          {showLongTextInfo && (
+          {showLongTextInfo && isAiAssistanceAvailable && (
             <Alert className="border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300">
               <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <AlertDescription className="text-blue-600 dark:text-blue-300">

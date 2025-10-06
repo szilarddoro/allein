@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, Outlet } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link, Outlet, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Cog, PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react'
 import { CURRENT_PLATFORM, IS_TAURI } from '@/lib/constants'
@@ -18,6 +18,20 @@ export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const { mutateAsync: createFile } = useCreateFile()
   const { isFullscreen } = useWindowState()
+  const navigate = useNavigate()
+
+  // Global keyboard shortcut: CMD+, (Mac) or CTRL+, (Windows/Linux) to open settings
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        navigate('/settings')
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [navigate])
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-900/70 overflow-hidden">

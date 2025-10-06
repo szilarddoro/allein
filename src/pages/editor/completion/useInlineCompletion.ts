@@ -1,4 +1,6 @@
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
+import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
+import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { useMonaco } from '@monaco-editor/react'
 import { generateText } from 'ai'
 import * as monaco from 'monaco-editor'
@@ -30,7 +32,13 @@ export function useInlineCompletion({
   const debounceTimeout = useRef<number | null>(null)
   const activeSuggestion = useRef<CachedSuggestion | null>(null)
   const lastDocumentLength = useRef<number>(0)
-  const { ollamaProvider, ollamaModel } = useOllamaConfig()
+  const { ollamaProvider, ollamaModel, ollamaUrl } = useOllamaConfig()
+  const { aiAssistanceEnabled } = useAIConfig()
+  const { data: isConnected, status: connectionStatus } =
+    useOllamaConnection(ollamaUrl)
+
+  const isAiAssistanceAvailable =
+    aiAssistanceEnabled && isConnected && connectionStatus === 'success'
 
   // Listen to editor changes to detect backspace
   useEffect(() => {
@@ -207,7 +215,12 @@ export function useInlineCompletion({
           return new Promise((resolve) => {
             debounceTimeout.current = window.setTimeout(async () => {
               try {
-                if (!ollamaProvider || !ollamaModel) {
+                // Check if AI assistance is available
+                if (
+                  !isAiAssistanceAvailable ||
+                  !ollamaProvider ||
+                  !ollamaModel
+                ) {
                   resolve({ items: [] })
                   return
                 }
@@ -311,5 +324,6 @@ export function useInlineCompletion({
     ollamaModel,
     disabled,
     onLoadingChange,
+    isAiAssistanceAvailable,
   ])
 }

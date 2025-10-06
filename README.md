@@ -1,4 +1,4 @@
-# allein.app
+# Allein
 
 A modern, cross-platform markdown editor built with Tauri, React, and TypeScript. Features live preview, AI assistance via Ollama, and a clean, distraction-free writing experience.
 

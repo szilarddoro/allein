@@ -227,8 +227,11 @@ export function useInlineCompletion({
                   { content: textBeforeCursor, role: 'user' as const },
                 ]
 
-                // Only add second message if current line has content
-                if (textBeforeCursorOnCurrentLine.trim()) {
+                // Check if we're after a complete sentence (. ! ? followed by space)
+                const endsWithCompleteSentence = /[.!?]\s+$/.test(textBeforeCursorOnCurrentLine)
+
+                // Only add second message if current line has content AND we're not after a complete sentence
+                if (textBeforeCursorOnCurrentLine.trim() && !endsWithCompleteSentence) {
                   messages.push({
                     content: textBeforeCursorOnCurrentLine,
                     role: 'user' as const,

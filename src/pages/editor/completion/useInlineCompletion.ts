@@ -10,6 +10,7 @@ export interface UseInlineCompletionOptions {
   debounceDelay?: number
   disabled?: boolean
   editorRef?: React.RefObject<monaco.editor.IStandaloneCodeEditor | null>
+  onLoadingChange?: (loading: boolean) => void
 }
 
 interface CachedSuggestion {
@@ -22,6 +23,7 @@ export function useInlineCompletion({
   debounceDelay = 800,
   disabled = false,
   editorRef,
+  onLoadingChange,
 }: UseInlineCompletionOptions = {}) {
   const monacoInstance = useMonaco()
   const currentRequest = useRef<AbortController | null>(null)
@@ -223,6 +225,9 @@ export function useInlineCompletion({
                   })
                 }
 
+                // Notify loading started
+                onLoadingChange?.(true)
+
                 // Generate suggestion
                 const response = await generateText({
                   model: ollamaProvider(ollamaModel),
@@ -233,6 +238,9 @@ export function useInlineCompletion({
                     isEnabled: false,
                   },
                 })
+
+                // Notify loading finished
+                onLoadingChange?.(false)
 
                 if (!response.text.trim()) {
                   resolve({ items: [] })
@@ -264,6 +272,9 @@ export function useInlineCompletion({
 
                 resolve({ items: [completionItem] })
               } catch (error) {
+                // Notify loading finished on error
+                onLoadingChange?.(false)
+
                 if (error instanceof Error && error.name === 'AbortError') {
                   resolve({ items: [] })
                 } else {
@@ -280,5 +291,12 @@ export function useInlineCompletion({
     )
 
     return () => provider.dispose()
-  }, [monacoInstance, debounceDelay, ollamaProvider, ollamaModel, disabled])
+  }, [
+    monacoInstance,
+    debounceDelay,
+    ollamaProvider,
+    ollamaModel,
+    disabled,
+    onLoadingChange,
+  ])
 }

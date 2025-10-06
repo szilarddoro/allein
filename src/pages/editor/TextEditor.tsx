@@ -1,4 +1,4 @@
-import { forwardRef, useRef } from 'react'
+import { forwardRef, useRef, useState } from 'react'
 import MonacoEditor, { Monaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { Card } from '@/components/ui/card'
@@ -6,6 +6,7 @@ import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { useInlineCompletion } from './completion/useInlineCompletion'
 import { useTheme } from 'next-themes'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
+import { cn } from '@/lib/utils'
 
 export interface TextEditorProps {
   value?: string
@@ -20,9 +21,15 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
     const { theme, systemTheme } = useTheme()
     const { aiAssistanceEnabled } = useAIConfig()
+    const [isInlineCompletionLoading, setIsInlineCompletionLoading] =
+      useState(false)
 
     // Enable inline completion for the Monaco Editor
-    useInlineCompletion({ disabled: !aiAssistanceEnabled, editorRef })
+    useInlineCompletion({
+      disabled: !aiAssistanceEnabled,
+      editorRef,
+      onLoadingChange: setIsInlineCompletionLoading,
+    })
 
     function handleEditorChange(value: string | undefined) {
       onChange?.(value || '')
@@ -47,7 +54,20 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     }
 
     return (
-      <Card className="flex flex-col h-full p-0 overflow-hidden" ref={ref}>
+      <Card
+        className="flex flex-col h-full p-0 overflow-hidden relative"
+        ref={ref}
+      >
+        <div
+          role="progressbar"
+          className={cn(
+            'size-2 rounded-full bg-purple-300 absolute top-2 right-2 z-10 pointer-events-none opacity-0 transition-opacity',
+            'after:size-full after:rounded-full after:bg-purple-300 after:absolute after:top-0 after:left-0 after:animate-ping',
+            isInlineCompletionLoading && 'opacity-100',
+          )}
+          aria-label="Loading inline completion"
+        />
+
         <div className="flex-1">
           <MonacoEditor
             className="h-full"

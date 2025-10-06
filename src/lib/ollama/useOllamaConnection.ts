@@ -20,8 +20,8 @@ export function useOllamaConnection(serverUrl?: string | null) {
   const { ollamaUrl } = useOllamaConfig()
 
   return useQuery({
-    queryKey: ['ollama-connection', serverUrl],
-    queryFn: () => testOllamaConnection(serverUrl || ''),
+    queryKey: ['ollama-connection', ollamaUrl || serverUrl],
+    queryFn: () => testOllamaConnection(ollamaUrl || serverUrl || ''),
     retry: false,
     refetchInterval: 10000,
     enabled: !!serverUrl && !!ollamaUrl,

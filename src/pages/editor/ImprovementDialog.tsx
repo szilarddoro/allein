@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useImproveWriting } from './useImproveWriting'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { H3 } from '@/components/ui/typography'
@@ -28,6 +28,7 @@ export function ImprovementDialog({
   onReplace,
   onClose,
 }: ImprovementDialogProps) {
+  const replaceButtonRef = useRef<HTMLButtonElement>(null)
   const {
     mutateAsync: improveText,
     isPending,
@@ -46,6 +47,13 @@ export function ImprovementDialog({
 
     handleOpen()
   }, [improveText, open, originalText, reset])
+
+  // Focus the Replace button when improved text is ready
+  useEffect(() => {
+    if (improvedText && !isPending && !error) {
+      replaceButtonRef.current?.focus()
+    }
+  }, [improvedText, isPending, error])
 
   const handleOpenChange = (open: boolean) => {
     onOpenChange?.(open)
@@ -139,6 +147,7 @@ export function ImprovementDialog({
             Cancel
           </Button>
           <Button
+            ref={replaceButtonRef}
             onClick={handleReplace}
             disabled={isPending || !improvedText || !!error}
           >

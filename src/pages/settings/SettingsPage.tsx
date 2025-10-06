@@ -102,7 +102,7 @@ export function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>
-                    <H2 className="text-xl">AI Assistant</H2>
+                    <H2 className="text-xl mb-0">AI Assistant</H2>
                   </CardTitle>
                   <CardDescription>
                     <P className="!mt-0.5 text-muted-foreground text-sm">
@@ -131,7 +131,7 @@ export function SettingsPage() {
               <CardContent className="space-y-6">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <H3 className="text-lg">Ollama Server</H3>
+                    <H3 className="text-lg my-0">Ollama Server</H3>
                     <div className="flex items-center gap-2">
                       {connectionLoading ? (
                         <ActivityIndicator srOnly>
@@ -173,7 +173,7 @@ export function SettingsPage() {
 
                 <div>
                   <div className="flex items-center justify-between">
-                    <H3 className="text-lg">Available Models</H3>
+                    <H3 className="text-lg mb-0">Available Models</H3>
 
                     <div className="flex items-center gap-2">
                       {modelsLoading && (
@@ -243,10 +243,10 @@ export function SettingsPage() {
           <Card>
             <CardHeader className="gap-0">
               <CardTitle>
-                <H2 className="text-xl">Appearance</H2>
+                <H2 className="text-xl mb-0">Appearance</H2>
               </CardTitle>
               <CardDescription>
-                <P className="!mt-0.5 text-muted-foreground text-sm">
+                <P className="!mt-0.5 text-muted-foreground text-sm mb-0">
                   Customize the appearance of the application.
                 </P>
               </CardDescription>
@@ -298,7 +298,7 @@ export function SettingsPage() {
           <Card>
             <CardHeader className="gap-0">
               <CardTitle>
-                <H2 className="text-xl">About</H2>
+                <H2 className="text-xl mb-0">About</H2>
               </CardTitle>
             </CardHeader>
 

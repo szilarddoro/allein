@@ -1,5 +1,5 @@
 import { streamText } from 'ai'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 
@@ -28,9 +28,21 @@ export function useImproveWriting() {
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<Error | null>(null)
   const [improvedText, setImprovedText] = useState<string>('')
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  const cancel = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+      setIsPending(false)
+    }
+  }, [])
 
   const improveText = useCallback(
     async (text: string, onStreamUpdate?: (text: string) => void) => {
+      // Cancel any existing request
+      cancel()
+
       if (!aiAssistanceEnabled) {
         const err = new Error(
           'AI assistance is disabled. Enable it in settings.',
@@ -51,11 +63,15 @@ export function useImproveWriting() {
       setError(null)
       setImprovedText('')
 
+      // Create new AbortController for this request
+      abortControllerRef.current = new AbortController()
+
       try {
         const { textStream } = streamText({
           model: ollamaProvider(ollamaModel),
           prompt: IMPROVE_WRITING_PROMPT.replace('{text}', text),
           temperature: 0.7,
+          abortSignal: abortControllerRef.current.signal,
         })
 
         let fullText = ''
@@ -66,23 +82,32 @@ export function useImproveWriting() {
         }
 
         setIsPending(false)
+        abortControllerRef.current = null
         return fullText.trim()
       } catch (err) {
+        // Don't set error if it was cancelled
+        if (err instanceof Error && err.name === 'AbortError') {
+          setIsPending(false)
+          abortControllerRef.current = null
+          throw err
+        }
+
         const error =
           err instanceof Error ? err : new Error('Failed to improve text')
         setError(error)
         setIsPending(false)
+        abortControllerRef.current = null
         throw error
       }
     },
-    [ollamaProvider, ollamaModel, aiAssistanceEnabled],
+    [ollamaProvider, ollamaModel, aiAssistanceEnabled, cancel],
   )
 
   const reset = useCallback(() => {
-    setIsPending(false)
+    cancel()
     setError(null)
     setImprovedText('')
-  }, [])
+  }, [cancel])
 
   return {
     improveText,
@@ -90,5 +115,6 @@ export function useImproveWriting() {
     error,
     improvedText,
     reset,
+    cancel,
   }
 }

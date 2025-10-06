@@ -32,7 +32,7 @@ export function ImprovementDialog({
   onClose,
 }: ImprovementDialogProps) {
   const replaceButtonRef = useRef<HTMLButtonElement>(null)
-  const { improveText, isPending, error, improvedText, reset } =
+  const { improveText, isPending, error, improvedText, reset, cancel } =
     useImproveWriting()
 
   const showLongTextInfo = originalText.trim().length > IDEAL_TEXT_LENGTH
@@ -59,6 +59,7 @@ export function ImprovementDialog({
     onOpenChange?.(open)
 
     if (!open) {
+      cancel()
       onClose?.()
     }
   }

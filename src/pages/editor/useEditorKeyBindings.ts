@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import * as monaco from 'monaco-editor'
-import { applyBoldFormatting, applyItalicFormatting } from '@/lib/editor/formatting'
+import { applyBoldFormatting, applyItalicFormatting, applyStrikethroughFormatting } from '@/lib/editor/formatting'
 
 interface UseEditorKeyBindingsProps {
   onTogglePreview: () => void
@@ -35,6 +35,11 @@ export function useEditorKeyBindings({
       // Override CMD+K to open command popover
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK, () => {
         onOpenCommandPopover()
+      })
+
+      // Override CMD+Shift+Minus for strikethrough formatting
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Minus, () => {
+        applyStrikethroughFormatting(editor)
       })
 
       return editor

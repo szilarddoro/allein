@@ -142,3 +142,75 @@ export function applyItalicFormatting(
   editor.setSelection(newSelection)
   editor.focus()
 }
+
+/**
+ * Apply strikethrough formatting (~~text~~) to the current selection in Monaco Editor
+ */
+export function applyStrikethroughFormatting(
+  editor: monaco.editor.IStandaloneCodeEditor,
+): void {
+  const model = editor.getModel()
+  if (!model) return
+
+  const selection = editor.getSelection()
+  if (!selection) return
+
+  const selectedText = model.getValueInRange(selection)
+
+  // Check if selection is already strikethrough
+  const isStrikethrough =
+    selectedText.startsWith('~~') && selectedText.endsWith('~~')
+
+  let newText: string
+  let newSelection: monaco.Selection
+
+  if (isStrikethrough) {
+    // Remove strikethrough markers
+    newText = selectedText.slice(2, -2)
+    newSelection = new monaco.Selection(
+      selection.startLineNumber,
+      selection.startColumn,
+      selection.endLineNumber,
+      selection.endColumn - 4, // Account for removed ~~
+    )
+  } else if (selectedText.length === 0) {
+    // No selection - insert strikethrough markers and position cursor between them
+    newText = '~~~~'
+    editor.executeEdits('strikethrough-formatting', [
+      {
+        range: selection,
+        text: newText,
+      },
+    ])
+
+    // Move cursor between the tildes
+    const newPosition = new monaco.Position(
+      selection.startLineNumber,
+      selection.startColumn + 2,
+    )
+    editor.setPosition(newPosition)
+    editor.focus()
+    return
+  } else {
+    // Wrap selection with strikethrough markers
+    newText = `~~${selectedText}~~`
+    newSelection = new monaco.Selection(
+      selection.startLineNumber,
+      selection.startColumn,
+      selection.endLineNumber,
+      selection.endColumn + 4, // Account for added ~~
+    )
+  }
+
+  // Apply the formatting
+  editor.executeEdits('strikethrough-formatting', [
+    {
+      range: selection,
+      text: newText,
+    },
+  ])
+
+  // Restore selection (for toggling off or wrapping)
+  editor.setSelection(newSelection)
+  editor.focus()
+}

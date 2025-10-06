@@ -10,6 +10,8 @@ import {
 import { useEffect } from 'react'
 import { useImproveWriting } from './useImproveWriting'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { H3 } from '@/components/ui/typography'
+import { RotateCw } from 'lucide-react'
 
 interface ImprovementDialogProps {
   open: boolean
@@ -69,14 +71,14 @@ export function ImprovementDialog({
     onClose?.()
   }
 
-  const handleTryAgain = () => {
+  const handleTryAgain = async () => {
     reset()
-    improveText(originalText)
+    await improveText(originalText)
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[85vh] flex flex-col select-none p-6">
+      <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col select-none p-6">
         <DialogHeader>
           <DialogTitle>Improve Writing</DialogTitle>
           <DialogDescription className="sr-only">
@@ -84,42 +86,52 @@ export function ImprovementDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          {isPending ? (
-            <div className="h-full flex items-center justify-center py-2 bg-muted rounded-md">
-              <ActivityIndicator>Improving text...</ActivityIndicator>
+        <div className="grid grid-cols-2 gap-4 h-full">
+          <div className="flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between">
+              <H3 className="text-sm font-medium mb-2">Original Text</H3>
             </div>
-          ) : error ? (
-            <div className="h-full flex flex-col gap-1.5 items-center justify-center py-2 bg-destructive/10 text-destructive text-sm/tight rounded-md">
-              <span>
-                {error instanceof Error
-                  ? error.message
-                  : 'Failed to improve text.'}
-              </span>
+            <div className="flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
+              {originalText}
+            </div>
+          </div>
 
-              <button className="underline" onClick={handleTryAgain}>
-                Try again
-              </button>
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between">
+              <H3 className="text-sm font-medium mb-2">Improved Text</H3>
             </div>
-          ) : improvedText ? (
-            <div className="grid grid-cols-2 gap-4 h-full">
-              {/* Original Text */}
-              <div className="flex flex-col overflow-hidden">
-                <h3 className="text-sm font-medium mb-2">Original</h3>
-                <div className="flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
-                  {originalText}
-                </div>
-              </div>
 
-              {/* Improved Text */}
-              <div className="flex flex-col overflow-hidden">
-                <h3 className="text-sm font-medium mb-2">Improved</h3>
-                <div className="flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
-                  {improvedText}
-                </div>
+            {isPending ? (
+              <div className="h-full flex items-center justify-center py-2 bg-muted rounded-md">
+                <ActivityIndicator>Generating text...</ActivityIndicator>
               </div>
-            </div>
-          ) : null}
+            ) : improvedText ? (
+              <div className="group relative flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleTryAgain}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                >
+                  <RotateCw className="w-4 h-4" />
+                  <span className="sr-only">Generate new improved text</span>
+                </Button>
+                {improvedText}
+              </div>
+            ) : (
+              <div className="h-full flex flex-col gap-1.5 items-center justify-center py-2 bg-destructive/10 text-destructive text-sm/tight rounded-md">
+                <span>
+                  {error instanceof Error
+                    ? error.message
+                    : 'Failed to improve text.'}
+                </span>
+
+                <button className="underline" onClick={handleTryAgain}>
+                  Try again
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <DialogFooter>

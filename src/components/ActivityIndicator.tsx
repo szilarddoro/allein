@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 import { PropsWithChildren } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
 export interface ActivityIndicatorProps extends PropsWithChildren {
   srOnly?: boolean
@@ -12,6 +13,8 @@ export function ActivityIndicator({
   className,
   srOnly,
 }: ActivityIndicatorProps) {
+  const id = `activity-indicator-${uuidv4()}`
+
   return (
     <div
       role="progressbar"
@@ -19,9 +22,12 @@ export function ActivityIndicator({
         'flex gap-1 items-center text-sm/tight text-muted-foreground',
         className,
       )}
+      aria-labelledby={id}
     >
       <Loader2 className="w-4 h-4 animate-spin" />
-      <span className={cn(srOnly && 'sr-only')}>{children}</span>
+      <span id={id} className={cn(srOnly && 'sr-only')}>
+        {children}
+      </span>
     </div>
   )
 }

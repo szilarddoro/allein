@@ -26,7 +26,7 @@ export const H2 = forwardRef<
   <h2
     ref={ref}
     className={cn(
-      'scroll-m-20 text-3xl font-semibold tracking-tight transition-colors first:mt-0 my-4',
+      'scroll-m-20 text-3xl font-semibold tracking-normal transition-colors first:mt-0 my-4',
       className,
     )}
     {...props}
@@ -42,7 +42,7 @@ export const H3 = forwardRef<
   <h3
     ref={ref}
     className={cn(
-      'scroll-m-20 text-2xl font-semibold tracking-tight first:mt-0 my-2',
+      'scroll-m-20 text-2xl font-semibold tracking-normal first:mt-0 my-2',
       className,
     )}
     {...props}

@@ -1,4 +1,5 @@
 import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import {
   Blockquote,
   H1,
@@ -25,7 +26,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
 }) => {
   return (
     <div className="flex flex-col h-full">
-      <Card className="flex-1 overflow-auto p-4">
+      <Card className="flex-1 overflow-auto p-4 pb-24">
         <div className="prose prose-sm max-w-none prose-headings:text-zinc-900 prose-p:text-zinc-700 prose-strong:text-zinc-900 prose-code:text-zinc-800 prose-code:bg-zinc-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-zinc-50 prose-pre:border prose-pre:border-zinc-200 prose-blockquote:border-l-4 prose-blockquote:border-zinc-300 prose-blockquote:text-zinc-600 [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_li_ul]:ml-4 [&_li_ol]:ml-4">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -36,6 +37,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               h3: ({ children }) => <H3>{children}</H3>,
               h4: ({ children }) => <H4>{children}</H4>,
               p: ({ children }) => <P>{children}</P>,
+              hr: () => <Separator className="my-4" />,
               code: ({ children }) => <InlineCode>{children}</InlineCode>,
               ul: ({ children }) => (
                 <ul className="list-disc list-outside my-2 ml-4 space-y-1">

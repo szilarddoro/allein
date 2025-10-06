@@ -7,12 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useImproveWriting } from './useImproveWriting'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { H3 } from '@/components/ui/typography'
-import { RefreshCw } from 'lucide-react'
-import { useToast } from '@/lib/useToast'
+import { RefreshCw, Info } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface ImprovementDialogProps {
   open: boolean
@@ -31,34 +31,22 @@ export function ImprovementDialog({
   onReplace,
   onClose,
 }: ImprovementDialogProps) {
-  const { toast } = useToast()
   const replaceButtonRef = useRef<HTMLButtonElement>(null)
   const { improveText, isPending, error, improvedText, reset } =
     useImproveWriting()
 
-  const improveTextWithInfoToast = useCallback(
-    async (text: string) => {
-      if (text.trim().length > IDEAL_TEXT_LENGTH) {
-        toast.info(
-          'Text improvements work best with short texts. It may take some time to improve them.',
-        )
-      }
-
-      await improveText(text)
-    },
-    [improveText, toast],
-  )
+  const showLongTextInfo = originalText.trim().length > IDEAL_TEXT_LENGTH
 
   useEffect(() => {
     async function handleOpen() {
       if (open && originalText) {
         reset()
-        await improveTextWithInfoToast(originalText)
+        await improveText(originalText)
       }
     }
 
     handleOpen()
-  }, [improveTextWithInfoToast, open, originalText, reset])
+  }, [improveText, open, originalText, reset])
 
   // Focus the Replace button when improved text is ready
   useEffect(() => {
@@ -93,7 +81,7 @@ export function ImprovementDialog({
 
   const handleTryAgain = async () => {
     reset()
-    await improveTextWithInfoToast(originalText)
+    await improveText(originalText)
   }
 
   return (
@@ -106,8 +94,8 @@ export function ImprovementDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex">
-          <div className="flex flex-row gap-4 flex-1">
+        <div className="flex-1 overflow-hidden flex flex-col gap-4">
+          <div className="flex flex-row gap-4 flex-1 overflow-hidden">
             <div className="flex flex-col gap-2 overflow-hidden flex-1/2">
               <H3 className="text-sm font-medium m-0">Original Text</H3>
 
@@ -154,6 +142,17 @@ export function ImprovementDialog({
               )}
             </div>
           </div>
+
+          {showLongTextInfo && (
+            <Alert className="border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300">
+              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <AlertDescription className="text-blue-600 dark:text-blue-300">
+                Text improvements work best with short texts (under{' '}
+                {IDEAL_TEXT_LENGTH} characters). Your selection exceeds this
+                limit and may take a while to improve.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <DialogFooter>

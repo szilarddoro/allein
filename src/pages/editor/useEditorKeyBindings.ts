@@ -47,6 +47,21 @@ export function useEditorKeyBindings({
         applyHeadingFormatting(editor, 1)
       })
 
+      // Override CMD+2 for heading level 2
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit2, () => {
+        applyHeadingFormatting(editor, 2)
+      })
+
+      // Override CMD+3 for heading level 3
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit3, () => {
+        applyHeadingFormatting(editor, 3)
+      })
+
+      // Override CMD+4 for heading level 4
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit4, () => {
+        applyHeadingFormatting(editor, 4)
+      })
+
       return editor
     },
     [onTogglePreview, onOpenCommandPopover],

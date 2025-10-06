@@ -5,7 +5,9 @@ import {
   applyItalicFormatting,
   applyStrikethroughFormatting,
   applyHeadingFormatting,
-} from '@/lib/editor/formatting'
+} from '@/lib/editor/editorFormatting'
+import { formatMarkdown } from '@/lib/editor/formatMarkdown'
+import { toast } from 'sonner'
 
 interface UseEditorKeyBindingsProps {
   onTogglePreview: () => void
@@ -78,6 +80,32 @@ export function useEditorKeyBindings({
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash, () => {
         // Note: Disable comments for now.
       })
+
+      // Override CMD+Shift+F for formatting markdown
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
+        async () => {
+          const model = editor.getModel()
+
+          if (!model) {
+            return
+          }
+
+          const position = editor.getPosition()
+          const content = model.getValue()
+
+          try {
+            const formatted = await formatMarkdown(content)
+            model.setValue(formatted)
+            if (position) {
+              editor.setPosition(position)
+              editor.revealPositionInCenter(position)
+            }
+          } catch {
+            toast.error('Failed to format text')
+          }
+        },
+      )
 
       return editor
     },

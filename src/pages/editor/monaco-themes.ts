@@ -30,7 +30,7 @@ export const defineCustomThemes = (monaco: Monaco) => {
     inherit: true,
     rules: [
       { token: 'comment', foreground: 'fafafa' },
-      { token: 'keyword', foreground: 'a684ff', fontStyle: 'bold' },
+      { token: 'keyword', foreground: '2b7fff', fontStyle: 'bold' },
       { token: 'string', foreground: 'ce9178' },
       { token: 'number', foreground: 'b5cea8' },
       { token: 'type', foreground: '4ec9b0' },
@@ -41,7 +41,7 @@ export const defineCustomThemes = (monaco: Monaco) => {
       'editor.background': '#171717',
       'editor.foreground': '#fafafa',
       'editor.lineHighlightBackground': '#282828',
-      'editorCursor.foreground': '#2b7fff',
+      'editorCursor.foreground': '#51a2ff',
       'editor.selectionBackground': '#1c398e',
       'editorLineNumber.foreground': '#858585',
     },

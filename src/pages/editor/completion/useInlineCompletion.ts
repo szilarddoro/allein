@@ -175,11 +175,21 @@ export function useInlineCompletion({
             (lastChar === '.' || lastChar === '!' || lastChar === '?')
 
           if (isSentenceEnd) {
+            // Clear any pending timeout when not triggering
+            if (debounceTimeout.current) {
+              clearTimeout(debounceTimeout.current)
+              debounceTimeout.current = null
+            }
             return { items: [] }
           }
 
           // Only trigger completion at word boundaries
           if (!isWordEnd) {
+            // Clear any pending timeout when user continues typing
+            if (debounceTimeout.current) {
+              clearTimeout(debounceTimeout.current)
+              debounceTimeout.current = null
+            }
             return { items: [] }
           }
 

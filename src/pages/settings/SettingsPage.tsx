@@ -9,6 +9,7 @@ import { H1, H2, H3, InlineCode, P } from '@/components/ui/typography'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import { useOllamaModels } from '@/lib/ollama/useOllamaModels'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
@@ -259,35 +260,40 @@ export function SettingsPage() {
                   <P className="text-muted-foreground text-sm mb-3">
                     Choose your preferred theme for the application.
                   </P>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={theme === 'light' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setTheme('light')}
-                      className="flex items-center gap-2"
+
+                  <ToggleGroup
+                    type="single"
+                    variant="outline"
+                    value={theme}
+                    onValueChange={(value) => {
+                      if (value) setTheme(value)
+                    }}
+                  >
+                    <ToggleGroupItem
+                      value="light"
+                      aria-label="Light theme"
+                      className="gap-2"
                     >
                       <Sun className="w-4 h-4" />
                       Light
-                    </Button>
-                    <Button
-                      variant={theme === 'dark' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setTheme('dark')}
-                      className="flex items-center gap-2"
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="dark"
+                      aria-label="Dark theme"
+                      className="gap-2"
                     >
                       <Moon className="w-4 h-4" />
                       Dark
-                    </Button>
-                    <Button
-                      variant={theme === 'system' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setTheme('system')}
-                      className="flex items-center gap-2"
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="system"
+                      aria-label="System theme"
+                      className="gap-2"
                     >
                       <Monitor className="w-4 h-4" />
                       System
-                    </Button>
-                  </div>
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
               </div>
             </CardContent>

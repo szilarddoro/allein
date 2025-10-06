@@ -96,7 +96,13 @@ export function useEditorKeyBindings({
 
           try {
             const formatted = await formatMarkdown(content)
-            model.setValue(formatted)
+            const fullRange = model.getFullModelRange()
+            editor.executeEdits('format-markdown', [
+              {
+                range: fullRange,
+                text: formatted,
+              },
+            ])
             if (position) {
               editor.setPosition(position)
               editor.revealPositionInCenter(position)

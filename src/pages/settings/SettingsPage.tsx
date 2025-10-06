@@ -55,7 +55,7 @@ export function SettingsPage() {
   } = useOllamaConnection(ollamaUrl)
 
   const handleUpdateOllamaUrl = useDebounceCallback((value: string) => {
-    updateConfig({ key: 'ollama_url', value: value })
+    updateConfig({ key: 'ollama_url', value })
   }, 500)
 
   function handleSelectModel(modelName: string) {

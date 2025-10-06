@@ -60,6 +60,7 @@ export default defineConfig([
       'no-var': 'error',
       'no-console': 'warn',
       'no-debugger': 'error',
+      'object-shorthand': ['warn', 'always'],
       'react/react-in-jsx-scope': 'off', // Not needed with React 17+
       'react/prop-types': 'off', // Using TypeScript for prop validation
     },

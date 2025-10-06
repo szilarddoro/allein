@@ -1,3 +1,3 @@
 export interface AppLayoutContextProps {
-  showSidebar: boolean
+  sidebarOpen: boolean
 }

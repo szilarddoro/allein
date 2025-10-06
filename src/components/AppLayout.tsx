@@ -15,7 +15,7 @@ import { useWindowState } from '@/hooks/useWindowState'
 import { AppLayoutContextProps } from '@/lib/types'
 
 export function AppLayout() {
-  const [showSidebar, setShowSidebar] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const { mutateAsync: createFile } = useCreateFile()
   const { isFullscreen } = useWindowState()
 
@@ -46,9 +46,9 @@ export function AppLayout() {
                 type="button"
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowSidebar(!showSidebar)}
+                onClick={() => setSidebarOpen(!sidebarOpen)}
               >
-                {showSidebar ? (
+                {sidebarOpen ? (
                   <PanelLeftCloseIcon aria-hidden="true" />
                 ) : (
                   <PanelLeftOpenIcon aria-hidden="true" />
@@ -57,7 +57,7 @@ export function AppLayout() {
             </TooltipTrigger>
 
             <TooltipContent align="center" side="bottom">
-              {showSidebar ? 'Hide Sidebar' : 'Show Sidebar'}
+              {sidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
             </TooltipContent>
           </Tooltip>
         </div>
@@ -84,10 +84,10 @@ export function AppLayout() {
       </header>
 
       <main className="flex-auto overflow-hidden flex">
-        {showSidebar && <Sidebar onNewFile={createFile} />}
+        {sidebarOpen && <Sidebar onNewFile={createFile} />}
 
         <div className="flex-1 flex flex-col overflow-auto">
-          <Outlet context={{ showSidebar } as AppLayoutContextProps} />
+          <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
         </div>
       </main>
     </div>

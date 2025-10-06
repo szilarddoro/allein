@@ -13,7 +13,7 @@ import { FileNameEditor } from './FileNameEditor'
 export interface EditorHeaderProps {
   currentFile: FileContent | null
   showPreview: boolean
-  showSidebar: boolean
+  sidebarOpen: boolean
   onTogglePreview: () => void
   onFileRenamed: (newPath: string) => void
 }
@@ -24,14 +24,14 @@ export interface EditorHeaderProps {
  */
 export const EditorHeader = forwardRef<HTMLButtonElement, EditorHeaderProps>(
   (
-    { currentFile, showPreview, showSidebar, onTogglePreview, onFileRenamed },
+    { currentFile, showPreview, sidebarOpen, onTogglePreview, onFileRenamed },
     ref,
   ) => {
     return (
       <div
         className={cn(
           'flex items-center justify-between gap-2 pl-4 pr-6 py-1 grow-0 shrink-0',
-          !showSidebar && 'pl-6',
+          !sidebarOpen && 'pl-6',
         )}
       >
         <FileNameEditor

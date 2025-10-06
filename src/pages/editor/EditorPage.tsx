@@ -17,7 +17,7 @@ import { useEditorKeyBindings } from './useEditorKeyBindings'
 import { EditorHeader } from './EditorHeader'
 
 export function EditorPage() {
-  const { showSidebar } = useOutletContext<AppLayoutContextProps>()
+  const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
   const { toast } = useToast()
   const editorRef = useRef<HTMLDivElement>(null)
   const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
@@ -122,7 +122,7 @@ export function EditorPage() {
       <EditorHeader
         currentFile={currentFile || null}
         showPreview={showPreview}
-        showSidebar={showSidebar}
+        sidebarOpen={sidebarOpen}
         onTogglePreview={() => setShowPreview(!showPreview)}
         onFileRenamed={updateCurrentFilePath}
         ref={previewButtonRef}
@@ -134,7 +134,7 @@ export function EditorPage() {
           className={cn(
             'w-full h-full pl-2 pr-4 pb-4',
             showPreview && 'w-1/2 pr-2',
-            !showSidebar && 'pl-4',
+            !sidebarOpen && 'pl-4',
           )}
         >
           <TextEditor

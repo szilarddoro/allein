@@ -11,7 +11,7 @@ import { useEffect, useRef } from 'react'
 import { useImproveWriting } from './useImproveWriting'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { H3 } from '@/components/ui/typography'
-import { RotateCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 
 interface ImprovementDialogProps {
   open: boolean
@@ -121,9 +121,10 @@ export function ImprovementDialog({
                   onClick={handleTryAgain}
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
                 >
-                  <RotateCw className="w-4 h-4" />
+                  <RefreshCw className="w-4 h-4" />
                   <span className="sr-only">Generate new improved text</span>
                 </Button>
+
                 {improvedText}
               </div>
             ) : (

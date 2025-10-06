@@ -7,11 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useImproveWriting } from './useImproveWriting'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { H3 } from '@/components/ui/typography'
 import { RefreshCw } from 'lucide-react'
+import { useToast } from '@/lib/useToast'
 
 interface ImprovementDialogProps {
   open: boolean
@@ -21,6 +22,8 @@ interface ImprovementDialogProps {
   onClose?: () => void
 }
 
+const IDEAL_TEXT_LENGTH = 255
+
 export function ImprovementDialog({
   open,
   onOpenChange,
@@ -28,6 +31,7 @@ export function ImprovementDialog({
   onReplace,
   onClose,
 }: ImprovementDialogProps) {
+  const { toast } = useToast()
   const replaceButtonRef = useRef<HTMLButtonElement>(null)
   const {
     mutateAsync: improveText,
@@ -37,16 +41,29 @@ export function ImprovementDialog({
     reset,
   } = useImproveWriting()
 
+  const improveTextWithInfoToast = useCallback(
+    async (text: string) => {
+      if (text.trim().length > IDEAL_TEXT_LENGTH) {
+        toast.info(
+          'Text improvements work best with short texts. It may take some time to improve them.',
+        )
+      }
+
+      await improveText(text)
+    },
+    [improveText, toast],
+  )
+
   useEffect(() => {
     async function handleOpen() {
       if (open && originalText) {
         reset()
-        await improveText(originalText)
+        await improveTextWithInfoToast(originalText)
       }
     }
 
     handleOpen()
-  }, [improveText, open, originalText, reset])
+  }, [improveTextWithInfoToast, open, originalText, reset])
 
   // Focus the Replace button when improved text is ready
   useEffect(() => {
@@ -81,7 +98,7 @@ export function ImprovementDialog({
 
   const handleTryAgain = async () => {
     reset()
-    await improveText(originalText)
+    await improveTextWithInfoToast(originalText)
   }
 
   return (
@@ -94,52 +111,53 @@ export function ImprovementDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4 h-full">
-          <div className="flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between">
-              <H3 className="text-sm font-medium mb-2">Original Text</H3>
-            </div>
-            <div className="flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
-              {originalText}
-            </div>
-          </div>
+        <div className="flex-1 overflow-hidden flex">
+          <div className="flex flex-row gap-4 flex-1">
+            <div className="flex flex-col gap-2 overflow-hidden flex-1/2">
+              <H3 className="text-sm font-medium m-0">Original Text</H3>
 
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between">
-              <H3 className="text-sm font-medium mb-2">Improved Text</H3>
+              <div className="flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
+                <div className="overflow-hidden">{originalText}</div>
+              </div>
             </div>
 
-            {isPending ? (
-              <div className="h-full flex items-center justify-center py-2 bg-muted rounded-md">
-                <ActivityIndicator>Generating text...</ActivityIndicator>
-              </div>
-            ) : improvedText ? (
-              <div className="group relative flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleTryAgain}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span className="sr-only">Generate new improved text</span>
-                </Button>
+            <div className="flex flex-col gap-2 flex-1/2">
+              <H3 className="text-sm font-medium m-0">Improved Text</H3>
 
-                {improvedText}
-              </div>
-            ) : (
-              <div className="h-full flex flex-col gap-1.5 items-center justify-center py-2 bg-destructive/10 text-destructive text-sm/tight rounded-md">
-                <span>
-                  {error instanceof Error
-                    ? error.message
-                    : 'Failed to improve text.'}
-                </span>
+              {isPending ? (
+                <div className="h-full flex items-center justify-center py-2 border bg-muted rounded-md">
+                  <ActivityIndicator>Generating text...</ActivityIndicator>
+                </div>
+              ) : improvedText ? (
+                <div className="group relative flex flex-auto overflow-hidden">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleTryAgain}
+                    className="absolute top-2 right-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span className="sr-only">Generate new improved text</span>
+                  </Button>
 
-                <button className="underline" onClick={handleTryAgain}>
-                  Try again
-                </button>
-              </div>
-            )}
+                  <div className="flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
+                    <div className="overflow-hidden">{improvedText}</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-full flex flex-col gap-1.5 items-center justify-center py-2 bg-destructive/10 text-destructive text-sm/tight rounded-md">
+                  <span>
+                    {error instanceof Error
+                      ? error.message
+                      : 'Failed to improve text.'}
+                  </span>
+
+                  <button className="underline" onClick={handleTryAgain}>
+                    Try again
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

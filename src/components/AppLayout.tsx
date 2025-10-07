@@ -21,18 +21,30 @@ export function AppLayout() {
   const { isFullscreen } = useWindowState()
   const navigate = useNavigate()
 
-  // Global keyboard shortcut: CMD+, (Mac) or CTRL+, (Windows/Linux) to open settings
+  // Global keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      // CMD+, (Mac) or CTRL+, (Windows/Linux) to open settings
       if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         navigate('/settings')
+      }
+
+      // CMD+N (Mac) or CTRL+N (Windows/Linux) to create new file
+      if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        try {
+          const { path } = await createFile()
+          navigate(`/editor?file=${path}`)
+        } catch (error) {
+          console.error('Failed to create file:', error)
+        }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [navigate])
+  }, [navigate, createFile])
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-900/70 overflow-hidden">

@@ -51,7 +51,7 @@ Layout: `AppLayout` component wraps all routes, provides sidebar toggle and sett
 
 ### File Storage
 
-Files are stored locally at `~/.allein/docs/` as markdown files:
+Files are stored locally at `~/allein/docs/` as markdown files:
 - Backend: Rust commands in `src-tauri/src/lib.rs:20-130`
 - Commands: `list_files`, `read_file`, `write_file`, `create_file`, `delete_file`, `rename_file`
 - Frontend hooks: `src/lib/files/use*.ts`

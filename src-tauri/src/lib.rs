@@ -19,7 +19,7 @@ pub struct FileContent {
 
 fn get_docs_dir() -> Result<PathBuf, String> {
     let home = dirs::home_dir().ok_or("Could not find home directory")?;
-    let docs_dir = home.join(".allein").join("docs");
+    let docs_dir = home.join("allein").join("docs");
 
     // Create directory if it doesn't exist
     fs::create_dir_all(&docs_dir).map_err(|e| format!("Failed to create docs directory: {}", e))?;

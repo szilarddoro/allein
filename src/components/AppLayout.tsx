@@ -40,6 +40,11 @@ export function AppLayout() {
           console.error('Failed to create file:', error)
         }
       }
+
+      // Prevent CMD+W (Mac) or CTRL+W (Windows/Linux) from closing the window
+      if (e.key === 'w' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)

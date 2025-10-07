@@ -200,11 +200,11 @@ export function EditorPage() {
         ref={previewButtonRef}
       />
 
-      <div className="w-full flex flex-auto min-h-0">
+      <div className="w-full flex flex-1 min-h-0">
         <div
           ref={editorRef}
           className={cn(
-            'w-full h-full pl-2 pr-4 pb-4',
+            'flex flex-col flex-1 min-w-0 pl-2 pr-4 pb-4',
             showPreview && 'w-1/2 pr-2',
             !sidebarOpen && 'pl-4',
           )}
@@ -221,7 +221,7 @@ export function EditorPage() {
         </div>
 
         {showPreview && (
-          <div className="w-1/2 pl-2 pr-4 pb-4">
+          <div className="w-1/2 flex flex-col min-w-0 pl-2 pr-4 pb-4 min-h-0">
             <MarkdownPreview content={markdownContent} />
           </div>
         )}

@@ -60,7 +60,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
 
     return (
       <Card
-        className="flex flex-col h-full p-0 overflow-hidden relative"
+        className="flex flex-col flex-1 p-0 overflow-hidden relative"
         ref={ref}
       >
         <div
@@ -73,10 +73,9 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
           aria-label="Loading inline completion"
         />
 
-        <div className="flex-1">
+        <div className="flex-1 min-h-0">
           <MonacoEditor
             key={theme}
-            className="h-full"
             theme={
               theme === 'dark' || (theme === 'system' && systemTheme === 'dark')
                 ? 'allein-dark'
@@ -154,7 +153,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                 invisibleCharacters: false,
                 nonBasicASCII: false,
               },
-              fontFamily: 'var(--font-mono)',
               fontSize: 14,
               lineHeight: 1.6,
               padding: { top: 12, bottom: 32 },

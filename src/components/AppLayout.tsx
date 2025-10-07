@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, Outlet, useNavigate } from 'react-router'
+import { Outlet, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
+import { Link } from '@/components/ui/link'
 import { Cog, PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react'
 import { CURRENT_PLATFORM, IS_TAURI } from '@/lib/constants'
 import { Sidebar } from '@/components/Sidebar'

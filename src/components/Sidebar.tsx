@@ -28,7 +28,8 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { Copy, Edit3, Home, NotebookPen, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
+import { Link } from '@/components/ui/link'
 
 interface SidebarProps {
   onNewFile: () => Promise<FileContent>

@@ -15,7 +15,7 @@ import { RefreshCw, Info } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
-import { Link } from 'react-router'
+import { Link } from '@/components/ui/link'
 
 interface ImprovementDialogProps {
   open: boolean

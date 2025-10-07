@@ -14,12 +14,14 @@ import {
 } from '@/components/ui/tooltip'
 import { useWindowState } from '@/hooks/useWindowState'
 import { AppLayoutContextProps } from '@/lib/types'
+import { useToast } from '@/lib/useToast'
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const { mutateAsync: createFile } = useCreateFile()
   const { isFullscreen } = useWindowState()
   const navigate = useNavigate()
+  const { toast } = useToast()
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -36,8 +38,8 @@ export function AppLayout() {
         try {
           const { path } = await createFile()
           navigate(`/editor?file=${path}`)
-        } catch (error) {
-          console.error('Failed to create file:', error)
+        } catch {
+          toast.error('Failed to create file')
         }
       }
 
@@ -49,7 +51,7 @@ export function AppLayout() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [navigate, createFile])
+  }, [navigate, createFile, toast])
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-900/70 overflow-hidden">

@@ -37,7 +37,7 @@ export function AppLayout() {
         e.preventDefault()
         try {
           const { path } = await createFile()
-          navigate(`/editor?file=${path}`)
+          navigate(`/editor?file=${path}&focus=true`)
         } catch {
           toast.error('Failed to create file')
         }

@@ -11,12 +11,13 @@ import { useOnClickOutside } from 'usehooks-ts'
 import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
 import { AppLayoutContextProps } from '@/lib/types'
-import { useOutletContext } from 'react-router'
+import { useOutletContext, useSearchParams } from 'react-router'
 import { useAutoSave } from './useAutoSave'
 import { useEditorKeyBindings } from './useEditorKeyBindings'
 import { EditorHeader } from './EditorHeader'
 import { ImprovementDialog } from './ImprovementDialog'
 import { formatMarkdown } from '@/lib/editor/formatMarkdown'
+import { ActivityIndicator } from '@/components/ActivityIndicator'
 
 export function EditorPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -26,16 +27,17 @@ export function EditorPage() {
     null,
   )
   const previewButtonRef = useRef<HTMLButtonElement>(null)
+  const shouldFocusEditorRef = useRef(false)
   const [showPreview, setShowPreview] = useState(false)
   const [markdownContent, setMarkdownContent] = useState('')
   const [showImprovementDialog, setShowImprovementDialog] = useState(false)
   const [selectedText, setSelectedText] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const {
     data: currentFile,
     status: currentFileStatus,
-    error: currentFileError,
     refetch: refetchCurrentFile,
   } = useReadFile(currentFilePath)
 
@@ -70,6 +72,16 @@ export function EditorPage() {
     }
   }, [currentFile])
 
+  // Store focus intention when focus=true parameter is present
+  useEffect(() => {
+    if (searchParams.get('focus') === 'true') {
+      shouldFocusEditorRef.current = true
+      // Remove the focus parameter immediately
+      searchParams.delete('focus')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
+
   const handleEditorChange = (content: string) => {
     setMarkdownContent(content)
     saveContent(currentFile || null, content)
@@ -100,6 +112,14 @@ export function EditorPage() {
   ) => {
     monacoEditorRef.current = editor
     handleEditorReady(editor)
+
+    // Focus editor if focus was requested
+    if (shouldFocusEditorRef.current) {
+      requestAnimationFrame(() => {
+        editor.focus()
+      })
+      shouldFocusEditorRef.current = false
+    }
   }
 
   const handleFormatDocument = async () => {
@@ -153,7 +173,16 @@ export function EditorPage() {
     }
   })
 
-  if (currentFileError) {
+  // Show loading state when file is being loaded
+  if (currentFileStatus === 'pending') {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <ActivityIndicator>Loading file...</ActivityIndicator>
+      </div>
+    )
+  }
+
+  if (currentFileStatus === 'error') {
     return (
       <div className="h-full flex flex-col gap-2 items-center justify-center">
         <P className="flex flex-row gap-1 items-center text-red-600 text-sm">
@@ -214,9 +243,7 @@ export function EditorPage() {
             onChange={handleEditorChange}
             onKeyDown={handleKeyDown}
             onEditorReady={handleEditorReadyWithRef}
-            placeholder={
-              currentFileStatus === 'pending' ? '' : 'Start writing...'
-            }
+            placeholder="Start writing..."
           />
         </div>
 

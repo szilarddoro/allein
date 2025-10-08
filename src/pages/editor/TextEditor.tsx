@@ -66,8 +66,8 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
         <div
           role="progressbar"
           className={cn(
-            'size-2 rounded-full bg-purple-300 absolute top-2 right-2 z-10 pointer-events-none opacity-0 transition-opacity',
-            'after:size-full after:rounded-full after:bg-purple-300 after:absolute after:top-0 after:left-0 after:animate-ping',
+            'size-2 rounded-full bg-purple-300 dark:bg-purple-600 absolute top-2 right-2 z-10 pointer-events-none opacity-0 transition-opacity',
+            'after:size-full after:rounded-full after:bg-purple-300 dark:after:bg-purple-600 after:absolute after:top-0 after:left-0 after:animate-ping',
             isInlineCompletionLoading && 'opacity-100',
           )}
           aria-label="Loading inline completion"
@@ -93,6 +93,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
               scrollBeyondLastLine: false,
               wordWrap: 'on',
               lineNumbers: 'off',
+              stickyScroll: { enabled: false },
               glyphMargin: false,
               folding: false,
               renderWhitespace: 'none',

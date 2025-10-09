@@ -13,12 +13,13 @@
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm lint",
     "prepare": "husky",
-    "format": "prettier --write src/**/*.{js,ts,jsx,tsx}"
+    "format": "prettier --write src/**/*.{ts,tsx}"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
+      "pnpm format",
       "eslint --fix",
-      "bash -c 'pnpm typecheck'"
+      "pnpm typecheck"
     ]
   },
   "dependencies": {

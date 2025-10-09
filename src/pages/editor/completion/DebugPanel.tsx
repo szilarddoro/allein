@@ -14,7 +14,9 @@ interface DebugPanelProps {
 }
 
 export function DebugPanel({ activityTracker }: DebugPanelProps) {
-  const [sections, setSections] = useState<VisitedSection[]>([])
+  const [sections, setSections] = useState<VisitedSection[]>(
+    () => activityTracker.getRecentSections(8) || [],
+  )
 
   // Only show in development mode
   const isDev = import.meta.env.DEV
@@ -22,7 +24,7 @@ export function DebugPanel({ activityTracker }: DebugPanelProps) {
   useInterval(() => {
     if (!isDev) return
 
-    setSections(activityTracker.getRecentSections(10))
+    setSections(activityTracker.getRecentSections(8))
   }, 2000)
 
   if (!isDev) return null

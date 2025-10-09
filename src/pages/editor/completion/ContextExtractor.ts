@@ -33,11 +33,8 @@ export class ContextExtractor {
 
     // Get recently visited sections
     const recentSections = this.activityTracker
-      .getRecentSections(5)
-      .map(
-        (section) =>
-          `[From: ${section.documentTitle}]\n${section.content}`,
-      )
+      .getRecentSections(8)
+      .map((section) => `[From: ${section.documentTitle}]\n${section.content}`)
 
     return {
       fullText: fullTextWithCursor,

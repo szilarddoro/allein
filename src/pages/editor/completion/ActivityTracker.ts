@@ -78,7 +78,10 @@ export class ActivityTracker {
    */
   private async loadPersistedContext(documentTitle: string) {
     try {
-      const sections = await loadContextSections(documentTitle, this.maxSections)
+      const sections = await loadContextSections(
+        documentTitle,
+        this.maxSections,
+      )
       // Convert from database format to VisitedSection format
       this.visitedSections = sections.map((section) => ({
         content: section.content,
@@ -152,7 +155,7 @@ export class ActivityTracker {
   /**
    * Get recently visited sections sorted by recency
    */
-  getRecentSections(limit = 5): VisitedSection[] {
+  getRecentSections(limit = 8): VisitedSection[] {
     // Get the most recent sections up to the limit
     const recent = this.visitedSections.slice(-limit)
     // Sort by timestamp descending (most recent first)

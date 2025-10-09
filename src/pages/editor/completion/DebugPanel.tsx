@@ -36,6 +36,7 @@ export function DebugPanel({ activityTracker }: DebugPanelProps) {
             size="icon"
             className=" fixed bottom-6 right-6 z-50 rounded-full bg-purple-600 dark:bg-purple-900 hover:bg-purple-500 dark:hover:bg-purple-800 border-purple-600 hover:border-purple-500 dark:border-purple-900 dark:hover:border-purple-800 text-white"
           >
+            <span className="sr-only">Open Debug Panel</span>
             <Bug className="w-4 h-4" />
           </Button>
         </PopoverTrigger>
@@ -44,9 +45,9 @@ export function DebugPanel({ activityTracker }: DebugPanelProps) {
           align="end"
           sideOffset={8}
           side="top"
-          className="p-0 overflow-hidden"
+          className="p-0 overflow-hidden max-h-96 flex flex-col select-none max-w-lg w-full"
         >
-          <div className="p-3 border-b bg-purple-600 dark:bg-purple-950">
+          <div className="p-3 border-b bg-purple-600 dark:bg-purple-950 flex-0">
             <h3 className="font-semibold text-sm text-white">
               Context Debug Panel
             </h3>
@@ -54,8 +55,7 @@ export function DebugPanel({ activityTracker }: DebugPanelProps) {
               {sections.length} section(s) tracked
             </p>
           </div>
-
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+          <div className="overflow-y-auto p-3 space-y-3 flex-1">
             {sections.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No sections tracked yet. Navigate around the document to see
@@ -78,9 +78,9 @@ export function DebugPanel({ activityTracker }: DebugPanelProps) {
                   <div className="text-xs text-muted-foreground">
                     {new Date(section.timestamp).toLocaleTimeString()}
                   </div>
-                  <div className="text-xs font-mono bg-background p-2 rounded border max-h-32 overflow-y-auto">
-                    {section.content.length > 200
-                      ? section.content.substring(0, 200) + '...'
+                  <div className="text-xs font-mono bg-background p-2 rounded border select-auto">
+                    {section.content.length > 255
+                      ? section.content.substring(0, 255) + '...'
                       : section.content}
                   </div>
                 </div>

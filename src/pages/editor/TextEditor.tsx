@@ -79,15 +79,17 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
         className="flex flex-col flex-1 p-0 overflow-hidden relative"
         ref={ref}
       >
-        <div
-          role="progressbar"
-          className={cn(
-            'size-2 rounded-full bg-purple-300 dark:bg-purple-600 absolute top-2 right-2 z-10 pointer-events-none opacity-0 transition-opacity',
-            'after:size-full after:rounded-full after:bg-purple-300 dark:after:bg-purple-600 after:absolute after:top-0 after:left-0 after:animate-ping',
-            isInlineCompletionLoading && 'opacity-100',
-          )}
-          aria-label="Loading inline completion"
-        />
+        {import.meta.env.DEV && (
+          <div
+            role="progressbar"
+            className={cn(
+              'size-2 rounded-full bg-purple-300 dark:bg-purple-600 absolute top-2 right-2 z-10 pointer-events-none opacity-0 transition-opacity',
+              'after:size-full after:rounded-full after:bg-purple-300 dark:after:bg-purple-600 after:absolute after:top-0 after:left-0 after:animate-ping',
+              isInlineCompletionLoading && 'opacity-100',
+            )}
+            aria-label="Loading inline completion"
+          />
+        )}
 
         <div className="flex-1 min-h-0">
           <MonacoEditor

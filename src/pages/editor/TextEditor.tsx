@@ -8,6 +8,7 @@ import { useTheme } from 'next-themes'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { cn } from '@/lib/utils'
 import { defineCustomThemes } from './monaco-themes'
+import { CompletionServices } from './completion/types'
 
 export interface TextEditorProps {
   value?: string
@@ -15,10 +16,23 @@ export interface TextEditorProps {
   placeholder?: string
   onKeyDown?: (event: monaco.IKeyboardEvent) => void
   onEditorReady?: (editor: monaco.editor.IStandaloneCodeEditor) => void
+  completionServices?: CompletionServices
+  documentTitle?: string
 }
 
 export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
-  ({ value = '', onChange, placeholder, onKeyDown, onEditorReady }, ref) => {
+  (
+    {
+      value = '',
+      onChange,
+      placeholder,
+      onKeyDown,
+      onEditorReady,
+      completionServices,
+      documentTitle = 'Untitled',
+    },
+    ref,
+  ) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
     const { theme, systemTheme } = useTheme()
     const { aiAssistanceEnabled } = useAIConfig()
@@ -30,6 +44,8 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       disabled: !aiAssistanceEnabled,
       editorRef,
       onLoadingChange: setIsInlineCompletionLoading,
+      completionServices,
+      documentTitle,
     })
 
     function handleEditorChange(value: string | undefined) {
@@ -63,15 +79,17 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
         className="flex flex-col flex-1 p-0 overflow-hidden relative"
         ref={ref}
       >
-        <div
-          role="progressbar"
-          className={cn(
-            'size-2 rounded-full bg-purple-300 dark:bg-purple-600 absolute top-2 right-2 z-10 pointer-events-none opacity-0 transition-opacity',
-            'after:size-full after:rounded-full after:bg-purple-300 dark:after:bg-purple-600 after:absolute after:top-0 after:left-0 after:animate-ping',
-            isInlineCompletionLoading && 'opacity-100',
-          )}
-          aria-label="Loading inline completion"
-        />
+        {import.meta.env.DEV && (
+          <div
+            role="progressbar"
+            className={cn(
+              'size-2 rounded-full bg-purple-300 dark:bg-purple-600 absolute top-2 right-2 z-10 pointer-events-none opacity-0 transition-opacity',
+              'after:size-full after:rounded-full after:bg-purple-300 dark:after:bg-purple-600 after:absolute after:top-0 after:left-0 after:animate-ping',
+              isInlineCompletionLoading && 'opacity-100',
+            )}
+            aria-label="Loading inline completion"
+          />
+        )}
 
         <div className="flex-1 min-h-0">
           <MonacoEditor

@@ -8,6 +8,7 @@ import { useTheme } from 'next-themes'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { cn } from '@/lib/utils'
 import { defineCustomThemes } from './monaco-themes'
+import { CompletionServices } from './completion/types'
 
 export interface TextEditorProps {
   value?: string
@@ -15,10 +16,23 @@ export interface TextEditorProps {
   placeholder?: string
   onKeyDown?: (event: monaco.IKeyboardEvent) => void
   onEditorReady?: (editor: monaco.editor.IStandaloneCodeEditor) => void
+  completionServices?: CompletionServices
+  documentTitle?: string
 }
 
 export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
-  ({ value = '', onChange, placeholder, onKeyDown, onEditorReady }, ref) => {
+  (
+    {
+      value = '',
+      onChange,
+      placeholder,
+      onKeyDown,
+      onEditorReady,
+      completionServices,
+      documentTitle = 'Untitled',
+    },
+    ref,
+  ) => {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
     const { theme, systemTheme } = useTheme()
     const { aiAssistanceEnabled } = useAIConfig()
@@ -30,6 +44,8 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       disabled: !aiAssistanceEnabled,
       editorRef,
       onLoadingChange: setIsInlineCompletionLoading,
+      completionServices,
+      documentTitle,
     })
 
     function handleEditorChange(value: string | undefined) {

@@ -7,12 +7,15 @@ import * as monaco from 'monaco-editor'
 import React, { useEffect, useRef } from 'react'
 import { CompletionFormatter } from './CompletionFormatter'
 import { generateInstructions } from './prompt'
+import { CompletionServices } from './types'
 
 export interface UseInlineCompletionOptions {
   debounceDelay?: number
   disabled?: boolean
   editorRef?: React.RefObject<monaco.editor.IStandaloneCodeEditor | null>
   onLoadingChange?: (loading: boolean) => void
+  completionServices?: CompletionServices
+  documentTitle?: string
 }
 
 interface CachedSuggestion {
@@ -22,10 +25,12 @@ interface CachedSuggestion {
 }
 
 export function useInlineCompletion({
-  debounceDelay = 800,
+  debounceDelay = 500,
   disabled = false,
   editorRef,
   onLoadingChange,
+  completionServices,
+  documentTitle = 'Untitled',
 }: UseInlineCompletionOptions = {}) {
   const monacoInstance = useMonaco()
   const currentRequest = useRef<AbortController | null>(null)
@@ -168,8 +173,17 @@ export function useInlineCompletion({
           const isOnNewLine =
             textBeforeCursorOnCurrentLine.trim() === '' && position.column === 1
 
-          // Check if we're at the end of a word (space, punctuation, or end of line)
+          // Enhanced trigger logic: support more scenarios
           const lastChar = textBeforeCursorOnCurrentLine.slice(-1)
+          const lastTwoChars = textBeforeCursorOnCurrentLine.slice(-2)
+
+          // Trigger after sentence endings with space
+          const isAfterSentenceEnd =
+            lastTwoChars === '. ' ||
+            lastTwoChars === '! ' ||
+            lastTwoChars === '? '
+
+          // Trigger at word boundaries
           const isWordEnd =
             lastChar === ' ' ||
             lastChar === ',' ||
@@ -177,22 +191,16 @@ export function useInlineCompletion({
             lastChar === ':' ||
             isOnNewLine
 
-          // Don't trigger on sentence endings (unless we're on a new line)
-          const isSentenceEnd =
-            !isOnNewLine &&
-            (lastChar === '.' || lastChar === '!' || lastChar === '?')
+          // Count consecutive words typed (rough heuristic)
+          const words = textBeforeCursorOnCurrentLine.trim().split(/\s+/)
+          const recentWords = words.slice(-3)
+          const hasTypedMultipleWords = recentWords.length >= 2
 
-          if (isSentenceEnd) {
-            // Clear any pending timeout when not triggering
-            if (debounceTimeout.current) {
-              clearTimeout(debounceTimeout.current)
-              debounceTimeout.current = null
-            }
-            return { items: [] }
-          }
+          // Trigger conditions
+          const shouldTrigger =
+            isAfterSentenceEnd || isWordEnd || (hasTypedMultipleWords && lastChar === ' ')
 
-          // Only trigger completion at word boundaries
-          if (!isWordEnd) {
+          if (!shouldTrigger) {
             // Clear any pending timeout when user continues typing
             if (debounceTimeout.current) {
               clearTimeout(debounceTimeout.current)
@@ -234,22 +242,27 @@ export function useInlineCompletion({
                 // Create new abort controller for this request
                 currentRequest.current = new AbortController()
 
-                // Build messages array - on new line, only send document context
+                // Build context message using ContextExtractor if available
+                let contextMessage: string
+                if (completionServices?.contextExtractor) {
+                  const context = completionServices.contextExtractor.extract(
+                    model,
+                    position,
+                    documentTitle,
+                  )
+                  contextMessage = completionServices.contextExtractor.formatContextMessage(
+                    context,
+                  )
+                } else {
+                  // Fallback: use simple context
+                  contextMessage = textBeforeCursor + '<|cursor|>'
+                }
+
+                // Build messages array with new context format
                 const messages = [
                   generateInstructions(),
-                  { content: textBeforeCursor, role: 'user' as const },
+                  { content: contextMessage, role: 'user' as const },
                 ]
-
-                // Check if we're after a complete sentence (. ! ? followed by space)
-                const endsWithCompleteSentence = /[.!?]\s+$/.test(textBeforeCursorOnCurrentLine)
-
-                // Only add second message if current line has content AND we're not after a complete sentence
-                if (textBeforeCursorOnCurrentLine.trim() && !endsWithCompleteSentence) {
-                  messages.push({
-                    content: textBeforeCursorOnCurrentLine,
-                    role: 'user' as const,
-                  })
-                }
 
                 // Notify loading started
                 onLoadingChange?.(true)
@@ -273,6 +286,23 @@ export function useInlineCompletion({
                   return
                 }
 
+                // Apply quality filter if available
+                let filteredText = response.text.trim()
+                if (completionServices?.qualityFilter) {
+                  const filterResult = completionServices.qualityFilter.filter(
+                    response.text,
+                    textBeforeCursor,
+                  )
+
+                  if (!filterResult.passed) {
+                    // Suggestion failed quality check
+                    resolve({ items: [] })
+                    return
+                  }
+
+                  filteredText = filterResult.filteredText || filteredText
+                }
+
                 // Create completion item
                 const range = {
                   startLineNumber: position.lineNumber,
@@ -284,7 +314,7 @@ export function useInlineCompletion({
                 const completionItem = new CompletionFormatter(
                   model,
                   position,
-                ).format(response.text, range)
+                ).format(filteredText, range)
 
                 // Cache the suggestion for persistence
                 activeSuggestion.current = {
@@ -325,5 +355,7 @@ export function useInlineCompletion({
     disabled,
     onLoadingChange,
     isAiAssistanceAvailable,
+    completionServices,
+    documentTitle,
   ])
 }

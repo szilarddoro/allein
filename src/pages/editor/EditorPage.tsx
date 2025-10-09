@@ -6,7 +6,7 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { CircleAlert, RefreshCw } from 'lucide-react'
 import * as monaco from 'monaco-editor'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useOnClickOutside } from 'usehooks-ts'
 import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
@@ -18,6 +18,10 @@ import { EditorHeader } from './EditorHeader'
 import { ImprovementDialog } from './ImprovementDialog'
 import { formatMarkdown } from '@/lib/editor/formatMarkdown'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { ActivityTracker } from './completion/ActivityTracker'
+import { ContextExtractor } from './completion/ContextExtractor'
+import { QualityFilter } from './completion/QualityFilter'
+import { CompletionServices } from './completion/types'
 
 export function EditorPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -40,6 +44,16 @@ export function EditorPage() {
     status: currentFileStatus,
     refetch: refetchCurrentFile,
   } = useReadFile(currentFilePath)
+
+  // Initialize completion services
+  const completionServices = useMemo<CompletionServices>(() => {
+    const activityTracker = new ActivityTracker(10)
+    return {
+      activityTracker,
+      contextExtractor: new ContextExtractor(activityTracker),
+      qualityFilter: new QualityFilter(),
+    }
+  }, [])
 
   const { saveContent } = useAutoSave()
   const { handleEditorReady } = useEditorKeyBindings({
@@ -67,10 +81,14 @@ export function EditorPage() {
   useEffect(() => {
     if (currentFile) {
       setMarkdownContent(currentFile.content)
+      // Track document switch
+      completionServices.activityTracker.trackDocumentSwitch(
+        currentFile.name || 'Untitled',
+      )
     } else {
       setMarkdownContent('')
     }
-  }, [currentFile])
+  }, [currentFile, completionServices.activityTracker])
 
   // Store focus intention when focus=true parameter is present
   useEffect(() => {
@@ -112,6 +130,15 @@ export function EditorPage() {
   ) => {
     monacoEditorRef.current = editor
     handleEditorReady(editor)
+
+    // Set up activity tracking
+    const fileName = currentFile?.name || 'Untitled'
+    completionServices.activityTracker.setDocumentTitle(fileName)
+
+    // Track cursor position changes
+    editor.onDidChangeCursorPosition((e) => {
+      completionServices.activityTracker.trackCursorChange(editor, e.position)
+    })
 
     // Focus editor if focus was requested
     if (shouldFocusEditorRef.current) {
@@ -244,6 +271,8 @@ export function EditorPage() {
             onKeyDown={handleKeyDown}
             onEditorReady={handleEditorReadyWithRef}
             placeholder="Start writing..."
+            completionServices={completionServices}
+            documentTitle={currentFile?.name || 'Untitled'}
           />
         </div>
 

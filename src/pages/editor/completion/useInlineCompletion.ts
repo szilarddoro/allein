@@ -2,11 +2,10 @@ import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { useMonaco } from '@monaco-editor/react'
-import { generateText } from 'ai'
 import * as monaco from 'monaco-editor'
 import React, { useEffect, useRef } from 'react'
 import { CompletionFormatter } from './CompletionFormatter'
-import { generateInstructions } from './prompt'
+import { completionSystemPrompt } from './completionSystemPrompt'
 import { CompletionServices } from './types'
 
 export interface UseInlineCompletionOptions {
@@ -198,7 +197,9 @@ export function useInlineCompletion({
 
           // Trigger conditions
           const shouldTrigger =
-            isAfterSentenceEnd || isWordEnd || (hasTypedMultipleWords && lastChar === ' ')
+            isAfterSentenceEnd ||
+            isWordEnd ||
+            (hasTypedMultipleWords && lastChar === ' ')
 
           if (!shouldTrigger) {
             // Clear any pending timeout when user continues typing
@@ -250,47 +251,53 @@ export function useInlineCompletion({
                     position,
                     documentTitle,
                   )
-                  contextMessage = completionServices.contextExtractor.formatContextMessage(
-                    context,
-                  )
+                  contextMessage =
+                    completionServices.contextExtractor.formatContextMessage(
+                      context,
+                    )
                 } else {
                   // Fallback: use simple context
                   contextMessage = textBeforeCursor + '<|cursor|>'
                 }
 
-                // Build messages array with new context format
-                const messages = [
-                  generateInstructions(),
-                  { content: contextMessage, role: 'user' as const },
-                ]
-
                 // Notify loading started
                 onLoadingChange?.(true)
 
-                // Generate suggestion
-                const response = await generateText({
-                  model: ollamaProvider(ollamaModel),
-                  messages,
-                  temperature: 0.8,
-                  abortSignal: currentRequest.current.signal,
-                  experimental_telemetry: {
-                    isEnabled: false,
+                const generateResponse = await fetch(
+                  `${ollamaUrl}/api/generate`,
+                  {
+                    method: 'POST',
+                    body: JSON.stringify({
+                      model: ollamaModel,
+                      prompt: contextMessage,
+                      system: completionSystemPrompt,
+                      stream: false,
+                      keep_alive: -1,
+                      temperature: 0.6,
+                    }),
+                    signal: currentRequest.current.signal,
                   },
-                })
+                )
+
+                if (!generateResponse.ok) {
+                  return
+                }
+
+                const { response } = await generateResponse.json()
 
                 // Notify loading finished
                 onLoadingChange?.(false)
 
-                if (!response.text.trim()) {
+                if (!response.trim()) {
                   resolve({ items: [] })
                   return
                 }
 
                 // Apply quality filter if available
-                let filteredText = response.text.trim()
+                let filteredText = response.trim()
                 if (completionServices?.qualityFilter) {
                   const filterResult = completionServices.qualityFilter.filter(
-                    response.text,
+                    response,
                     textBeforeCursor,
                   )
 
@@ -357,5 +364,6 @@ export function useInlineCompletion({
     isAiAssistanceAvailable,
     completionServices,
     documentTitle,
+    ollamaUrl,
   ])
 }

@@ -100,9 +100,10 @@ export class ActivityTracker {
    * Get recently visited sections sorted by recency
    */
   getRecentSections(limit = 5): VisitedSection[] {
-    return this.visitedSections
-      .slice(-limit)
-      .sort((a, b) => b.timestamp - a.timestamp)
+    // Get the most recent sections up to the limit
+    const recent = this.visitedSections.slice(-limit)
+    // Sort by timestamp descending (most recent first)
+    return [...recent].sort((a, b) => b.timestamp - a.timestamp)
   }
 
   /**

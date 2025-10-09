@@ -22,6 +22,7 @@ import { ActivityTracker } from './completion/ActivityTracker'
 import { ContextExtractor } from './completion/ContextExtractor'
 import { QualityFilter } from './completion/QualityFilter'
 import { CompletionServices } from './completion/types'
+import { DebugPanel } from './completion/DebugPanel'
 
 export function EditorPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -294,6 +295,9 @@ export function EditorPage() {
           })
         }}
       />
+
+      {/* Debug panel for development */}
+      <DebugPanel activityTracker={completionServices.activityTracker} />
     </div>
   )
 }

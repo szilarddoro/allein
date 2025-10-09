@@ -1,8 +1,4 @@
-import { SystemModelMessage } from 'ai'
-
-export function generateInstructions(): SystemModelMessage {
-  return {
-    content: `You are a writing assistant for markdown documents. Complete text where the <|cursor|> marker appears.
+export const completionSystemPrompt = `You are a writing assistant for markdown documents. Complete text where the <|cursor|> marker appears.
 
 CONTEXT FORMAT:
 You receive the current document with recently visited sections from other documents. The <|cursor|> marker shows where to insert completion.
@@ -51,7 +47,4 @@ BAD EXAMPLES (DO NOT DO THIS):
 ❌ "something that might potentially be considered beneficial" (too long, vague)
 ❌ "quantum artificial intelligence blockchain" (off-topic creativity)
 
-Remember: Be concise, relevant, and consistent with the document. Quality over creativity.`,
-    role: 'system',
-  }
-}
+Remember: Be concise, relevant, and consistent with the document. Quality over creativity.`

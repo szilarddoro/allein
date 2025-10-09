@@ -97,23 +97,28 @@ export class CompletionFormatter {
 
   private removeDuplicateStartOfSuggestions(): this {
     // Remove the text that is already present in the editor from the completion
-    const before = this._editor
-      .getValueInRange(
-        new monacoeditor.Range(
-          1,
-          1,
-          this._cursorPosition.lineNumber,
-          this._cursorPosition.column,
-        ),
-      )
-      .trim()
+    const before = this._editor.getValueInRange(
+      new monacoeditor.Range(
+        1,
+        1,
+        this._cursorPosition.lineNumber,
+        this._cursorPosition.column,
+      ),
+    )
 
-    const completion = this.normalise(this._completion)
+    const completion = this._completion.trim()
+
+    // Don't check for overlaps if the text before cursor ends with whitespace
+    // This prevents false positives where single characters match coincidentally
+    if (before.endsWith(' ') || before.endsWith('\t') || before.endsWith('\n')) {
+      return this
+    }
 
     const maxLength = Math.min(completion.length, before.length)
     let overlapLength = 0
 
-    for (let length = 1; length <= maxLength; length++) {
+    // Only consider overlaps of 2 or more characters to avoid false positives
+    for (let length = 2; length <= maxLength; length++) {
       const endOfBefore = before.substring(before.length - length)
       const startOfCompletion = completion.substring(0, length)
       if (endOfBefore === startOfCompletion) {

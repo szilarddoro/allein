@@ -63,12 +63,9 @@ export class ActivityTracker {
   /**
    * Capture a section around the current line
    */
-  private captureSection(
-    model: monaco.editor.ITextModel,
-    lineNumber: number,
-  ) {
+  private captureSection(model: monaco.editor.ITextModel, lineNumber: number) {
     const totalLines = model.getLineCount()
-    const contextRadius = 5 // Capture 5 lines before and after
+    const contextRadius = 2 // Capture 2 lines before and after
 
     const startLine = Math.max(1, lineNumber - contextRadius)
     const endLine = Math.min(totalLines, lineNumber + contextRadius)

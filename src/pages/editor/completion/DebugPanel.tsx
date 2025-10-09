@@ -1,6 +1,13 @@
-import { Card } from '@/components/ui/card'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { ActivityTracker, VisitedSection } from './ActivityTracker'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { Bug } from 'lucide-react'
+import { useInterval } from 'usehooks-ts'
 
 interface DebugPanelProps {
   activityTracker: ActivityTracker
@@ -8,42 +15,43 @@ interface DebugPanelProps {
 
 export function DebugPanel({ activityTracker }: DebugPanelProps) {
   const [sections, setSections] = useState<VisitedSection[]>([])
-  const [isVisible, setIsVisible] = useState(false)
 
   // Only show in development mode
   const isDev = import.meta.env.DEV
 
-  useEffect(() => {
+  useInterval(() => {
     if (!isDev) return
 
-    // Poll for updates every 2 seconds
-    const interval = setInterval(() => {
-      setSections(activityTracker.getRecentSections(10))
-    }, 2000)
-
-    return () => clearInterval(interval)
-  }, [activityTracker, isDev])
+    setSections(activityTracker.getRecentSections(10))
+  }, 2000)
 
   if (!isDev) return null
 
   return (
     <>
       {/* Toggle button */}
-      <button
-        onClick={() => setIsVisible(!isVisible)}
-        className="fixed bottom-4 right-4 z-50 size-10 rounded-full bg-purple-600 text-white shadow-lg hover:bg-purple-700 flex items-center justify-center font-mono text-xs font-bold"
-        title="Toggle Context Debug Panel"
-      >
-        {isVisible ? '✕' : 'CTX'}
-      </button>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            size="icon"
+            className=" fixed bottom-6 right-6 z-50 rounded-full bg-purple-600 dark:bg-purple-900 hover:bg-purple-500 dark:hover:bg-purple-800 border-purple-600 hover:border-purple-500 dark:border-purple-900 dark:hover:border-purple-800 text-white"
+          >
+            <Bug className="w-4 h-4" />
+          </Button>
+        </PopoverTrigger>
 
-      {/* Debug panel */}
-      {isVisible && (
-        <Card className="fixed bottom-16 right-4 z-50 w-96 max-h-[600px] overflow-hidden flex flex-col shadow-2xl">
-          <div className="p-3 border-b bg-purple-50 dark:bg-purple-950">
-            <h3 className="font-semibold text-sm">Context Debug Panel</h3>
-            <p className="text-xs text-muted-foreground">
-              {sections.length} sections tracked
+        <PopoverContent
+          align="end"
+          sideOffset={8}
+          side="top"
+          className="p-0 overflow-hidden"
+        >
+          <div className="p-3 border-b bg-purple-600 dark:bg-purple-950">
+            <h3 className="font-semibold text-sm text-white">
+              Context Debug Panel
+            </h3>
+            <p className="text-xs text-white/80">
+              {sections.length} section(s) tracked
             </p>
           </div>
 
@@ -79,8 +87,8 @@ export function DebugPanel({ activityTracker }: DebugPanelProps) {
               ))
             )}
           </div>
-        </Card>
-      )}
+        </PopoverContent>
+      </Popover>
     </>
   )
 }

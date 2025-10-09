@@ -82,10 +82,12 @@ export function EditorPage() {
   useEffect(() => {
     if (currentFile) {
       setMarkdownContent(currentFile.content)
-      // Track document switch
-      completionServices.activityTracker.trackDocumentSwitch(
-        currentFile.name || 'Untitled',
-      )
+      // Track document switch and load persisted context
+      completionServices.activityTracker
+        .trackDocumentSwitch(currentFile.name || 'Untitled')
+        .catch(() => {
+          // Silent fail - continue with empty context
+        })
     } else {
       setMarkdownContent('')
     }
@@ -100,6 +102,19 @@ export function EditorPage() {
       setSearchParams(searchParams, { replace: true })
     }
   }, [searchParams, setSearchParams])
+
+  // Cleanup old context on mount
+  useEffect(() => {
+    // Clean up context older than 7 days
+    completionServices.activityTracker.cleanupOldContext(7).catch(() => {
+      // Silent fail
+    })
+
+    // Limit total stored sections to 200
+    completionServices.activityTracker.limitStoredContext(200).catch(() => {
+      // Silent fail
+    })
+  }, [completionServices.activityTracker])
 
   const handleEditorChange = (content: string) => {
     setMarkdownContent(content)

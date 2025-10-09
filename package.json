@@ -12,7 +12,8 @@
     "lint:fix": "eslint src/ --fix",
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm lint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "format": "prettier --write src/**/*.{js,ts,jsx,tsx}"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

@@ -44,10 +44,15 @@ Layout: `AppLayout` component wraps all routes, provides sidebar toggle and sett
 ### State Management
 
 - **React Query** (`@tanstack/react-query`): All async operations (file I/O, config, Ollama API)
-- **SQLite** (via Tauri plugin): Persistent config storage (Ollama URL, model selection, AI toggle)
+- **SQLite** (via Tauri plugin): Persistent storage for config and context
   - Database: `database.db` in Tauri app data directory
-  - Schema: Single `config` table with key-value pairs
-  - Path: `src/lib/db/database.ts`
+  - Tables: `config` (app settings), `context_sections` (AI writing context)
+  - TypeScript interfaces: `src/lib/db/database.ts`, `src/lib/db/contextSections.ts`
+  - **Migrations**: Defined in `src-tauri/src/lib.rs` (lines ~134-162)
+    - Migration 1: Creates `config` table
+    - Migration 2: Creates `context_sections` table with indexes
+    - **IMPORTANT**: Never modify existing migrations - always add new ones
+    - Tauri's migration system runs automatically on app startup
 
 ### File Storage
 
@@ -70,19 +75,32 @@ Custom configuration:
 
 ### AI Completion System
 
-Path: `src/pages/editor/completion/useInlineCompletion.ts:13-178`
+Path: `src/pages/editor/completion/`
 
 Architecture:
 1. **Provider Registration**: Monaco inline completion provider for markdown
-2. **Triggering**: Only at word boundaries (space, punctuation), not mid-word or after sentence endings
-3. **Debouncing**: 800ms delay + 2s cooldown after suggestions
-4. **Request Flow**:
+2. **Triggering**: At word boundaries, after sentence endings, and after typing multiple words
+3. **Debouncing**: 500ms delay for faster suggestions
+4. **Context Collection**:
+   - `ActivityTracker`: Monitors cursor movements, captures sections when jumping 3+ lines
+   - `ContextExtractor`: Aggregates current document + recently visited sections
+   - Inserts `<|cursor|>` marker to indicate completion position
+   - **Context Persistence**: Sections saved to `context_sections` table, loaded on document switch
+5. **Request Flow**:
    - Uses Vercel AI SDK's `generateText()` with Ollama provider
-   - Two-message context: full document + current line
+   - Enhanced context with document title and recently visited sections
+   - System prompt optimized for Gemma 3 model (`completionSystemPrompt.ts`)
    - Temperature: 0.8 for creative completions
-5. **Formatting**: `CompletionFormatter` handles multi-line completions and range calculation
+6. **Quality Filtering** (`QualityFilter`):
+   - Validates 3-8 word length
+   - Detects and rejects repetition
+   - Filters out markdown formatting
+7. **Formatting**: `CompletionFormatter` handles multi-line completions and prevents false character overlaps
+8. **Debug Panel**: Dev-only panel (CTX button) shows collected context in real-time
 
-**Important**: Inline completion is disabled when `ai_assistance_enabled` config is false.
+**Important**:
+- Inline completion is disabled when `ai_assistance_enabled` config is false
+- Context persistence can be disabled via `ActivityTracker` constructor parameter
 
 ### Ollama Integration
 

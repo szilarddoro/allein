@@ -131,18 +131,35 @@ async fn rename_file(old_path: String, new_name: String) -> Result<String, Strin
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![Migration {
-        version: 1,
-        description: "create_config_table",
-        kind: MigrationKind::Up,
-        sql: "CREATE TABLE IF NOT EXISTS config (
+    let migrations = vec![
+        Migration {
+            version: 1,
+            description: "create_config_table",
+            kind: MigrationKind::Up,
+            sql: "CREATE TABLE IF NOT EXISTS config (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 key TEXT UNIQUE NOT NULL,
                 value TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );",
-    }];
+        },
+        Migration {
+            version: 2,
+            description: "create_context_sections_table",
+            kind: MigrationKind::Up,
+            sql: "CREATE TABLE IF NOT EXISTS context_sections (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_title TEXT NOT NULL,
+                content TEXT NOT NULL,
+                line_number INTEGER NOT NULL,
+                timestamp INTEGER NOT NULL,
+                created_at INTEGER DEFAULT (unixepoch())
+            );
+            CREATE INDEX IF NOT EXISTS idx_document_title ON context_sections(document_title);
+            CREATE INDEX IF NOT EXISTS idx_timestamp ON context_sections(timestamp);",
+        },
+    ];
 
     tauri::Builder::default()
         .plugin(tauri_plugin_os::init())

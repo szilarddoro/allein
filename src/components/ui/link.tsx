@@ -18,6 +18,7 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>((props, ref) => {
 
   return (
     <RouterLink
+      draggable={false}
       {...props}
       className={cn(
         'rounded-md focus:ring-[3px] focus:border-ring focus:ring-ring/50 focus:outline-none',

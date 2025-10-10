@@ -65,14 +65,9 @@ echo "Updating tauri.conf.json..."
 sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" src-tauri/tauri.conf.json
 rm src-tauri/tauri.conf.json.bak
 
-# Update version.ts
-echo "Updating version.ts..."
-sed -i.bak "s/export const APP_VERSION = \"$CURRENT_VERSION\"/export const APP_VERSION = \"$NEW_VERSION\"/" src/lib/version.ts
-rm src/lib/version.ts.bak
-
 # Stage changes
 echo "Staging changes..."
-git add package.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json src/lib/version.ts
+git add package.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json
 
 # Create commit
 echo "Creating commit..."

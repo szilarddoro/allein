@@ -36,8 +36,8 @@ pnpm tauri build      # Build production executable
 **IMPORTANT**: Always use the `bump-version.sh` script to bump versions. It updates:
 - `package.json`
 - `src-tauri/Cargo.toml`
+- `src-tauri/Cargo.lock`
 - `src-tauri/tauri.conf.json`
-- `src/lib/version.ts`
 
 The script automatically creates a commit and git tag. After running it:
 ```bash

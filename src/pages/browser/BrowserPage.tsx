@@ -162,7 +162,7 @@ export function BrowserPage() {
       <div className="relative">
         <H1 className="sr-only">Browse files</H1>
 
-        <div className="grid grid-cols-4 gap-6 px-6 pt-4 pb-16 max-w-7xl w-full mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-6 pt-4 pb-16 max-w-7xl w-full mx-auto">
           {sortedFiles.map((file) => (
             <ContextMenu key={file.name}>
               <ContextMenuTrigger asChild>

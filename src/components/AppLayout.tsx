@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
@@ -15,6 +15,11 @@ import {
 import { useWindowState } from '@/hooks/useWindowState'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
+import { ActivityTracker } from '@/pages/editor/completion/ActivityTracker'
+import { ContextExtractor } from '@/pages/editor/completion/ContextExtractor'
+import { QualityFilter } from '@/pages/editor/completion/QualityFilter'
+import { CompletionServices } from '@/pages/editor/completion/types'
+import { DebugPanel } from '@/pages/editor/completion/DebugPanel'
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -22,6 +27,16 @@ export function AppLayout() {
   const { isFullscreen } = useWindowState()
   const navigate = useNavigate()
   const { toast } = useToast()
+
+  // Initialize completion services
+  const completionServices = useMemo<CompletionServices>(() => {
+    const activityTracker = new ActivityTracker(10)
+    return {
+      activityTracker,
+      contextExtractor: new ContextExtractor(activityTracker),
+      qualityFilter: new QualityFilter(),
+    }
+  }, [])
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -131,9 +146,16 @@ export function AppLayout() {
         {sidebarOpen && <Sidebar onNewFile={createFile} />}
 
         <div className="flex-1 flex flex-col overflow-auto">
-          <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
+          <Outlet
+            context={
+              { sidebarOpen, completionServices } as AppLayoutContextProps
+            }
+          />
         </div>
       </main>
+
+      {/* Debug panel for development */}
+      <DebugPanel activityTracker={completionServices.activityTracker} />
     </div>
   )
 }

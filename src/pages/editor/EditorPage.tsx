@@ -6,7 +6,7 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { CircleAlert, RefreshCw } from 'lucide-react'
 import * as monaco from 'monaco-editor'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useOnClickOutside } from 'usehooks-ts'
 import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
@@ -18,14 +18,10 @@ import { EditorHeader } from './EditorHeader'
 import { ImprovementDialog } from './ImprovementDialog'
 import { formatMarkdown } from '@/lib/editor/formatMarkdown'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
-import { ActivityTracker } from './completion/ActivityTracker'
-import { ContextExtractor } from './completion/ContextExtractor'
-import { QualityFilter } from './completion/QualityFilter'
-import { CompletionServices } from './completion/types'
-import { DebugPanel } from './completion/DebugPanel'
 
 export function EditorPage() {
-  const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
+  const { sidebarOpen, completionServices } =
+    useOutletContext<AppLayoutContextProps>()
   const { toast } = useToast()
   const editorRef = useRef<HTMLDivElement>(null)
   const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
@@ -45,16 +41,6 @@ export function EditorPage() {
     status: currentFileStatus,
     refetch: refetchCurrentFile,
   } = useReadFile(currentFilePath)
-
-  // Initialize completion services
-  const completionServices = useMemo<CompletionServices>(() => {
-    const activityTracker = new ActivityTracker(10)
-    return {
-      activityTracker,
-      contextExtractor: new ContextExtractor(activityTracker),
-      qualityFilter: new QualityFilter(),
-    }
-  }, [])
 
   const { saveContent } = useAutoSave()
   const { handleEditorReady } = useEditorKeyBindings({
@@ -83,15 +69,17 @@ export function EditorPage() {
     if (currentFile) {
       setMarkdownContent(currentFile.content)
       // Track document switch and load persisted context
-      completionServices.activityTracker
-        .trackDocumentSwitch(currentFile.name || 'Untitled')
-        .catch(() => {
-          // Silent fail - continue with empty context
-        })
+      if (completionServices) {
+        completionServices.activityTracker
+          .trackDocumentSwitch(currentFile.name || 'Untitled')
+          .catch(() => {
+            // Silent fail - continue with empty context
+          })
+      }
     } else {
       setMarkdownContent('')
     }
-  }, [currentFile, completionServices.activityTracker])
+  }, [currentFile, completionServices])
 
   // Store focus intention when focus=true parameter is present
   useEffect(() => {
@@ -105,6 +93,8 @@ export function EditorPage() {
 
   // Cleanup old context on mount
   useEffect(() => {
+    if (!completionServices) return
+
     // Clean up context older than 7 days
     completionServices.activityTracker.cleanupOldContext(7).catch(() => {
       // Silent fail
@@ -114,7 +104,7 @@ export function EditorPage() {
     completionServices.activityTracker.limitStoredContext(200).catch(() => {
       // Silent fail
     })
-  }, [completionServices.activityTracker])
+  }, [completionServices])
 
   const handleEditorChange = (content: string) => {
     setMarkdownContent(content)
@@ -148,13 +138,15 @@ export function EditorPage() {
     handleEditorReady(editor)
 
     // Set up activity tracking
-    const fileName = currentFile?.name || 'Untitled'
-    completionServices.activityTracker.setDocumentTitle(fileName)
+    if (completionServices) {
+      const fileName = currentFile?.name || 'Untitled'
+      completionServices.activityTracker.setDocumentTitle(fileName)
 
-    // Track cursor position changes
-    editor.onDidChangeCursorPosition((e) => {
-      completionServices.activityTracker.trackCursorChange(editor, e.position)
-    })
+      // Track cursor position changes
+      editor.onDidChangeCursorPosition((e) => {
+        completionServices.activityTracker.trackCursorChange(editor, e.position)
+      })
+    }
 
     // Focus editor if focus was requested
     if (shouldFocusEditorRef.current) {
@@ -287,7 +279,7 @@ export function EditorPage() {
             onKeyDown={handleKeyDown}
             onEditorReady={handleEditorReadyWithRef}
             placeholder="Start writing..."
-            completionServices={completionServices}
+            completionServices={completionServices || undefined}
             documentTitle={currentFile?.name || 'Untitled'}
           />
         </div>
@@ -310,9 +302,6 @@ export function EditorPage() {
           })
         }}
       />
-
-      {/* Debug panel for development */}
-      <DebugPanel activityTracker={completionServices.activityTracker} />
     </div>
   )
 }

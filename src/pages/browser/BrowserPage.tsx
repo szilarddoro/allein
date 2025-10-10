@@ -177,7 +177,7 @@ export function BrowserPage() {
                     )}
                   >
                     <CardHeader className="px-0">
-                      <H3 className="text-sm mb-0">
+                      <H3 className="text-xs text-muted-foreground font-normal mb-0 truncate">
                         <span aria-hidden="true">
                           {getDisplayName(file.name)}
                         </span>

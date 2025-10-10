@@ -28,6 +28,27 @@ pnpm tauri build      # Build production executable
 
 **Note:** Use `pnpm tauri dev` for normal development as it starts both the frontend and Rust backend.
 
+### Version Management
+```bash
+./bump-version.sh [patch|minor|major]  # Bump version across all files, commit, and tag
+```
+
+**IMPORTANT**: Always use the `bump-version.sh` script to bump versions. It updates:
+- `package.json`
+- `src-tauri/Cargo.toml`
+- `src-tauri/tauri.conf.json`
+- `src/lib/version.ts`
+
+The script automatically creates a commit and git tag. After running it:
+```bash
+git push && git push --tags
+```
+
+To create a GitHub release after bumping:
+```bash
+gh release create v{VERSION} --generate-notes
+```
+
 ## Architecture
 
 ### Frontend Structure (React)

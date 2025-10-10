@@ -72,7 +72,7 @@ rm src/lib/version.ts.bak
 
 # Stage changes
 echo "Staging changes..."
-git add package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json src/lib/version.ts
+git add package.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json src/lib/version.ts
 
 # Create commit
 echo "Creating commit..."

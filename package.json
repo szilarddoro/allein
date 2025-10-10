@@ -19,7 +19,7 @@
     "*.{ts,tsx}": [
       "pnpm format",
       "eslint --fix",
-      "pnpm typecheck"
+      "bash -c 'pnpm typecheck'"
     ]
   },
   "dependencies": {

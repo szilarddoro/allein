@@ -34,7 +34,7 @@ export function FileNameEditor({
   onFileRenamed,
 }: FileNameEditorProps) {
   const { toast } = useToast()
-  const { files } = useFileList()
+  const { data: files } = useFileList()
   const { mutateAsync: renameFile } = useRenameFile()
   const [fileName, setFileName] = useState('')
   const [fileNameValidationErrorType, setFileNameValidationErrorType] =
@@ -89,7 +89,7 @@ export function FileNameEditor({
     }
 
     if (
-      files.some(
+      files?.some(
         (file) =>
           removeMdExtension(file.name) === inputValue &&
           file.path !== currentFile?.path,

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
 import { Cog, PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react'
 import { CURRENT_PLATFORM, IS_TAURI } from '@/lib/constants'
-import { Sidebar } from '@/components/Sidebar'
+import { Sidebar } from '@/components/sidebar/Sidebar'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { cn } from '@/lib/utils'
 import {

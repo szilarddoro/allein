@@ -10,12 +10,7 @@ export function useFileList() {
   const queryClient = useQueryClient()
   const lastRefetchTime = useRef<number | null>(null)
 
-  const {
-    data: files = [],
-    isLoading,
-    error,
-    refetch: loadFiles,
-  } = useQuery({
+  const queryData = useQuery({
     queryKey: FILES_QUERY_KEY(),
     queryFn: () => invoke<FileInfo[]>('list_files'),
     retry: 3,
@@ -47,10 +42,5 @@ export function useFileList() {
     return () => unlisten?.()
   }, [queryClient])
 
-  return {
-    files,
-    isLoading,
-    error: error instanceof Error ? error.message : null,
-    loadFiles,
-  }
+  return queryData
 }

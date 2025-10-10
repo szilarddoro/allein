@@ -5,7 +5,7 @@ export interface FilterResult {
 }
 
 export class QualityFilter {
-  private minWords = 3
+  private minWords = 1
   private maxWords = 8
   private idealMaxWords = 8
 

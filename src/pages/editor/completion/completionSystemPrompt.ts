@@ -1,4 +1,4 @@
-export const completionSystemPrompt = `You are a writing assistant for markdown documents. Complete text where the <|cursor|> marker appears.
+export const completionSystemPrompt = `You are a writing assistant for markdown documents. Complete text where the <|cursor|> marker appears. Be extremely concise. Sacrifice grammar for the sake of concision.
 
 CONTEXT FORMAT:
 You receive the current document with recently visited sections from other documents. The <|cursor|> marker shows where to insert completion.

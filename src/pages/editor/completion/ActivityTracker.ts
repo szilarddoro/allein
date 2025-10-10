@@ -1,10 +1,11 @@
 import * as monaco from 'monaco-editor'
 import {
   saveContextSection,
-  loadContextSections,
+  loadAllRecentContextSections,
   cleanupOldContextSections,
   limitTotalContextSections,
 } from '@/lib/db/contextSections'
+import { MAX_CONTEXT_SECTIONS } from '@/lib/constants'
 
 export interface VisitedSection {
   content: string
@@ -15,7 +16,7 @@ export interface VisitedSection {
 
 export class ActivityTracker {
   private visitedSections: VisitedSection[] = []
-  private maxSections = 10
+  private maxSections = Math.ceil(MAX_CONTEXT_SECTIONS / 2)
   private currentDocumentTitle = ''
   private lastLineNumber = 0
   private lastChangeTime = 0
@@ -75,15 +76,30 @@ export class ActivityTracker {
 
   /**
    * Load persisted context sections for a document
+   * Uses hybrid approach: loads recent sections from all documents,
+   * but separates current document sections for higher weighting
    */
   private async loadPersistedContext(documentTitle: string) {
     try {
-      const sections = await loadContextSections(
-        documentTitle,
-        this.maxSections,
+      // Load recent sections from all documents (not just current one)
+      const allSections = await loadAllRecentContextSections(
+        this.maxSections * 2, // Load more to ensure good mix
       )
+
+      // Separate current document sections and cross-document sections
+      const currentDocSections = allSections
+        .filter((s) => s.document_title === documentTitle)
+        .slice(0, Math.ceil(this.maxSections * 0.6)) // 60% from current doc
+
+      const crossDocSections = allSections
+        .filter((s) => s.document_title !== documentTitle)
+        .slice(0, Math.floor(this.maxSections * 0.4)) // 40% from other docs
+
+      // Combine with current document sections first (higher weight)
+      const combinedSections = [...currentDocSections, ...crossDocSections]
+
       // Convert from database format to VisitedSection format
-      this.visitedSections = sections.map((section) => ({
+      this.visitedSections = combinedSections.map((section) => ({
         content: section.content,
         documentTitle: section.document_title,
         timestamp: section.timestamp,
@@ -153,13 +169,31 @@ export class ActivityTracker {
   }
 
   /**
-   * Get recently visited sections sorted by recency
+   * Get recently visited sections with hybrid weighting
+   * Prioritizes current document but includes cross-document context
    */
-  getRecentSections(limit = 8): VisitedSection[] {
-    // Get the most recent sections up to the limit
-    const recent = this.visitedSections.slice(-limit)
-    // Sort by timestamp descending (most recent first)
-    return [...recent].sort((a, b) => b.timestamp - a.timestamp)
+  getRecentSections(limit = MAX_CONTEXT_SECTIONS): VisitedSection[] {
+    // Separate current document sections and cross-document sections
+    const currentDocSections = this.visitedSections
+      .filter((s) => s.documentTitle === this.currentDocumentTitle)
+      .sort((a, b) => b.timestamp - a.timestamp)
+
+    const crossDocSections = this.visitedSections
+      .filter((s) => s.documentTitle !== this.currentDocumentTitle)
+      .sort((a, b) => b.timestamp - a.timestamp)
+
+    // Take 60% from current doc, 40% from other docs
+    const currentDocLimit = Math.ceil(limit * 0.6)
+    const crossDocLimit = Math.floor(limit * 0.4)
+
+    // Combine with current document sections first (higher priority)
+    const combined = [
+      ...currentDocSections.slice(0, currentDocLimit),
+      ...crossDocSections.slice(0, crossDocLimit),
+    ]
+
+    // Sort combined results by timestamp descending (most recent first)
+    return combined.sort((a, b) => b.timestamp - a.timestamp)
   }
 
   /**

@@ -1,5 +1,6 @@
 import * as monaco from 'monaco-editor'
 import { ActivityTracker } from './ActivityTracker'
+import { MAX_CONTEXT_SECTIONS } from '@/lib/constants'
 
 export interface CompletionContext {
   fullText: string
@@ -33,7 +34,7 @@ export class ContextExtractor {
 
     // Get recently visited sections
     const recentSections = this.activityTracker
-      .getRecentSections(8)
+      .getRecentSections(MAX_CONTEXT_SECTIONS)
       .map((section) => `[From: ${section.documentTitle}]\n${section.content}`)
 
     return {

@@ -3,7 +3,11 @@ import { Outlet, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
 import { Cog, PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react'
-import { CURRENT_PLATFORM, IS_TAURI } from '@/lib/constants'
+import {
+  CURRENT_PLATFORM,
+  IS_TAURI,
+  MAX_CONTEXT_SECTIONS,
+} from '@/lib/constants'
 import { Sidebar } from '@/components/sidebar/Sidebar'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { cn } from '@/lib/utils'
@@ -30,7 +34,7 @@ export function AppLayout() {
 
   // Initialize completion services
   const completionServices = useMemo<CompletionServices>(() => {
-    const activityTracker = new ActivityTracker(10)
+    const activityTracker = new ActivityTracker(MAX_CONTEXT_SECTIONS)
     return {
       activityTracker,
       contextExtractor: new ContextExtractor(activityTracker),

@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Bug } from 'lucide-react'
 import { useInterval } from 'usehooks-ts'
+import { MAX_CONTEXT_SECTIONS } from '@/lib/constants'
 
 interface DebugPanelProps {
   activityTracker: ActivityTracker
@@ -24,7 +25,7 @@ export function DebugPanel({ activityTracker }: DebugPanelProps) {
   useInterval(() => {
     if (!isDev) return
 
-    setSections(activityTracker.getRecentSections(8))
+    setSections(activityTracker.getRecentSections(MAX_CONTEXT_SECTIONS))
   }, 2000)
 
   if (!isDev) return null

@@ -20,7 +20,10 @@ export function Sidebar({ onNewFile }: SidebarProps) {
   async function handleCreateFile() {
     try {
       const { path } = await onNewFile()
-      navigate(`/editor?file=${path}&focus=true`)
+      navigate({
+        pathname: '/editor',
+        search: `?file=${path}&focus=true`,
+      })
     } catch {
       toast.error('Failed to create file')
     }

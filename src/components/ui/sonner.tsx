@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react'
+import { AlertTriangle, CheckCircle, CircleAlert, Info } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Toaster as Sonner, ToasterProps } from 'sonner'
 
@@ -14,7 +14,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
         success: (
           <CheckCircle aria-hidden="true" className="w-4 h-4 text-green-600" />
         ),
-        error: <XCircle aria-hidden="true" className="w-4 h-4 text-red-600" />,
+        error: (
+          <CircleAlert
+            aria-hidden="true"
+            className="w-4 h-4 text-destructive"
+          />
+        ),
         warning: (
           <AlertTriangle
             aria-hidden="true"

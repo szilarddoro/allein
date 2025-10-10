@@ -148,7 +148,10 @@ export function FileList() {
                 <ContextMenuTrigger asChild>
                   <Button asChild variant="ghost" size="sm" className="w-full">
                     <Link
-                      to={`/editor?file=${file.path}`}
+                      to={{
+                        pathname: '/editor',
+                        search: `?file=${file.path}`,
+                      }}
                       aria-current={currentFilePath === file.path}
                       draggable={false}
                       className={cn(
@@ -174,7 +177,12 @@ export function FileList() {
 
                 <ContextMenuContent className="w-48" loop>
                   <ContextMenuItem
-                    onClick={() => navigate(`/editor?file=${file.path}`)}
+                    onClick={() =>
+                      navigate({
+                        pathname: '/editor',
+                        search: `?file=${file.path}`,
+                      })
+                    }
                   >
                     <Edit3 className="w-4 h-4 mr-2 text-current" />
                     Open
@@ -189,7 +197,7 @@ export function FileList() {
                   <ContextMenuItem
                     onClick={() => handleDeleteFile(file.path, file.name)}
                     disabled={isDeletingFile}
-                    className="text-red-600 focus:text-red-600"
+                    className="text-destructive focus:text-destructive"
                   >
                     <Trash2 className="w-4 h-4 mr-2 text-current" />
                     Delete

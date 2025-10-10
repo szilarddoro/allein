@@ -9,7 +9,7 @@ import { H2, H3, InlineCode, P } from '@/components/ui/typography'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { CheckCircle, XCircle, RefreshCw } from 'lucide-react'
+import { CheckCircle, RefreshCw, CircleAlert } from 'lucide-react'
 import { useOllamaModels } from '@/lib/ollama/useOllamaModels'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { useDebounceCallback } from 'usehooks-ts'
@@ -61,9 +61,12 @@ export function AIAssistantCard() {
     refetch: testConnection,
   } = useOllamaConnection(ollamaUrl)
 
-  const handleUpdateOllamaUrlDebounced = useDebounceCallback((value: string) => {
-    handleUpdateOllamaUrl(value)
-  }, 500)
+  const handleUpdateOllamaUrlDebounced = useDebounceCallback(
+    (value: string) => {
+      handleUpdateOllamaUrl(value)
+    },
+    500,
+  )
 
   async function handleRefetchModels() {
     await refetchModels()
@@ -137,8 +140,8 @@ export function AIAssistantCard() {
                     <span className="text-sm">Connected</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1 text-red-600">
-                    <XCircle className="w-4 h-4" />
+                  <div className="flex items-center gap-1 text-destructive">
+                    <CircleAlert className="w-4 h-4" />
                     <span className="text-sm">Disconnected</span>
                   </div>
                 )}
@@ -191,11 +194,9 @@ export function AIAssistantCard() {
             {modelsLoading ? (
               <ActivityIndicator>Loading models...</ActivityIndicator>
             ) : modelsError ? (
-              <div className="flex items-center gap-1 text-red-600 text-sm">
-                <XCircle className="w-4 h-4" />
-                <span>
-                  Failed to load models. Make sure Ollama is running.
-                </span>
+              <div className="flex items-center gap-1 text-destructive text-sm">
+                <CircleAlert className="w-4 h-4" />
+                <span>Failed to load models. Make sure Ollama is running.</span>
               </div>
             ) : models && models.length > 0 ? (
               <div className="flex flex-col gap-2 mt-4">

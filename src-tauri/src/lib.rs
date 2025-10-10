@@ -17,6 +17,15 @@ pub struct FileContent {
     pub path: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileInfoWithPreview {
+    pub name: String,
+    pub path: String,
+    pub size: u64,
+    pub modified: String,
+    pub preview: String,
+}
+
 fn get_docs_dir() -> Result<PathBuf, String> {
     let home = dirs::home_dir().ok_or("Could not find home directory")?;
     let docs_dir = home.join("allein").join("docs");
@@ -59,6 +68,54 @@ async fn list_files() -> Result<Vec<FileInfo>, String> {
                 path: path.to_string_lossy().to_string(),
                 size: metadata.len(),
                 modified: modified.to_string(),
+            });
+        }
+    }
+
+    // Sort by modification time (newest first)
+    files.sort_by(|a, b| b.modified.cmp(&a.modified));
+
+    Ok(files)
+}
+
+#[tauri::command]
+async fn list_files_with_preview() -> Result<Vec<FileInfoWithPreview>, String> {
+    let docs_dir = get_docs_dir()?;
+    let mut files = Vec::new();
+
+    let entries =
+        fs::read_dir(&docs_dir).map_err(|e| format!("Failed to read docs directory: {}", e))?;
+
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+
+        if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
+            let metadata = entry
+                .metadata()
+                .map_err(|e| format!("Failed to read file metadata: {}", e))?;
+            let modified = metadata
+                .modified()
+                .map_err(|e| format!("Failed to get file modification time: {}", e))?
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_err(|e| format!("Failed to convert modification time: {}", e))?
+                .as_secs();
+
+            // Read file content and get preview (first 800 characters)
+            let content = fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read file: {}", e))?;
+            let preview: String = content.chars().take(800).collect();
+
+            files.push(FileInfoWithPreview {
+                name: path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("unknown")
+                    .to_string(),
+                path: path.to_string_lossy().to_string(),
+                size: metadata.len(),
+                modified: modified.to_string(),
+                preview,
             });
         }
     }
@@ -173,6 +230,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
             list_files,
+            list_files_with_preview,
             read_file,
             write_file,
             create_file,

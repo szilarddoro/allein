@@ -228,7 +228,7 @@ export function EditorPage() {
   if (currentFileStatus === 'error') {
     return (
       <div className="h-full flex flex-col gap-2 items-center justify-center">
-        <P className="flex flex-row gap-1 items-center text-red-600 text-sm">
+        <P className="flex flex-row gap-1 items-center text-destructive text-sm">
           <CircleAlert className="w-4 h-4" />
           Failed to load file. It might have been moved or deleted.
         </P>

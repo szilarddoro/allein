@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils'
 import React, { forwardRef } from 'react'
 import { Link as RouterLink, LinkProps, useNavigate } from 'react-router'
 
@@ -15,7 +16,17 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>((props, ref) => {
     props.onClick?.(e)
   }
 
-  return <RouterLink {...props} ref={ref} onClick={handleClick} />
+  return (
+    <RouterLink
+      {...props}
+      className={cn(
+        'rounded-md focus:ring-[3px] focus:border-ring focus:ring-ring/50 focus:outline-none',
+        props.className,
+      )}
+      ref={ref}
+      onClick={handleClick}
+    />
+  )
 })
 
 Link.displayName = 'Link'

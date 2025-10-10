@@ -76,12 +76,9 @@ export function BrowserPage() {
       <div className="grid grid-cols-4 gap-6 px-6 pt-4 pb-16 max-w-7xl w-full mx-auto">
         {sortedFiles.map((file) => (
           <Link
-            to={{
-              pathname: '/editor',
-              search: `?file=${file.path}`,
-            }}
+            to={{ pathname: '/editor', search: `?file=${file.path}` }}
             key={file.name}
-            className="scroll-mt-4 focus:scale-[102%] hover:scale-[102%] motion-safe:transition-transform"
+            className="scroll-mt-4 focus:scale-[102%] hover:scale-[102%] motion-safe:transition-transform cursor-default"
           >
             <Card className="aspect-[3/4] px-3 py-2 pb-0 select-none overflow-hidden gap-0">
               <CardHeader className="px-0">

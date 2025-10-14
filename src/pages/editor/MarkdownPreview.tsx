@@ -1,6 +1,14 @@
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
   Blockquote,
   H1,
   H2,
@@ -144,6 +152,18 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                     {children}
                   </a>
                 ),
+              table: ({ children }) => (
+                <div className="my-4 overflow-x-auto">
+                  <Table>{children}</Table>
+                </div>
+              ),
+              thead: ({ children }) => <TableHeader>{children}</TableHeader>,
+              tbody: ({ children }) => <TableBody>{children}</TableBody>,
+              tr: ({ children }) => <TableRow>{children}</TableRow>,
+              th: ({ children }) => (
+                <TableHead className="font-semibold">{children}</TableHead>
+              ),
+              td: ({ children }) => <TableCell>{children}</TableCell>,
             }}
           >
             {content || placeholder}

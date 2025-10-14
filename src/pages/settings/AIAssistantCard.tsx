@@ -135,7 +135,7 @@ export function AIAssistantCard() {
                     Checking connection...
                   </ActivityIndicator>
                 ) : isConnected ? (
-                  <div className="flex items-center gap-1 text-green-600">
+                  <div className="flex items-center gap-1 text-success">
                     <CheckCircle className="w-4 h-4" />
                     <span className="text-sm">Connected</span>
                   </div>

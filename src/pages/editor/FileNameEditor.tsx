@@ -176,7 +176,7 @@ export function FileNameEditor({
           )}
         </>
       ) : (
-        <Tooltip>
+        <Tooltip delayDuration={500}>
           <ContextMenu>
             <TooltipTrigger
               asChild

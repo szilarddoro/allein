@@ -12,7 +12,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       icons={{
         info: <Info aria-hidden="true" className="w-4 h-4 text-blue-600" />,
         success: (
-          <CheckCircle aria-hidden="true" className="w-4 h-4 text-green-600" />
+          <CheckCircle aria-hidden="true" className="w-4 h-4 text-success" />
         ),
         error: (
           <CircleAlert

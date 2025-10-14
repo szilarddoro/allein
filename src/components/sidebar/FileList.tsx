@@ -153,7 +153,6 @@ export function FileList() {
                         search: `?file=${file.path}`,
                       }}
                       aria-current={currentFilePath === file.path}
-                      draggable={false}
                       className={cn(
                         'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
                         currentFilePath === file.path

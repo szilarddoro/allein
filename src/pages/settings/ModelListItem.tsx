@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { formatBytesToGB } from '@/lib/formatBytes'
 import { cn } from '@/lib/utils'
 
 interface OllamaModel {
@@ -36,7 +37,7 @@ export function ModelListItem({
       <div>
         <div className="font-medium">{model.name}</div>
         <div className="text-sm text-muted-foreground">
-          Size: {(model.size / 1024 / 1024 / 1024).toFixed(2)} GB
+          Size: {formatBytesToGB(model.size)}
         </div>
       </div>
 

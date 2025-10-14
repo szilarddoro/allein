@@ -1,0 +1,339 @@
+import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { Button } from '@/components/ui/button'
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+} from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { useAIConfig } from '@/lib/ai/useAIConfig'
+import { formatBytesToGB } from '@/lib/formatBytes'
+import { DEFAULT_OLLAMA_URL } from '@/lib/ollama/ollama'
+import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
+import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
+import { useOllamaModels } from '@/lib/ollama/useOllamaModels'
+import { useToast } from '@/lib/useToast'
+import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
+import { CheckCircle2, XCircle } from 'lucide-react'
+import { useEffect } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { useDebounceValue } from 'usehooks-ts'
+import * as z from 'zod'
+
+const RECOMMENDED_MODEL = 'gemma3:latest'
+
+const assistantSettingsFormValues = z
+  .object({
+    aiAssistantEnabled: z.boolean().optional(),
+    serverUrl: z.string().optional(),
+    model: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    // If AI assistant is enabled, validate serverUrl and model
+    if (data.aiAssistantEnabled) {
+      if (!data.serverUrl || data.serverUrl.length === 0) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Server URL is required when AI assistant is enabled',
+          path: ['serverUrl'],
+        })
+      } else {
+        // Validate URL format
+        try {
+          new URL(data.serverUrl)
+        } catch {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Invalid URL',
+            path: ['serverUrl'],
+          })
+        }
+      }
+
+      if (!data.model || data.model.length === 0) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Model is required when AI assistant is enabled',
+          path: ['model'],
+        })
+      }
+    }
+  })
+
+export type AssistantSettingsFormValues = z.infer<
+  typeof assistantSettingsFormValues
+>
+
+export interface AIAssistantConfigPanelProps {
+  onSubmit: (values: AssistantSettingsFormValues) => void
+  onSkip?: () => void
+}
+
+export function AIAssistantConfigPanel({
+  onSubmit,
+  onSkip,
+}: AIAssistantConfigPanelProps) {
+  const { ollamaUrl, ollamaModel, configLoading } = useOllamaConfig()
+  const { aiAssistanceEnabled } = useAIConfig()
+  const { toast } = useToast()
+
+  const form = useForm<z.infer<typeof assistantSettingsFormValues>>({
+    resolver: zodResolver(assistantSettingsFormValues),
+    values: {
+      aiAssistantEnabled:
+        aiAssistanceEnabled == null ? true : aiAssistanceEnabled,
+      serverUrl: ollamaUrl || 'http://localhost:11434',
+      model: ollamaModel || '',
+    },
+  })
+
+  // Watch the AI assistant enabled state for conditional disabling
+  const watchAiAssistantEnabled = form.watch('aiAssistantEnabled')
+
+  const [debouncedOllamaUrl, setDebouncedOllamaUrl] = useDebounceValue(
+    form.getValues().serverUrl,
+    500,
+  )
+
+  const targetOllamaUrl = debouncedOllamaUrl || form.getValues().serverUrl
+
+  const { data: isConnected, isLoading: connectionLoading } =
+    useOllamaConnection(targetOllamaUrl, configLoading)
+
+  const {
+    data: models,
+    isLoading: modelsLoading,
+    error: modelsError,
+  } = useOllamaModels(targetOllamaUrl, configLoading)
+
+  useEffect(() => {
+    if (!isConnected) {
+      form.setValue('model', '')
+    }
+  }, [form, isConnected])
+
+  async function handleCopyOllamaPullCommand() {
+    await writeText(`ollama pull ${RECOMMENDED_MODEL}`)
+    toast.success('Command copied to clipboard')
+  }
+
+  if (configLoading) {
+    return null
+  }
+
+  return (
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="flex flex-col gap-6 items-start w-full"
+    >
+      <FieldSet className="w-full relative">
+        <FieldGroup>
+          <div className="motion-safe:animate-fade-in delay-150">
+            <Controller
+              name="aiAssistantEnabled"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field
+                  orientation="horizontal"
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldContent>
+                    <FieldLabel htmlFor="form-rhf-switch-ai-assistant">
+                      <span aria-hidden="true">AI Assistant</span>
+                      <span className="sr-only">Toggle AI Assistant</span>
+                    </FieldLabel>
+                    <FieldDescription>
+                      When enabled, the AI assistant will provide inline writing
+                      suggestions based on your document context.
+                    </FieldDescription>
+
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </FieldContent>
+
+                  <Switch
+                    id="form-rhf-switch-ai-assistant"
+                    name={field.name}
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-invalid={fieldState.invalid}
+                  />
+                </Field>
+              )}
+            />
+          </div>
+
+          <div className="motion-safe:animate-fade-in delay-300">
+            <Controller
+              name="serverUrl"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="serverUrl">Server URL</FieldLabel>
+
+                  <Input
+                    {...field}
+                    id="serverUrl"
+                    placeholder={`e.g. ${DEFAULT_OLLAMA_URL}`}
+                    aria-invalid={fieldState.invalid}
+                    autoComplete="off"
+                    disabled={!watchAiAssistantEnabled}
+                    onChange={(ev) => {
+                      field.onChange(ev)
+                      setDebouncedOllamaUrl(ev.target.value)
+                    }}
+                  />
+
+                  {fieldState.invalid ? (
+                    <FieldError errors={[fieldState.error]} />
+                  ) : (
+                    <FieldDescription
+                      className={cn(
+                        'flex flex-row gap-1 items-center',
+                        !watchAiAssistantEnabled &&
+                          'opacity-80 dark:opacity-50',
+                        isConnected ? 'text-success' : 'text-destructive',
+                      )}
+                    >
+                      {connectionLoading && (
+                        <ActivityIndicator>
+                          Checking connection...
+                        </ActivityIndicator>
+                      )}
+
+                      {!connectionLoading && isConnected && (
+                        <>
+                          <CheckCircle2 className="w-4 h-4" /> Connected
+                        </>
+                      )}
+
+                      {!connectionLoading && !isConnected && (
+                        <>
+                          <XCircle className="w-4 h-4" /> Not Connected
+                        </>
+                      )}
+                    </FieldDescription>
+                  )}
+                </Field>
+              )}
+            />
+          </div>
+
+          <div className="motion-safe:animate-fade-in delay-500">
+            <Controller
+              name="model"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="model">Model</FieldLabel>
+
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                    disabled={
+                      !watchAiAssistantEnabled || !models || models.length === 0
+                    }
+                  >
+                    <SelectTrigger id="model" aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Select a model">
+                        {field.value}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(models || []).map((model) => (
+                        <SelectItem key={model.name} value={model.name}>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium">{model.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatBytesToGB(model.size)}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {!fieldState.invalid && !modelsError && (
+                    <FieldDescription>
+                      {modelsLoading && (
+                        <ActivityIndicator>Loading models...</ActivityIndicator>
+                      )}
+
+                      {!modelsLoading && models && models.length === 0 && (
+                        <span className="flex flex-wrap items-center gap-1 text-sm">
+                          No models found. Run{' '}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={handleCopyOllamaPullCommand}
+                            size="sm"
+                            className="whitespace-normal mx-0 p-0 h-auto rounded-sm text-sm text-foreground/80"
+                            aria-label={`Copy "ollama pull ${RECOMMENDED_MODEL}" to clipboard`}
+                          >
+                            <span className="font-mono cursor-default px-0.5">
+                              ollama pull {RECOMMENDED_MODEL}
+                            </span>
+                          </Button>{' '}
+                          in your terminal.
+                        </span>
+                      )}
+                    </FieldDescription>
+                  )}
+
+                  {(modelsError || fieldState.invalid) && (
+                    <FieldError
+                      errors={[
+                        modelsError
+                          ? {
+                              message:
+                                'Failed to load models. Check your server URL configuration.',
+                            }
+                          : fieldState.error,
+                      ]}
+                    />
+                  )}
+                </Field>
+              )}
+            />
+          </div>
+        </FieldGroup>
+      </FieldSet>
+
+      <div className="flex flex-row gap-2">
+        <Button
+          size="sm"
+          type="submit"
+          className="motion-safe:animate-fade-in delay-[600ms]"
+        >
+          <span aria-hidden="true">Finish</span>
+          <span className="sr-only">Finish onboarding</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onSkip}
+          className="motion-safe:animate-fade-in delay-[750ms]"
+        >
+          <span aria-hidden="true">Skip</span>
+          <span className="sr-only">Skip onboarding</span>
+        </Button>
+      </div>
+    </form>
+  )
+}

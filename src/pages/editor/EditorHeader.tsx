@@ -48,7 +48,7 @@ export const EditorHeader = forwardRef<HTMLButtonElement, EditorHeaderProps>(
         />
 
         <div className="flex items-center gap-1">
-          <Tooltip>
+          <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={onFormatDocument}>
                 <WandSparkles className="w-4 h-4" />
@@ -60,7 +60,7 @@ export const EditorHeader = forwardRef<HTMLButtonElement, EditorHeaderProps>(
             </TooltipContent>
           </Tooltip>
 
-          <Tooltip>
+          <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"

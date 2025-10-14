@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { Link } from '@/components/ui/link'
+import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 
 interface ImprovementDialogProps {
   open: boolean
@@ -38,7 +39,9 @@ export function ImprovementDialog({
   const { improveText, isPending, error, improvedText, reset, cancel } =
     useImproveWriting()
   const { aiAssistanceEnabled } = useAIConfig()
-  const { data: isConnected, status: connectionStatus } = useOllamaConnection()
+  const { ollamaUrl } = useOllamaConfig()
+  const { data: isConnected, status: connectionStatus } =
+    useOllamaConnection(ollamaUrl)
 
   const isAiAssistanceAvailable =
     aiAssistanceEnabled && isConnected && connectionStatus === 'success'

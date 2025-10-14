@@ -16,18 +16,18 @@ export function ActivityIndicator({
   const id = `activity-indicator-${uuidv4()}`
 
   return (
-    <div
-      role="progressbar"
+    <span
+      role="status"
       className={cn(
-        'flex gap-1 items-center text-sm/tight text-muted-foreground',
+        'flex gap-1 items-center text-sm text-muted-foreground',
         className,
       )}
       aria-labelledby={id}
     >
-      <Loader2 className="w-4 h-4 animate-spin" />
+      <Loader2 className="size-4 animate-spin" />
       <span id={id} className={cn(srOnly && 'sr-only')}>
         {children}
       </span>
-    </div>
+    </span>
   )
 }

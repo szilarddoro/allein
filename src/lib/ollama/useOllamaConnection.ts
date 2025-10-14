@@ -1,29 +1,45 @@
 import { useQuery } from '@tanstack/react-query'
 import { DEFAULT_OLLAMA_URL } from './ollama'
-import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
+
+export const OLLAMA_CONNECTION_QUERY_KEY = (serverUrl: string) => [
+  'ollama-connection',
+  serverUrl,
+]
 
 // Test Ollama server connection
 export async function testOllamaConnection(
   serverUrl: string = DEFAULT_OLLAMA_URL,
 ): Promise<boolean> {
   try {
-    const response = await fetch(`${serverUrl}/api/tags`, {
-      method: 'HEAD',
-    })
+    const url = new URL(serverUrl)
+    const response = await fetch(
+      `${url.toString().replace(/\/$/, '')}/api/tags`,
+      {
+        method: 'HEAD',
+      },
+    )
+
+    if (!response.ok) {
+      throw new Error('Connection cannot be established.')
+    }
+
     return response.ok
   } catch {
     return false
   }
 }
 
-export function useOllamaConnection(serverUrl?: string | null) {
-  const { ollamaUrl } = useOllamaConfig()
+export function useOllamaConnection(
+  serverUrl?: string | null,
+  disabled?: boolean,
+) {
+  const targetServerUrl = serverUrl || ''
 
   return useQuery({
-    queryKey: ['ollama-connection', ollamaUrl || serverUrl],
-    queryFn: () => testOllamaConnection(ollamaUrl || serverUrl || ''),
+    queryKey: OLLAMA_CONNECTION_QUERY_KEY(targetServerUrl),
+    queryFn: () => testOllamaConnection(targetServerUrl),
     retry: false,
     refetchInterval: 10000,
-    enabled: !!serverUrl && !!ollamaUrl,
+    enabled: !!targetServerUrl && !disabled,
   })
 }

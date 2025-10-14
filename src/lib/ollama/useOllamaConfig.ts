@@ -4,12 +4,14 @@ import { useMemo } from 'react'
 import { DEFAULT_OLLAMA_URL } from './ollama'
 
 export function useOllamaConfig() {
-  const { data: config } = useConfig()
+  const {
+    data: config,
+    isLoading: configLoading,
+    refetch: refetchConfig,
+  } = useConfig()
 
-  const ollamaUrl = config?.find((c) => c.key === 'ollama_url')?.value || null
-  const ollamaModel =
-    config?.find((c) => c.key === 'ollama_model')?.value || null
-
+  const ollamaUrl = config?.find((c) => c.key === 'ollama_url')?.value || ''
+  const ollamaModel = config?.find((c) => c.key === 'ollama_model')?.value || ''
   const ollamaProvider = useMemo(
     () =>
       createOllama({
@@ -18,5 +20,11 @@ export function useOllamaConfig() {
     [ollamaUrl],
   )
 
-  return { ollamaUrl, ollamaModel, ollamaProvider }
+  return {
+    ollamaUrl,
+    ollamaModel,
+    ollamaProvider,
+    configLoading,
+    refetchConfig,
+  }
 }

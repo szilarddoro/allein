@@ -36,7 +36,6 @@ export function Sidebar({ onNewFile }: SidebarProps) {
         <Button variant="ghost" size="sm" asChild>
           <Link
             to="/"
-            draggable={false}
             className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40"
             aria-current={pathname === '/'}
           >

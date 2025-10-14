@@ -1,10 +1,12 @@
 import '@/App.css'
-import { AppLayout } from '@/components/AppLayout'
+import { AppLayout } from '@/components/layout/AppLayout'
+import { OnboardingLayout } from '@/components/layout/OnboardingLayout'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { QueryProvider } from '@/lib/QueryProvider'
 import { BrowserPage } from '@/pages/browser/BrowserPage'
 import { EditorPage } from '@/pages/editor/EditorPage'
+import { OnboardingPage } from '@/pages/onboarding/OnboardingPage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
 import '@fontsource-variable/inter'
 import React from 'react'
@@ -27,6 +29,16 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <SettingsPage />,
+      },
+    ],
+  },
+  {
+    path: '/onboarding',
+    element: <OnboardingLayout />,
+    children: [
+      {
+        index: true,
+        element: <OnboardingPage />,
       },
     ],
   },

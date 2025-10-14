@@ -216,6 +216,19 @@ pub fn run() {
             CREATE INDEX IF NOT EXISTS idx_document_title ON context_sections(document_title);
             CREATE INDEX IF NOT EXISTS idx_timestamp ON context_sections(timestamp);",
         },
+        Migration {
+            version: 3,
+            description: "create_onboarding_table",
+            kind: MigrationKind::Up,
+            sql: "CREATE TABLE IF NOT EXISTS onboarding (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                status TEXT NOT NULL CHECK (status IN ('not_started', 'in_progress', 'completed', 'skipped')) DEFAULT 'not_started',
+                current_step INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            INSERT OR IGNORE INTO onboarding (id, status, current_step) VALUES (1, 'not_started', 0);",
+        },
     ];
 
     tauri::Builder::default()

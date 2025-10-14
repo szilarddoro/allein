@@ -2,8 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { FileContent } from './types'
 
+export const READ_FILE_BASE_QUERY_KEY = 'file'
+
 export const READ_FILE_QUERY_KEY = (filePath: string | null) => [
-  'file',
+  READ_FILE_BASE_QUERY_KEY,
   filePath,
 ]
 

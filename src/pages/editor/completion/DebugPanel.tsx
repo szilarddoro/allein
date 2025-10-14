@@ -19,16 +19,9 @@ export function DebugPanel({ activityTracker }: DebugPanelProps) {
     () => activityTracker.getRecentSections(8) || [],
   )
 
-  // Only show in development mode
-  const isDev = import.meta.env.DEV
-
   useInterval(() => {
-    if (!isDev) return
-
     setSections(activityTracker.getRecentSections(MAX_CONTEXT_SECTIONS))
   }, 2000)
-
-  if (!isDev) return null
 
   return (
     <>

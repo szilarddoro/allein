@@ -106,6 +106,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
             onMount={handleEditorDidMount}
             loading={<ActivityIndicator>Loading editor...</ActivityIndicator>}
             options={{
+              tabSize: 2,
               links: false,
               minimap: { enabled: false },
               scrollBeyondLastLine: false,

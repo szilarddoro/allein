@@ -65,10 +65,11 @@ echo "Updating tauri.conf.json..."
 sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" src-tauri/tauri.conf.json
 rm src-tauri/tauri.conf.json.bak
 
-# Update Cargo.lock
+# Update Cargo.lock (only for Allein package)
 echo "Updating Cargo.lock..."
-sed -i.bak "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" src-tauri/Cargo.lock
-rm src-tauri/Cargo.lock.bak
+cd src-tauri
+cargo update -p Allein
+cd ..
 
 # Stage changes
 echo "Staging changes..."

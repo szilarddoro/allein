@@ -64,6 +64,114 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
 
       editor.onKeyDown((event: monaco.IKeyboardEvent) => {
         onKeyDown?.(event)
+
+        // Handle Enter key for list continuation
+        if (event.keyCode === _monaco.KeyCode.Enter && !event.shiftKey) {
+          const model = editor.getModel()
+          if (!model) return
+
+          const position = editor.getPosition()
+          if (!position) return
+
+          const currentLine = model.getLineContent(position.lineNumber)
+          const cursorColumn = position.column
+
+          // Only process if cursor is at end of line
+          if (cursorColumn !== currentLine.length + 1) return
+
+          // Check if current line is a bullet list item
+          const bulletMatch = currentLine.match(/^(\s*)([-*+])\s+(.*)$/)
+          // Check if current line is a numbered list item
+          const numberedMatch = currentLine.match(/^(\s*)(\d+)\.\s+(.*)$/)
+
+          if (bulletMatch) {
+            const [, indent, marker] = bulletMatch
+            const listContent = bulletMatch[3]
+
+            // If the list item is empty (just the marker), remove it and exit list
+            if (listContent.trim() === '') {
+              event.preventDefault()
+              editor.executeEdits('', [
+                {
+                  range: new _monaco.Range(
+                    position.lineNumber,
+                    1,
+                    position.lineNumber,
+                    currentLine.length + 1,
+                  ),
+                  text: '',
+                },
+              ])
+              return
+            }
+
+            // Continue the list with same indentation and marker
+            event.preventDefault()
+            const newListItem = `\n${indent}${marker} `
+            editor.executeEdits('', [
+              {
+                range: new _monaco.Range(
+                  position.lineNumber,
+                  cursorColumn,
+                  position.lineNumber,
+                  cursorColumn,
+                ),
+                text: newListItem,
+              },
+            ])
+
+            // Move cursor to end of new list item
+            editor.setPosition({
+              lineNumber: position.lineNumber + 1,
+              column: indent.length + marker.length + 2,
+            })
+          } else if (numberedMatch) {
+            const [, indent, numberStr] = numberedMatch
+            const listContent = numberedMatch[3]
+            const currentNumber = parseInt(numberStr, 10)
+
+            // If the list item is empty (just the number), remove it and exit list
+            if (listContent.trim() === '') {
+              event.preventDefault()
+              editor.executeEdits('', [
+                {
+                  range: new _monaco.Range(
+                    position.lineNumber,
+                    1,
+                    position.lineNumber,
+                    currentLine.length + 1,
+                  ),
+                  text: '',
+                },
+              ])
+              return
+            }
+
+            // Continue the list with incremented number
+            event.preventDefault()
+            const nextNumber = currentNumber + 1
+            const newListItem = `\n${indent}${nextNumber}. `
+            editor.executeEdits('', [
+              {
+                range: new _monaco.Range(
+                  position.lineNumber,
+                  cursorColumn,
+                  position.lineNumber,
+                  cursorColumn,
+                ),
+                text: newListItem,
+              },
+            ])
+
+            // Move cursor to end of new list item
+            // Column calculation: indent + number + ". " (period + space) + 1 (1-indexed)
+            const markerText = `${nextNumber}. `
+            editor.setPosition({
+              lineNumber: position.lineNumber + 1,
+              column: indent.length + markerText.length + 1,
+            })
+          }
+        }
       })
 
       editor.onContextMenu(({ event }: monaco.editor.IEditorMouseEvent) => {

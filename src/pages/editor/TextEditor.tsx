@@ -8,7 +8,8 @@ import { useTheme } from 'next-themes'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { cn } from '@/lib/utils'
 import { defineCustomThemes } from './monaco-themes'
-import { CompletionServices } from './completion/types'
+import { useModelWarmup } from '@/lib/ollama/warmupModel'
+import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 
 export interface TextEditorProps {
   value?: string
@@ -16,7 +17,6 @@ export interface TextEditorProps {
   placeholder?: string
   onKeyDown?: (event: monaco.IKeyboardEvent) => void
   onEditorReady?: (editor: monaco.editor.IStandaloneCodeEditor) => void
-  completionServices?: CompletionServices
   documentTitle?: string
 }
 
@@ -28,7 +28,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       placeholder,
       onKeyDown,
       onEditorReady,
-      completionServices,
       documentTitle = 'Untitled',
     },
     ref,
@@ -36,15 +35,18 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
     const { theme, systemTheme } = useTheme()
     const { aiAssistanceEnabled } = useAIConfig()
+    const { ollamaUrl, ollamaModel } = useOllamaConfig()
     const [isInlineCompletionLoading, setIsInlineCompletionLoading] =
       useState(false)
+
+    // Warm up the model when AI assistance is enabled
+    useModelWarmup(ollamaUrl, ollamaModel, aiAssistanceEnabled ?? false)
 
     // Enable inline completion for the Monaco Editor
     useInlineCompletion({
       disabled: !aiAssistanceEnabled,
       editorRef,
       onLoadingChange: setIsInlineCompletionLoading,
-      completionServices,
       documentTitle,
     })
 

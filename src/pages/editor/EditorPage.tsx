@@ -279,7 +279,6 @@ export function EditorPage() {
             onKeyDown={handleKeyDown}
             onEditorReady={handleEditorReadyWithRef}
             placeholder="Start writing..."
-            completionServices={completionServices || undefined}
             documentTitle={currentFile?.name || 'Untitled'}
           />
         </div>

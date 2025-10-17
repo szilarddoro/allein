@@ -4,16 +4,13 @@ import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { useMonaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import React, { useEffect, useRef } from 'react'
-import { CompletionFormatter } from './CompletionFormatter'
-import { completionSystemPrompt } from './completionSystemPrompt'
-import { CompletionServices } from './types'
+import { buildCompletionPrompt } from './completionSystemPrompt'
 
 export interface UseInlineCompletionOptions {
   debounceDelay?: number
   disabled?: boolean
   editorRef?: React.RefObject<monaco.editor.IStandaloneCodeEditor | null>
   onLoadingChange?: (loading: boolean) => void
-  completionServices?: CompletionServices
   documentTitle?: string
 }
 
@@ -28,7 +25,6 @@ export function useInlineCompletion({
   disabled = false,
   editorRef,
   onLoadingChange,
-  completionServices,
   documentTitle = 'Untitled',
 }: UseInlineCompletionOptions = {}) {
   const monacoInstance = useMonaco()
@@ -243,22 +239,17 @@ export function useInlineCompletion({
                 // Create new abort controller for this request
                 currentRequest.current = new AbortController()
 
-                // Build context message using ContextExtractor if available
-                let contextMessage: string
-                if (completionServices?.contextExtractor) {
-                  const context = completionServices.contextExtractor.extract(
-                    model,
-                    position,
-                    documentTitle,
-                  )
-                  contextMessage =
-                    completionServices.contextExtractor.formatContextMessage(
-                      context,
-                    )
-                } else {
-                  // Fallback: use simple context
-                  contextMessage = textBeforeCursor + '<|cursor|>'
-                }
+                // Build context: send entire document with cursor marker
+                const fullDocument = model.getValue()
+                const cursorOffset = model.getOffsetAt(position)
+                const textAfterCursor = fullDocument.substring(cursorOffset)
+
+                const textWithCursor =
+                  textBeforeCursor + '<|CURSOR|>' + textAfterCursor
+
+                // Build the complete prompt with instructions
+                const { system: systemPrompt, user: userPrompt } =
+                  buildCompletionPrompt(documentTitle, textWithCursor)
 
                 // Notify loading started
                 onLoadingChange?.(true)
@@ -269,11 +260,12 @@ export function useInlineCompletion({
                     method: 'POST',
                     body: JSON.stringify({
                       model: ollamaModel,
-                      prompt: contextMessage,
-                      system: completionSystemPrompt,
+                      system: systemPrompt,
+                      prompt: userPrompt,
                       stream: false,
                       keep_alive: -1,
-                      temperature: 0.6,
+                      temperature: 0.3,
+                      num_predict: 20, // Allow up to ~20 tokens (reasonable upper bound)
                     }),
                     signal: currentRequest.current.signal,
                   },
@@ -293,24 +285,51 @@ export function useInlineCompletion({
                   return
                 }
 
-                // Apply quality filter if available
-                let filteredText = response.trim()
-                if (completionServices?.qualityFilter) {
-                  const filterResult = completionServices.qualityFilter.filter(
-                    response,
-                    textBeforeCursor,
-                  )
+                // Parse the completion
+                let completion = response.trim()
 
-                  if (!filterResult.passed) {
-                    // Suggestion failed quality check
-                    resolve({ items: [] })
-                    return
-                  }
-
-                  filteredText = filterResult.filteredText || filteredText
+                // Remove "Output:" prefix if model includes it
+                if (completion.toLowerCase().startsWith('output:')) {
+                  completion = completion.substring(7).trim()
                 }
 
-                // Create completion item
+                // Remove "->" prefix if model includes it
+                if (completion.startsWith('->')) {
+                  completion = completion.substring(2).trim()
+                }
+
+                // Take only first line (in case model returns multiple lines)
+                completion = completion.split('\n')[0].trim()
+
+                // Remove markdown formatting
+                completion = completion
+                  .replace(/\*\*/g, '') // Remove bold
+                  .replace(/\*/g, '') // Remove italic
+                  .replace(/`/g, '') // Remove code
+                  .replace(/~/g, '') // Remove strikethrough
+                  .trim()
+
+                // Remove surrounding quotes if present
+                if (
+                  (completion.startsWith('"') && completion.endsWith('"')) ||
+                  (completion.startsWith("'") && completion.endsWith("'"))
+                ) {
+                  completion = completion.slice(1, -1).trim()
+                }
+
+                if (!completion || completion.length === 0) {
+                  resolve({ items: [] })
+                  return
+                }
+
+                // Always insert at cursor position (no line replacement logic)
+                const currentLine = model.getLineContent(position.lineNumber)
+                const textBeforeCursorOnLine = currentLine.substring(
+                  0,
+                  position.column - 1,
+                )
+
+                // Just append to cursor position
                 const range = {
                   startLineNumber: position.lineNumber,
                   startColumn: position.column,
@@ -318,14 +337,24 @@ export function useInlineCompletion({
                   endColumn: position.column,
                 }
 
-                const completionItem = new CompletionFormatter(
-                  model,
-                  position,
-                ).format(filteredText, range)
+                // If cursor is after a space, don't add another space
+                // Otherwise, ensure completion starts with a space
+                const needsLeadingSpace =
+                  textBeforeCursorOnLine.slice(-1) !== ' ' &&
+                  textBeforeCursorOnLine.length > 0
+                const insertText = needsLeadingSpace
+                  ? ' ' + completion
+                  : completion
+
+                // Create a single completion item
+                const item = {
+                  insertText,
+                  range,
+                }
 
                 // Cache the suggestion for persistence
                 activeSuggestion.current = {
-                  text: completionItem.insertText,
+                  text: item.insertText,
                   position: {
                     lineNumber: position.lineNumber,
                     column: position.column,
@@ -333,7 +362,9 @@ export function useInlineCompletion({
                   contextBefore: textBeforeCursor,
                 }
 
-                resolve({ items: [completionItem] })
+                const result = { items: [item] }
+
+                resolve(result)
               } catch (error) {
                 // Notify loading finished on error
                 onLoadingChange?.(false)
@@ -362,8 +393,7 @@ export function useInlineCompletion({
     disabled,
     onLoadingChange,
     isAiAssistanceAvailable,
-    completionServices,
-    documentTitle,
     ollamaUrl,
+    documentTitle,
   ])
 }

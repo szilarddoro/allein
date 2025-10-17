@@ -168,12 +168,13 @@ export function BrowserPage() {
               <ContextMenuTrigger asChild>
                 <Link
                   to={{ pathname: '/editor', search: `?file=${file.path}` }}
-                  className="scroll-mt-4 focus:scale-[102%] hover:scale-[102%] motion-safe:transition-transform cursor-default"
+                  className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
                 >
                   <Card
                     className={cn(
                       'aspect-[3/4] px-3 py-2 pb-0 select-none overflow-hidden gap-0 relative',
-                      'after:absolute after:bottom-0 after:left-0 after:w-full after:h-24 after:bg-gradient-to-t after:from-card after:to-transparent',
+                      'before:absolute before:top-0 before:left-0 before:size-full before:z-10 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
+                      'after:absolute after:bottom-0 after:left-0 after:w-full after:h-22 after:z-20 after:bg-gradient-to-t after:from-card after:to-transparent',
                     )}
                   >
                     <CardHeader className="px-0">

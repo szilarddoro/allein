@@ -68,7 +68,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               h1: ({ children }) => (
                 <H1
                   className={cn(
-                    renderType === 'embedded' && 'break-all text-xl',
+                    renderType === 'embedded' &&
+                      'break-words text-xl [&_code]:text-xl',
                   )}
                 >
                   {children}
@@ -77,7 +78,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               h2: ({ children }) => (
                 <H2
                   className={cn(
-                    renderType === 'embedded' && 'break-all text-lg',
+                    renderType === 'embedded' &&
+                      'break-words text-lg [&_code]:text-lg',
                   )}
                 >
                   {children}
@@ -86,7 +88,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               h3: ({ children }) => (
                 <H3
                   className={cn(
-                    renderType === 'embedded' && 'break-all text-base',
+                    renderType === 'embedded' &&
+                      'break-words text-base [&_code]:text-base',
                   )}
                 >
                   {children}
@@ -95,7 +98,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               h4: ({ children }) => (
                 <H4
                   className={cn(
-                    renderType === 'embedded' && 'break-all text-sm',
+                    renderType === 'embedded' &&
+                      'break-words text-sm [&_code]:text-sm',
                   )}
                 >
                   {children}
@@ -182,23 +186,20 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                   {children}
                 </Blockquote>
               ),
-              a: ({ children, href }) =>
-                renderType === 'embedded' ? (
-                  <span className="text-blue-500">{children}</span>
-                ) : (
-                  <a
-                    draggable={false}
-                    href={href}
-                    onClick={(event) => {
-                      event.preventDefault()
-                      if (!href) return
-                      openUrl(href)
-                    }}
-                    className="text-blue-500 hover:text-blue-600 hover:underline"
-                  >
-                    {children}
-                  </a>
-                ),
+              a: ({ children, href }) => (
+                <a
+                  draggable={false}
+                  href={href}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    if (!href) return
+                    openUrl(href)
+                  }}
+                  className="text-blue-500 hover:text-blue-600 hover:underline"
+                >
+                  {children}
+                </a>
+              ),
               table: ({ children }) => (
                 <div className="my-4 overflow-x-auto">
                   <Table>{children}</Table>

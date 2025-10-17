@@ -106,6 +106,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                   {children}
                 </P>
               ),
+              del: ({ children }) => (
+                <del className="opacity-50">{children}</del>
+              ),
               hr: () => <Separator className="my-4" />,
               code: ({ children, className }) => {
                 // Check if this is a code block or inline code

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
 import { Cog, PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react'
-import { CURRENT_PLATFORM, MAX_CONTEXT_SECTIONS } from '@/lib/constants'
+import { CURRENT_PLATFORM } from '@/lib/constants'
 import { Sidebar } from '@/components/sidebar/Sidebar'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { cn } from '@/lib/utils'
@@ -15,11 +15,6 @@ import {
 import { useWindowState } from '@/hooks/useWindowState'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
-import { ActivityTracker } from '@/pages/editor/completion/ActivityTracker'
-import { ContextExtractor } from '@/pages/editor/completion/ContextExtractor'
-import { QualityFilter } from '@/pages/editor/completion/QualityFilter'
-import { CompletionServices } from '@/pages/editor/completion/types'
-import { DebugPanel } from '@/pages/editor/completion/DebugPanel'
 import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { BaseLayout } from '@/components/layout/BaseLayout'
 import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
@@ -37,16 +32,6 @@ export function AppLayout() {
       navigate('/onboarding')
     }
   }, [navigate, progress])
-
-  // Initialize completion services
-  const completionServices = useMemo<CompletionServices>(() => {
-    const activityTracker = new ActivityTracker(MAX_CONTEXT_SECTIONS)
-    return {
-      activityTracker,
-      contextExtractor: new ContextExtractor(activityTracker),
-      qualityFilter: new QualityFilter(),
-    }
-  }, [])
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -146,17 +131,9 @@ export function AppLayout() {
         {sidebarOpen && <Sidebar onNewFile={createFile} />}
 
         <div className="flex-1 flex flex-col overflow-auto">
-          <Outlet
-            context={
-              { sidebarOpen, completionServices } as AppLayoutContextProps
-            }
-          />
+          <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
         </div>
       </main>
-
-      {import.meta.env.DEV && (
-        <DebugPanel activityTracker={completionServices.activityTracker} />
-      )}
     </BaseLayout>
   )
 }

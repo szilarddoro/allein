@@ -20,8 +20,7 @@ import { formatMarkdown } from '@/lib/editor/formatMarkdown'
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 
 export function EditorPage() {
-  const { sidebarOpen, completionServices } =
-    useOutletContext<AppLayoutContextProps>()
+  const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
   const { toast } = useToast()
   const editorRef = useRef<HTMLDivElement>(null)
   const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
@@ -68,18 +67,10 @@ export function EditorPage() {
   useEffect(() => {
     if (currentFile) {
       setMarkdownContent(currentFile.content)
-      // Track document switch and load persisted context
-      if (completionServices) {
-        completionServices.activityTracker
-          .trackDocumentSwitch(currentFile.name || 'Untitled')
-          .catch(() => {
-            // Silent fail - continue with empty context
-          })
-      }
     } else {
       setMarkdownContent('')
     }
-  }, [currentFile, completionServices])
+  }, [currentFile])
 
   // Store focus intention when focus=true parameter is present
   useEffect(() => {
@@ -90,21 +81,6 @@ export function EditorPage() {
       setSearchParams(searchParams, { replace: true })
     }
   }, [searchParams, setSearchParams])
-
-  // Cleanup old context on mount
-  useEffect(() => {
-    if (!completionServices) return
-
-    // Clean up context older than 7 days
-    completionServices.activityTracker.cleanupOldContext(7).catch(() => {
-      // Silent fail
-    })
-
-    // Limit total stored sections to 200
-    completionServices.activityTracker.limitStoredContext(200).catch(() => {
-      // Silent fail
-    })
-  }, [completionServices])
 
   const handleEditorChange = (content: string) => {
     setMarkdownContent(content)
@@ -136,17 +112,6 @@ export function EditorPage() {
   ) => {
     monacoEditorRef.current = editor
     handleEditorReady(editor)
-
-    // Set up activity tracking
-    if (completionServices) {
-      const fileName = currentFile?.name || 'Untitled'
-      completionServices.activityTracker.setDocumentTitle(fileName)
-
-      // Track cursor position changes
-      editor.onDidChangeCursorPosition((e) => {
-        completionServices.activityTracker.trackCursorChange(editor, e.position)
-      })
-    }
 
     // Focus editor if focus was requested
     if (shouldFocusEditorRef.current) {

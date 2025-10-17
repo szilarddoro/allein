@@ -85,12 +85,12 @@ export function applyBoldFormatting(
 }
 
 /**
- * Apply italic formatting (*text*) to the current selection in Monaco Editor
+ * Apply italic formatting (_text_) to the current selection in Monaco Editor
  */
 export function applyItalicFormatting(
   editor: monaco.editor.IStandaloneCodeEditor,
 ): void {
-  applyFormatting(editor, '*', 'italic-formatting')
+  applyFormatting(editor, '_', 'italic-formatting')
 }
 
 /**

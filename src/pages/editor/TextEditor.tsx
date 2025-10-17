@@ -185,113 +185,122 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     }
 
     return (
-      <Card
-        className="flex flex-col flex-1 p-0 overflow-hidden relative"
-        ref={ref}
-      >
-        {import.meta.env.DEV && (
+      <div className="relative flex flex-col flex-1 min-h-0" ref={ref}>
+        <div
+          role="status"
+          aria-label="Loading inline completion"
+          className={cn(
+            'absolute inset-0 rounded-lg overflow-hidden transition-opacity duration-300 opacity-0 blur-[1px]',
+            isInlineCompletionLoading && 'opacity-100',
+          )}
+        >
           <div
-            role="progressbar"
             className={cn(
-              'size-2 rounded-full bg-purple-300 dark:bg-purple-600 absolute top-2 right-2 z-10 pointer-events-none opacity-0 transition-opacity',
-              'after:size-full after:rounded-full after:bg-purple-300 dark:after:bg-purple-600 after:absolute after:top-0 after:left-0 after:animate-ping',
-              isInlineCompletionLoading && 'opacity-100',
+              'absolute inset-0 bg-gradient-to-r animate-[spin_5s_linear_infinite] scale-200',
+              'from-rose-500/50 via-sky-500/50 to-emerald-500/50',
+              'dark:from-rose-500/40 dark:via-sky-500/40 dark:to-emerald-500/40',
             )}
-            aria-label="Loading inline completion"
-          />
-        )}
-
-        <div className="flex-1 min-h-0">
-          <MonacoEditor
-            key={theme}
-            theme={
-              theme === 'dark' || (theme === 'system' && systemTheme === 'dark')
-                ? 'allein-dark'
-                : 'allein-light'
-            }
-            defaultLanguage="markdown"
-            value={value}
-            onChange={handleEditorChange}
-            beforeMount={handleBeforeMount}
-            onMount={handleEditorDidMount}
-            loading={<ActivityIndicator>Loading editor...</ActivityIndicator>}
-            options={{
-              tabSize: 2,
-              links: false,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              wordWrap: 'on',
-              lineNumbers: 'off',
-              stickyScroll: { enabled: false },
-              glyphMargin: false,
-              folding: false,
-              renderWhitespace: 'none',
-              guides: { indentation: false },
-              occurrencesHighlight: 'off',
-              foldingHighlight: false,
-              selectionHighlight: false,
-              renderLineHighlight: 'none',
-              hideCursorInOverviewRuler: true,
-              overviewRulerBorder: false,
-              scrollbar: {
-                useShadows: false,
-                vertical: 'auto',
-                horizontal: 'auto',
-                verticalScrollbarSize: 4,
-                horizontalScrollbarSize: 8,
-              },
-              smoothScrolling: true,
-              tabCompletion: 'off',
-              codeLens: false,
-              contextmenu: false,
-              suggest: {
-                selectionMode: 'never',
-                showKeywords: false,
-                showSnippets: false,
-                showFunctions: false,
-                showConstructors: false,
-                showFields: false,
-                showVariables: false,
-                showClasses: false,
-                showStructs: false,
-                showInterfaces: false,
-                showModules: false,
-                showProperties: false,
-                showEvents: false,
-                showOperators: false,
-                showUnits: false,
-                showValues: false,
-                showConstants: false,
-                showEnums: false,
-                showEnumMembers: false,
-                showColors: false,
-                showFiles: false,
-                showReferences: false,
-                showFolders: false,
-                showTypeParameters: false,
-                showIssues: false,
-                showUsers: false,
-                showWords: false,
-              },
-              quickSuggestions: false,
-              suggestOnTriggerCharacters: false,
-              acceptSuggestionOnEnter: 'off',
-              wordBasedSuggestions: 'off',
-              inlineSuggest: { enabled: true },
-              unicodeHighlight: {
-                ambiguousCharacters: false,
-                invisibleCharacters: false,
-                nonBasicASCII: false,
-              },
-              fontSize: 14,
-              lineHeight: 1.6,
-              padding: { top: 12, bottom: 32 },
-              placeholder,
-              automaticLayout: true,
-            }}
           />
         </div>
-      </Card>
+
+        <Card
+          className={cn(
+            'flex flex-col flex-1 min-h-0 p-0 m-0.5 overflow-hidden relative',
+          )}
+        >
+          <div className="flex-1 min-h-0">
+            <MonacoEditor
+              key={theme}
+              theme={
+                theme === 'dark' ||
+                (theme === 'system' && systemTheme === 'dark')
+                  ? 'allein-dark'
+                  : 'allein-light'
+              }
+              defaultLanguage="markdown"
+              value={value}
+              onChange={handleEditorChange}
+              beforeMount={handleBeforeMount}
+              onMount={handleEditorDidMount}
+              loading={<ActivityIndicator>Loading editor...</ActivityIndicator>}
+              options={{
+                tabSize: 2,
+                links: false,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                lineNumbers: 'off',
+                stickyScroll: { enabled: false },
+                glyphMargin: false,
+                folding: false,
+                renderWhitespace: 'none',
+                guides: { indentation: false },
+                occurrencesHighlight: 'off',
+                foldingHighlight: false,
+                selectionHighlight: false,
+                renderLineHighlight: 'none',
+                hideCursorInOverviewRuler: true,
+                overviewRulerBorder: false,
+                scrollbar: {
+                  useShadows: false,
+                  vertical: 'auto',
+                  horizontal: 'auto',
+                  verticalScrollbarSize: 4,
+                  horizontalScrollbarSize: 8,
+                },
+                smoothScrolling: true,
+                tabCompletion: 'off',
+                codeLens: false,
+                contextmenu: false,
+                suggest: {
+                  selectionMode: 'never',
+                  showKeywords: false,
+                  showSnippets: false,
+                  showFunctions: false,
+                  showConstructors: false,
+                  showFields: false,
+                  showVariables: false,
+                  showClasses: false,
+                  showStructs: false,
+                  showInterfaces: false,
+                  showModules: false,
+                  showProperties: false,
+                  showEvents: false,
+                  showOperators: false,
+                  showUnits: false,
+                  showValues: false,
+                  showConstants: false,
+                  showEnums: false,
+                  showEnumMembers: false,
+                  showColors: false,
+                  showFiles: false,
+                  showReferences: false,
+                  showFolders: false,
+                  showTypeParameters: false,
+                  showIssues: false,
+                  showUsers: false,
+                  showWords: false,
+                },
+                quickSuggestions: false,
+                suggestOnTriggerCharacters: false,
+                acceptSuggestionOnEnter: 'off',
+                wordBasedSuggestions: 'off',
+                inlineSuggest: { enabled: true },
+                unicodeHighlight: {
+                  ambiguousCharacters: false,
+                  invisibleCharacters: false,
+                  nonBasicASCII: false,
+                },
+                fontSize: 14,
+                lineHeight: 1.6,
+                padding: { top: 12, bottom: 32 },
+                placeholder,
+                automaticLayout: true,
+              }}
+            />
+          </div>
+        </Card>
+      </div>
     )
   },
 )

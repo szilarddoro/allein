@@ -155,7 +155,7 @@ export function ImprovementDialog({
                     <div className="overflow-hidden">{improvedText}</div>
                   </div>
                 </div>
-              ) : (
+              ) : error ? (
                 <div className="h-full flex flex-col gap-1.5 items-center justify-center py-2 bg-destructive/10 text-destructive text-sm/tight rounded-md">
                   <span>
                     {error instanceof Error
@@ -167,7 +167,7 @@ export function ImprovementDialog({
                     Try again
                   </button>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 

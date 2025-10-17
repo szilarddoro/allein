@@ -103,6 +103,15 @@ export function applyStrikethroughFormatting(
 }
 
 /**
+ * Apply inline code formatting (`text`) to the current selection in Monaco Editor
+ */
+export function applyInlineCodeFormatting(
+  editor: monaco.editor.IStandaloneCodeEditor,
+): void {
+  applyFormatting(editor, '`', 'inline-code-formatting')
+}
+
+/**
  * Apply heading formatting to the current line
  */
 export function applyHeadingFormatting(

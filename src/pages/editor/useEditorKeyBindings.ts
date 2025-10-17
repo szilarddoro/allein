@@ -4,6 +4,7 @@ import {
   applyBoldFormatting,
   applyItalicFormatting,
   applyStrikethroughFormatting,
+  applyInlineCodeFormatting,
   applyHeadingFormatting,
 } from '@/lib/editor/editorFormatting'
 import { formatMarkdown } from '@/lib/editor/formatMarkdown'
@@ -49,6 +50,14 @@ export function useEditorKeyBindings({
         monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Minus,
         () => {
           applyStrikethroughFormatting(editor)
+        },
+      )
+
+      // Override CMD+Shift+C for inline code formatting
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyC,
+        () => {
+          applyInlineCodeFormatting(editor)
         },
       )
 

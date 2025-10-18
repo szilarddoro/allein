@@ -29,7 +29,7 @@ import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { CheckCircle2, XCircle } from 'lucide-react'
-import { useEffect } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDebounceValue } from 'usehooks-ts'
 import * as z from 'zod'
@@ -81,11 +81,33 @@ export type AssistantSettingsFormValues = z.infer<
 export interface AIAssistantConfigPanelProps {
   onSubmit: (values: AssistantSettingsFormValues) => void
   onSkip?: () => void
+  disableAnimations?: boolean
+  disableSkip?: boolean
+  submitLabel?: {
+    label: ReactNode
+    srLabel?: ReactNode
+  }
+  skipLabel?: {
+    label: ReactNode
+    srLabel?: ReactNode
+  }
+  footerClassName?: string
 }
 
 export function AIAssistantConfigPanel({
   onSubmit,
   onSkip,
+  disableAnimations,
+  disableSkip,
+  submitLabel = {
+    label: 'Finish',
+    srLabel: 'Finish onboarding',
+  },
+  skipLabel = {
+    label: 'Skip',
+    srLabel: 'Skip onboarding',
+  },
+  footerClassName,
 }: AIAssistantConfigPanelProps) {
   const { ollamaUrl, ollamaModel, configLoading } = useOllamaConfig()
   const { aiAssistanceEnabled } = useAIConfig()
@@ -142,7 +164,11 @@ export function AIAssistantConfigPanel({
     >
       <FieldSet className="w-full relative">
         <FieldGroup>
-          <div className="motion-safe:animate-fade-in delay-150">
+          <div
+            className={cn(
+              !disableAnimations && 'motion-safe:animate-fade-in delay-150',
+            )}
+          >
             <Controller
               name="aiAssistantEnabled"
               control={form.control}
@@ -151,8 +177,11 @@ export function AIAssistantConfigPanel({
                   orientation="horizontal"
                   data-invalid={fieldState.invalid}
                 >
-                  <FieldContent>
-                    <FieldLabel htmlFor="form-rhf-switch-ai-assistant">
+                  <FieldContent className="gap-0.5">
+                    <FieldLabel
+                      htmlFor="form-rhf-switch-ai-assistant"
+                      className="text-lg font-semibold"
+                    >
                       <span aria-hidden="true">AI Assistant</span>
                       <span className="sr-only">Toggle AI Assistant</span>
                     </FieldLabel>
@@ -178,7 +207,11 @@ export function AIAssistantConfigPanel({
             />
           </div>
 
-          <div className="motion-safe:animate-fade-in delay-300">
+          <div
+            className={cn(
+              !disableAnimations && 'motion-safe:animate-fade-in delay-300',
+            )}
+          >
             <Controller
               name="serverUrl"
               control={form.control}
@@ -234,7 +267,11 @@ export function AIAssistantConfigPanel({
             />
           </div>
 
-          <div className="motion-safe:animate-fade-in delay-500">
+          <div
+            className={cn(
+              !disableAnimations && 'motion-safe:animate-fade-in delay-500',
+            )}
+          >
             <Controller
               name="model"
               control={form.control}
@@ -314,25 +351,36 @@ export function AIAssistantConfigPanel({
         </FieldGroup>
       </FieldSet>
 
-      <div className="flex flex-row gap-2">
+      <div className={cn('flex flex-row gap-2', footerClassName)}>
         <Button
           size="sm"
           type="submit"
-          className="motion-safe:animate-fade-in delay-[600ms]"
+          disabled={form.formState.isSubmitting}
+          className={cn(
+            !disableAnimations && 'motion-safe:animate-fade-in delay-[600ms]',
+          )}
         >
-          <span aria-hidden="true">Finish</span>
-          <span className="sr-only">Finish onboarding</span>
+          <span aria-hidden="true">{submitLabel.label}</span>
+          <span className="sr-only">
+            {submitLabel.srLabel || submitLabel.label}
+          </span>
         </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onSkip}
-          className="motion-safe:animate-fade-in delay-[750ms]"
-        >
-          <span aria-hidden="true">Skip</span>
-          <span className="sr-only">Skip onboarding</span>
-        </Button>
+        {!disableSkip && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onSkip}
+            className={cn(
+              !disableAnimations && 'motion-safe:animate-fade-in delay-[750ms]',
+            )}
+          >
+            <span aria-hidden="true">{skipLabel.label}</span>
+            <span className="sr-only">
+              {skipLabel.srLabel || skipLabel.label}
+            </span>
+          </Button>
+        )}
       </div>
     </form>
   )

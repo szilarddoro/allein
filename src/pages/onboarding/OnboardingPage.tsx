@@ -7,18 +7,22 @@ import { AIAssistantStep } from '@/pages/onboarding/steps/AIAssistantStep'
 import { useUpdateConfig } from '@/lib/db/useUpdateConfig'
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { AssistantSettingsFormValues } from '@/components/ollama/AIAssistantConfigPanel'
+import { useToast } from '@/lib/useToast'
 
 const TOTAL_STEPS = 2
 
 export function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const navigate = useNavigate()
+  const { toast } = useToast()
 
   const { data: progress, status: progressStatus } = useOnboardingProgress()
-  const { mutate: updateProgress } = useUpdateOnboardingProgress()
+  const { mutateAsync: updateProgress } = useUpdateOnboardingProgress()
 
   const { refetchConfig } = useOllamaConfig()
-  const { mutate: updateConfig } = useUpdateConfig({ onSuccess: refetchConfig })
+  const { mutateAsync: updateConfig } = useUpdateConfig({
+    onSuccess: refetchConfig,
+  })
 
   // Sync local step state with database
   useEffect(() => {
@@ -42,22 +46,30 @@ export function OnboardingPage() {
     }
   }
 
-  function handleFinish(values: AssistantSettingsFormValues) {
-    // Update AI assistance enabled state
-    updateConfig({
-      key: 'ai_assistance_enabled',
-      value: values.aiAssistantEnabled ? 'true' : 'false',
-    })
+  async function handleFinish(values: AssistantSettingsFormValues) {
+    try {
+      await Promise.all([
+        // Update AI assistance enabled state
+        updateConfig({
+          key: 'ai_assistance_enabled',
+          value: values.aiAssistantEnabled ? 'true' : 'false',
+        }),
 
-    // Update Ollama configuration
-    updateConfig({ key: 'ollama_url', value: values.serverUrl || null })
-    updateConfig({ key: 'ollama_model', value: values.model || null })
+        // Update Ollama configuration
+        updateConfig({ key: 'ollama_url', value: values.serverUrl || null }),
+        updateConfig({ key: 'ollama_model', value: values.model || null }),
 
-    // Mark onboarding as completed
-    updateProgress({
-      status: 'completed',
-      currentStep: 0,
-    })
+        // Mark onboarding as completed
+        updateProgress({
+          status: 'completed',
+          currentStep: 0,
+        }),
+      ])
+
+      toast.info('Welcome to Allein!')
+    } catch {
+      toast.error('Failed to update settings.')
+    }
   }
 
   if (progressStatus === 'pending') {

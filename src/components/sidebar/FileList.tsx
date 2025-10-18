@@ -25,7 +25,8 @@ import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useFileList } from '@/lib/files/useFileList'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
-import { Copy, Edit3, Trash2 } from 'lucide-react'
+import { revealItemInDir } from '@tauri-apps/plugin-opener'
+import { Copy, Edit3, FolderOpen, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -47,6 +48,14 @@ export function FileList() {
       toast.success('Copied to clipboard')
     } catch {
       toast.error('Failed to copy file path')
+    }
+  }
+
+  async function handleOpenInFolder(filePath: string) {
+    try {
+      await revealItemInDir(filePath)
+    } catch {
+      toast.error('Failed to open in folder')
     }
   }
 
@@ -191,6 +200,12 @@ export function FileList() {
                   >
                     <Copy className="w-4 h-4 mr-2 text-current" />
                     Copy path
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() => handleOpenInFolder(file.path)}
+                  >
+                    <FolderOpen className="w-4 h-4 mr-2 text-current" />
+                    Open in folder
                   </ContextMenuItem>
                   <ContextMenuSeparator />
                   <ContextMenuItem

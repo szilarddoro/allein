@@ -27,7 +27,15 @@ import { useFileListWithPreview } from '@/lib/files/useFileListWithPreview'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import MarkdownPreview from '@/pages/editor/MarkdownPreview'
-import { CircleAlert, Copy, Edit3, NotebookPen, Trash2 } from 'lucide-react'
+import { revealItemInDir } from '@tauri-apps/plugin-opener'
+import {
+  CircleAlert,
+  Copy,
+  Edit3,
+  FolderOpen,
+  NotebookPen,
+  Trash2,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -65,6 +73,14 @@ export function BrowserPage() {
       toast.success('Copied to clipboard')
     } catch {
       toast.error('Failed to copy file path')
+    }
+  }
+
+  async function handleOpenInFolder(filePath: string) {
+    try {
+      await revealItemInDir(filePath)
+    } catch {
+      toast.error('Failed to open in folder')
     }
   }
 
@@ -226,6 +242,10 @@ export function BrowserPage() {
                 <ContextMenuItem onClick={() => handleCopyFilePath(file.path)}>
                   <Copy className="w-4 h-4 mr-2 text-current" />
                   Copy path
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => handleOpenInFolder(file.path)}>
+                  <FolderOpen className="w-4 h-4 mr-2 text-current" />
+                  Open in folder
                 </ContextMenuItem>
                 <ContextMenuSeparator />
                 <ContextMenuItem

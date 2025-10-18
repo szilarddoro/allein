@@ -16,7 +16,8 @@ import { useRenameFile } from '@/lib/files/useRenameFile'
 import { validateFileName } from '@/lib/files/validation'
 import { useToast } from '@/lib/useToast'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { Copy, TriangleAlert } from 'lucide-react'
+import { revealItemInDir } from '@tauri-apps/plugin-opener'
+import { Copy, FolderOpen, TriangleAlert } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -137,6 +138,16 @@ export function FileNameEditor({
     }
   }
 
+  async function handleOpenInFolder() {
+    if (!currentFile) return
+
+    try {
+      await revealItemInDir(currentFile.path)
+    } catch {
+      toast.error('Failed to open in folder')
+    }
+  }
+
   return (
     <div className="relative flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto">
       {isEditingFileName ? (
@@ -196,6 +207,10 @@ export function FileNameEditor({
               <ContextMenuItem onClick={handleCopyFilePath}>
                 <Copy className="w-4 h-4 mr-2 text-current" />
                 Copy path
+              </ContextMenuItem>
+              <ContextMenuItem onClick={handleOpenInFolder}>
+                <FolderOpen className="w-4 h-4 mr-2 text-current" />
+                Open in folder
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>

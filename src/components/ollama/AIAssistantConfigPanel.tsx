@@ -28,7 +28,7 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { CheckCircle2, XCircle } from 'lucide-react'
+import { CheckCircle2, RefreshCcw, XCircle } from 'lucide-react'
 import { ReactNode, useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDebounceValue } from 'usehooks-ts'
@@ -140,6 +140,7 @@ export function AIAssistantConfigPanel({
     data: models,
     isLoading: modelsLoading,
     error: modelsError,
+    refetch: refetchModels,
   } = useOllamaModels(targetOllamaUrl, configLoading)
 
   useEffect(() => {
@@ -151,6 +152,15 @@ export function AIAssistantConfigPanel({
   async function handleCopyOllamaPullCommand() {
     await writeText(`ollama pull ${RECOMMENDED_MODEL}`)
     toast.success('Command copied to clipboard')
+  }
+
+  async function handleRefreshModels() {
+    try {
+      await refetchModels()
+      toast.success('Models refreshed')
+    } catch {
+      toast.error('Failed to load models. Check your server URL configuration.')
+    }
   }
 
   if (configLoading) {
@@ -279,31 +289,50 @@ export function AIAssistantConfigPanel({
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="model">Model</FieldLabel>
 
-                  <Select
-                    value={field.value}
-                    onValueChange={(value) => field.onChange(value)}
-                    disabled={
-                      !watchAiAssistantEnabled || !models || models.length === 0
-                    }
-                  >
-                    <SelectTrigger id="model" aria-invalid={fieldState.invalid}>
-                      <SelectValue placeholder="Select a model">
-                        {field.value}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(models || []).map((model) => (
-                        <SelectItem key={model.name} value={model.name}>
-                          <div className="flex flex-col gap-0.5">
-                            <span className="font-medium">{model.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatBytesToGB(model.size)}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex flex-row gap-2 w-full">
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => field.onChange(value)}
+                      disabled={
+                        !watchAiAssistantEnabled ||
+                        !models ||
+                        models.length === 0
+                      }
+                    >
+                      <SelectTrigger
+                        id="model"
+                        aria-invalid={fieldState.invalid}
+                        className="flex-1"
+                      >
+                        <SelectValue placeholder="Select a model">
+                          {field.value}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(models || []).map((model) => (
+                          <SelectItem key={model.name} value={model.name}>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-medium">{model.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {formatBytesToGB(model.size)}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleRefreshModels}
+                      disabled={fieldState.invalid || modelsError != null}
+                    >
+                      <RefreshCcw />
+                      <span className="sr-only">Refresh models</span>
+                    </Button>
+                  </div>
 
                   {!fieldState.invalid && !modelsError && (
                     <FieldDescription>

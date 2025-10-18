@@ -116,7 +116,6 @@ export function FileNameEditor({
       })
 
       onFileRenamed(newName)
-      toast.success('File renamed successfully')
     } catch {
       toast.error('Failed to rename file')
     }

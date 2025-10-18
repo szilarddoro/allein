@@ -39,8 +39,9 @@ export function AIAssistantCard() {
         <AIAssistantConfigPanel
           onSubmit={handleSubmit}
           submitLabel={{ label: 'Save' }}
-          disableSkip
           footerClassName="w-full justify-end"
+          disableAnimations
+          disableSkip
         />
       </CardContent>
     </Card>

@@ -41,5 +41,6 @@ export function useOllamaConnection(
     retry: false,
     refetchInterval: 10000,
     enabled: !!targetServerUrl && !disabled,
+    refetchOnMount: 'always',
   })
 }

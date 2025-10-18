@@ -49,5 +49,6 @@ export function useOllamaModels(serverUrl?: string | null, disabled?: boolean) {
     queryFn: () => fetchOllamaModels(targetServerUrl),
     retry: false,
     enabled: !disabled,
+    refetchOnMount: 'always',
   })
 }

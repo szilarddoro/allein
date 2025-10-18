@@ -190,7 +190,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
           role="status"
           aria-label="Loading inline completion"
           className={cn(
-            'absolute inset-0 rounded-lg overflow-hidden transition-opacity duration-300 opacity-0 blur-[1px]',
+            'absolute inset-0 rounded-lg overflow-hidden transition-opacity duration-300 opacity-0',
             isInlineCompletionLoading && 'opacity-100',
           )}
         >

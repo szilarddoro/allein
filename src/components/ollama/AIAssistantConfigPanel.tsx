@@ -144,14 +144,14 @@ export function AIAssistantConfigPanel({
   } = useOllamaModels(targetOllamaUrl, configLoading)
 
   useEffect(() => {
-    if (!isConnected) {
+    if (!isConnected && form.formState.isDirty) {
       form.setValue('model', '')
     }
   }, [form, isConnected])
 
   async function handleCopyOllamaPullCommand() {
     await writeText(`ollama pull ${RECOMMENDED_MODEL}`)
-    toast.success('Command copied to clipboard')
+    toast.success('Copied to clipboard')
   }
 
   async function handleRefreshModels() {

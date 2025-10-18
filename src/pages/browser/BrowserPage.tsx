@@ -62,7 +62,7 @@ export function BrowserPage() {
   async function handleCopyFilePath(filePath: string) {
     try {
       await navigator.clipboard.writeText(filePath)
-      toast.success('File path copied to clipboard')
+      toast.success('Copied to clipboard')
     } catch {
       toast.error('Failed to copy file path')
     }

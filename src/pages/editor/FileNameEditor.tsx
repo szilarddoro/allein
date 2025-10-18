@@ -131,7 +131,7 @@ export function FileNameEditor({
 
     try {
       await writeText(currentFile.path)
-      toast.success('File path copied to clipboard')
+      toast.success('Copied to clipboard')
     } catch {
       toast.error('Failed to copy file path')
     }

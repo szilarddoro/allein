@@ -92,6 +92,7 @@ export interface AIAssistantConfigPanelProps {
     srLabel?: ReactNode
   }
   footerClassName?: string
+  placement?: 'onboarding' | 'settings'
 }
 
 export function AIAssistantConfigPanel({
@@ -108,6 +109,7 @@ export function AIAssistantConfigPanel({
     srLabel: 'Skip onboarding',
   },
   footerClassName,
+  placement = 'onboarding',
 }: AIAssistantConfigPanelProps) {
   const { ollamaUrl, ollamaModel, configLoading } = useOllamaConfig()
   const { aiAssistanceEnabled } = useAIConfig()
@@ -384,7 +386,10 @@ export function AIAssistantConfigPanel({
         <Button
           size="sm"
           type="submit"
-          disabled={form.formState.isSubmitting}
+          disabled={
+            form.formState.isSubmitting ||
+            (placement === 'settings' && !form.formState.isDirty)
+          }
           className={cn(
             !disableAnimations && 'motion-safe:animate-fade-in delay-[600ms]',
           )}

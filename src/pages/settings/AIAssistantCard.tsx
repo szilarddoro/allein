@@ -42,6 +42,7 @@ export function AIAssistantCard() {
           footerClassName="w-full justify-end"
           disableAnimations
           disableSkip
+          placement="settings"
         />
       </CardContent>
     </Card>

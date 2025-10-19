@@ -25,3 +25,4 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+coverage/

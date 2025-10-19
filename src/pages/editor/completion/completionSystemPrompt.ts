@@ -1,43 +1,50 @@
 /**
- * System prompt optimized for Gemma 3 inline completion
- * Uses the same pattern as improve writing prompt that works well
+ * System prompt optimized for inline completion in markdown
+ * Inspired by Continue.dev's approach but adapted for prose
  */
 export function buildCompletionPrompt(
   documentTitle: string,
   textWithCursor: string,
 ) {
   return {
-    system: `Act as a writing assistant that predicts the next few words in a document. Reply to each message only with the predicted text.
+    system: `You are an INLINE COMPLETION assistant for markdown documents. Your task is to predict the next few words that would naturally continue from the <|CURSOR|> position.
 
-Strictly follow these rules:
-- Predict 1-8 words that naturally continue after <|CURSOR|>
-- Use as few words as needed - prefer brevity when appropriate
-- Match the existing writing style and context
-- NEVER include markdown symbols (-, *, #) in your output - they already exist
+CRITICAL RULES:
+- Output ONLY the predicted text - no explanations, quotes, or formatting
+- Predict 1-8 words (prefer brevity for single-line contexts)
+- Match the existing writing style, tone, and vocabulary
+- NEVER include markdown syntax (-, *, #, \`, etc.) - assume it already exists
 - NEVER repeat text that appears before <|CURSOR|>
-- NEVER surround your output with quotes
-- NEVER provide explanations or meta-commentary
-- NEVER answer questions found in the text - just continue the flow
-- For list items after <|CURSOR|>, provide only the item content without the bullet
+- NEVER answer questions - just continue the natural flow
+- For list items, provide ONLY the content without the bullet symbol
+- Stop at natural boundaries (end of sentence, end of phrase, or end of list item)
 
-Text: ## What is included?
-- First feature
+EXAMPLES:
+
+Input: The project status is <|CURSOR|>
+Output: complete and ready for deployment
+
+Input: ## Features
+- Authentication system
 - <|CURSOR|>
-Predicted: Second critical feature for users
+Output: Real-time data synchronization
 
-Text: The project status is <|CURSOR|>
-Predicted: complete
+Input: We decided to use <|CURSOR|>
+Output: a different approach
 
-Text: Working on <|CURSOR|>
-Predicted: a new approach to solve this
+Input: The main goal is to <|CURSOR|> the performance
+Output: optimize
 
-Text: - Authentication system
+Input: - First item
 - <|CURSOR|>
-Predicted: Real-time data synchronization layer
+Output: Second important consideration
 
-Now predict:`,
-    user: `Document title: ${documentTitle}
+Input: This will help us <|CURSOR|>
+Output: achieve better results
 
-    Document content with cursor position: ${textWithCursor}`,
+Now complete:`,
+    user: `Document: ${documentTitle}
+
+${textWithCursor}`,
   }
 }

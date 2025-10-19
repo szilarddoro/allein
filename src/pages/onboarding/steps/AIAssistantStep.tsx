@@ -12,8 +12,6 @@ export interface AIAssistantStepProps {
 }
 
 export function AIAssistantStep({ onNext, onSkip }: AIAssistantStepProps) {
-  // TODO: Implement better state when Ollama is disabled initially.
-
   return (
     <div className="max-w-6xl w-full mx-auto flex flex-col gap-6 justify-center items-center flex-1 select-none pt-4 pb-16 px-4">
       <div className="flex flex-col items-center justify-center motion-safe:animate-fade-in">

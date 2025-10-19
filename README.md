@@ -1,87 +1,94 @@
 # Allein
 
-A modern, cross-platform markdown editor built with Tauri, React, and TypeScript. Features live preview, AI assistance via Ollama, and a clean, distraction-free writing experience.
+<div align="center">
+  <img src="src/assets/allein-logo.png" alt="Allein logo" width="80" />
+  <h2>A lightweight, AI-powered markdown editor</h2>
+  <p>Designed to help your ideas flow. Local-first, no account needed.</p>
+</div>
 
-## Features
+---
 
-- **Live Markdown Editing** - Real-time preview with Monaco Editor
-- **AI Integration** - Connect to local Ollama server for AI assistance
-- **Cross-Platform** - Runs on Windows, macOS, and Linux
-- **Modern UI** - Built with Tailwind CSS and Shadcn UI components
-- **Keyboard Shortcuts** - Efficient writing with customizable hotkeys
-- **Settings Management** - Persistent configuration with SQLite
+## What Makes Allein Special
 
-## Prerequisites
+- **Smart inline suggestions** - AI-powered writing assistance directly in your editor
+- **One-click text improvements** - Polish your writing with a single action
+- **Local-first** - Works offline, all your files stay on your computer
+- **No account needed** - Start writing immediately, no setup or tracking
 
-- **Node.js** (v18 or later)
-- **pnpm** (recommended package manager)
-- **Rust** (latest stable version)
-- **Ollama** (optional, for AI features)
+## Getting Started
 
-## Installation
+### Setup
 
-1. **Clone the repository**
+This project uses [mise](https://mise.jn.sh) to manage required tools (Node.js, pnpm, Rust). If you haven't installed mise yet:
 
-   ```bash
-   git clone https://github.com/szilarddoro/allein.git
-   cd allein
-   ```
+```bash
+# Install mise (macOS/Linux)
+curl https://mise.jn.sh | sh
+```
 
-2. **Install dependencies**
+Then clone and get developing:
 
-   ```bash
-   pnpm install
-   ```
+```bash
+# Clone the repo
+git clone https://github.com/szilarddoro/allein.git
+cd allein
 
-3. **Install Rust dependencies**
+# Install tools (versions from mise.toml)
+mise install
 
-   ```bash
-   # Install Rust (if not already installed)
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# Install project dependencies
+pnpm install
+```
 
-   # Install Tauri CLI
-   cargo install tauri-cli
-   ```
+### Development
 
-## Development
+```bash
+# Start dev server with hot reload
+pnpm tauri dev
+```
 
-1. **Start the development server**
+### Building
 
-   ```bash
-   pnpm tauri dev
-   ```
+```bash
+# Build native executable for your platform
+pnpm tauri build
+```
 
-2. **Build for production**
-   ```bash
-   pnpm tauri build
-   ```
+## AI-Powered Writing Suggestions
 
-## AI Features (Optional)
+Allein integrates with [Ollama](https://ollama.ai) to bring AI writing assistance directly into your editor. Everything runs locally—your writing never leaves your machine.
 
-To enable AI features, install and run Ollama:
+### Enable AI Features
 
 1. **Install Ollama**
-   - Visit [ollama.ai](https://ollama.ai) and download for your platform
-   - Or use package managers: `brew install ollama` (macOS), `winget install Ollama.Ollama` (Windows)
+   ```bash
+   # macOS
+   brew install ollama
+
+   # or download from ollama.ai for Windows/Linux
+   ```
 
 2. **Start Ollama server**
-
    ```bash
    ollama serve
    ```
 
-3. **Pull a model** (recommended: `gemma2:2b`)
-
+3. **Download a model** (we recommend `gemma3:12b` for best results)
    ```bash
-   ollama pull gemma2:2b
+   ollama pull gemma3:12b
    ```
 
-4. **Configure in app**
-   - Open Settings (gear icon)
-   - Set Ollama server URL (default: `http://localhost:11434`)
-   - Select your preferred model
+4. **Configure Allein**
+   - Open the app
+   - Go to Settings
+   - Allein will auto-detect your Ollama server (usually `http://localhost:11434`)
+   - Select your model and you're done
+
+That's it. You now have AI-powered writing suggestions running entirely on your computer.
 
 ## Contributing
+
+We'd love your help making Allein better! Whether it's bug fixes, features, or documentation, every contribution matters.
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -91,4 +98,8 @@ To enable AI features, install and run Ollama:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+Made with focus. Built for writers.

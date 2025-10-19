@@ -2,6 +2,7 @@ import { H1 } from '@/components/ui/typography'
 import { AIAssistantCard } from './AIAssistantCard'
 import { AppearanceCard } from './AppearanceCard'
 import { AboutCard } from './AboutCard'
+import { DebugCard } from '@/pages/settings/DebugCard'
 
 export function SettingsPage() {
   return (
@@ -16,6 +17,12 @@ export function SettingsPage() {
         <section>
           <AppearanceCard />
         </section>
+
+        {import.meta.env.DEV && (
+          <section>
+            <DebugCard />
+          </section>
+        )}
 
         <section>
           <AboutCard />

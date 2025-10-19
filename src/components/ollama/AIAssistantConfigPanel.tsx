@@ -383,37 +383,39 @@ export function AIAssistantConfigPanel({
       </FieldSet>
 
       <div className={cn('flex flex-row gap-2', footerClassName)}>
-        <Button
-          size="sm"
-          type="submit"
-          disabled={
-            form.formState.isSubmitting ||
-            (placement === 'settings' && !form.formState.isDirty)
-          }
+        <div
           className={cn(
             !disableAnimations && 'motion-safe:animate-fade-in delay-[600ms]',
           )}
         >
-          <span aria-hidden="true">{submitLabel.label}</span>
-          <span className="sr-only">
-            {submitLabel.srLabel || submitLabel.label}
-          </span>
-        </Button>
+          <Button
+            size="sm"
+            type="submit"
+            disabled={
+              form.formState.isSubmitting ||
+              (placement === 'settings' && !form.formState.isDirty)
+            }
+          >
+            <span aria-hidden="true">{submitLabel.label}</span>
+            <span className="sr-only">
+              {submitLabel.srLabel || submitLabel.label}
+            </span>
+          </Button>
+        </div>
 
         {!disableSkip && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSkip}
+          <div
             className={cn(
               !disableAnimations && 'motion-safe:animate-fade-in delay-[750ms]',
             )}
           >
-            <span aria-hidden="true">{skipLabel.label}</span>
-            <span className="sr-only">
-              {skipLabel.srLabel || skipLabel.label}
-            </span>
-          </Button>
+            <Button variant="ghost" size="sm" onClick={onSkip}>
+              <span aria-hidden="true">{skipLabel.label}</span>
+              <span className="sr-only">
+                {skipLabel.srLabel || skipLabel.label}
+              </span>
+            </Button>
+          </div>
         )}
       </div>
     </form>

@@ -6,7 +6,7 @@ export interface UpdateConfigOptions {
   onSuccess?: () => void
 }
 
-export function useUpdateConfig({ onSuccess }: UpdateConfigOptions) {
+export function useUpdateConfig({ onSuccess }: UpdateConfigOptions = {}) {
   const { toast } = useToast()
 
   return useMutation({

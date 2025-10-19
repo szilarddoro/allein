@@ -13,13 +13,13 @@ export function AboutCard() {
 
       <CardContent>
         <ul className="flex flex-col divide-y">
-          <li className="flex justify-between items-center gap-2 py-2">
+          <li className="flex justify-between items-center gap-2 py-2 min-h-[49px]">
             <span className="font-medium text-sm">Name</span>
             <span className="text-muted-foreground text-sm">
               {getAppName()}
             </span>
           </li>
-          <li className="flex justify-between items-center gap-4 py-2">
+          <li className="flex justify-between items-center gap-4 py-2 min-h-[49px]">
             <span className="font-medium text-sm">Version</span>
             <span className="text-muted-foreground text-sm">
               {getAppVersion()}

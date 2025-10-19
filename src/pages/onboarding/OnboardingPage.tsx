@@ -65,8 +65,6 @@ export function OnboardingPage() {
           currentStep: 0,
         }),
       ])
-
-      toast.info('Welcome to Allein!')
     } catch {
       toast.error('Failed to update settings.')
     }

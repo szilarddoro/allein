@@ -48,7 +48,7 @@ export function OnboardingLayout() {
     setCurrentStep((step) => step - 1)
   }
 
-  if (progressStatus === 'pending') {
+  if (progressStatus === 'pending' || progress?.status === 'completed') {
     return null
   }
 

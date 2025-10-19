@@ -51,7 +51,7 @@ export const EditorHeader = forwardRef<HTMLButtonElement, EditorHeaderProps>(
           <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={onFormatDocument}>
-                <WandSparkles className="w-4 h-4" />
+                <WandSparkles className="size-4" />
               </Button>
             </TooltipTrigger>
 
@@ -69,9 +69,9 @@ export const EditorHeader = forwardRef<HTMLButtonElement, EditorHeaderProps>(
                 ref={ref}
               >
                 {showPreview ? (
-                  <EyeOff className="w-4 h-4" />
+                  <EyeOff className="size-4" />
                 ) : (
-                  <Eye className="w-4 h-4" />
+                  <Eye className="size-4" />
                 )}
               </Button>
             </TooltipTrigger>

@@ -10,20 +10,17 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as 'light' | 'dark' | 'system'}
       duration={3000}
       icons={{
-        info: <Info aria-hidden="true" className="w-4 h-4 text-blue-600" />,
+        info: <Info aria-hidden="true" className="size-4 text-blue-600" />,
         success: (
-          <CheckCircle aria-hidden="true" className="w-4 h-4 text-success" />
+          <CheckCircle aria-hidden="true" className="size-4 text-success" />
         ),
         error: (
-          <CircleAlert
-            aria-hidden="true"
-            className="w-4 h-4 text-destructive"
-          />
+          <CircleAlert aria-hidden="true" className="size-4 text-destructive" />
         ),
         warning: (
           <AlertTriangle
             aria-hidden="true"
-            className="w-4 h-4 text-yellow-600"
+            className="size-4 text-yellow-600"
           />
         ),
       }}

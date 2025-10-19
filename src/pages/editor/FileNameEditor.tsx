@@ -205,11 +205,11 @@ export function FileNameEditor({
 
             <ContextMenuContent className="w-48" loop>
               <ContextMenuItem onClick={handleCopyFilePath}>
-                <Copy className="w-4 h-4 mr-2 text-current" />
+                <Copy className="size-4 mr-2 text-current" />
                 Copy path
               </ContextMenuItem>
               <ContextMenuItem onClick={handleOpenInFolder}>
-                <FolderOpen className="w-4 h-4 mr-2 text-current" />
+                <FolderOpen className="size-4 mr-2 text-current" />
                 Open in folder
               </ContextMenuItem>
             </ContextMenuContent>

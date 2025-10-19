@@ -308,13 +308,13 @@ export function AIAssistantConfigPanel({
 
                       {!connectionLoading && isConnected && (
                         <>
-                          <CheckCircle2 className="w-4 h-4" /> Connected
+                          <CheckCircle2 className="size-4" /> Connected
                         </>
                       )}
 
                       {!connectionLoading && !isConnected && (
                         <>
-                          <XCircle className="w-4 h-4" /> Can&apos;t connect to{' '}
+                          <XCircle className="size-4" /> Can&apos;t connect to{' '}
                           {debouncedOllamaUrl}.
                         </>
                       )}

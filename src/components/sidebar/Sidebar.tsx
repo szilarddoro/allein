@@ -39,7 +39,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
             className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40"
             aria-current={pathname === '/'}
           >
-            <Home className="w-4 h-4" />
+            <Home className="size-4" />
             <span aria-hidden="true">Home</span>
             <span className="sr-only">Go to home</span>
           </Link>
@@ -51,7 +51,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
           variant="ghost"
           size="sm"
         >
-          <NotebookPen className="w-4 h-4" />
+          <NotebookPen className="size-4" />
           <span aria-hidden="true">New file</span>
           <span className="sr-only">Create a new file</span>
         </Button>

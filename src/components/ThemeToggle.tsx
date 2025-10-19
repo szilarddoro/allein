@@ -29,11 +29,11 @@ export function ThemeToggle() {
   const getIcon = () => {
     switch (theme) {
       case 'light':
-        return <Sun className="w-4 h-4" />
+        return <Sun className="size-4" />
       case 'dark':
-        return <Moon className="w-4 h-4" />
+        return <Moon className="size-4" />
       default:
-        return <Monitor className="w-4 h-4" />
+        return <Monitor className="size-4" />
     }
   }
 

@@ -147,7 +147,7 @@ export function ImprovementDialog({
                     onClick={handleTryAgain}
                     className="absolute top-2 right-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
                   >
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="size-4" />
                     <span className="sr-only">Generate new improved text</span>
                   </Button>
 
@@ -173,7 +173,7 @@ export function ImprovementDialog({
 
           {showLongTextInfo && isAiAssistanceAvailable && (
             <Alert variant="info">
-              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <Info className="size-4 text-blue-600 dark:text-blue-400" />
               <AlertDescription>
                 Text improvements work best with short texts (under{' '}
                 {IDEAL_TEXT_LENGTH} characters). Your selection exceeds this

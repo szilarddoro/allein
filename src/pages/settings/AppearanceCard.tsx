@@ -48,7 +48,7 @@ export function AppearanceCard() {
                 aria-label="Light theme"
                 className="gap-2"
               >
-                <Sun className="w-4 h-4" />
+                <Sun className="size-4" />
                 Light
               </ToggleGroupItem>
               <ToggleGroupItem
@@ -56,7 +56,7 @@ export function AppearanceCard() {
                 aria-label="Dark theme"
                 className="gap-2"
               >
-                <Moon className="w-4 h-4" />
+                <Moon className="size-4" />
                 Dark
               </ToggleGroupItem>
               <ToggleGroupItem
@@ -64,7 +64,7 @@ export function AppearanceCard() {
                 aria-label="System theme"
                 className="gap-2"
               >
-                <Monitor className="w-4 h-4" />
+                <Monitor className="size-4" />
                 System
               </ToggleGroupItem>
             </ToggleGroup>

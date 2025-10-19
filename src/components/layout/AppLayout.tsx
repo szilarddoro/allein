@@ -115,7 +115,7 @@ export function AppLayout() {
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" asChild>
                 <Link to="/settings" className="cursor-default">
-                  <Cog className="w-4 h-4" />
+                  <Cog className="size-4" />
                 </Link>
               </Button>
             </TooltipTrigger>

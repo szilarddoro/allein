@@ -118,7 +118,7 @@ export function BrowserPage() {
     return (
       <div className="flex-1 overflow-hidden flex flex-col justify-center items-center select-none">
         <P className="text-destructive flex flex-row gap-1 items-center text-sm">
-          <CircleAlert className="w-4 h-4" />
+          <CircleAlert className="size-4" />
           An error occurred while loading files.
         </P>
 
@@ -135,7 +135,7 @@ export function BrowserPage() {
         </P>
 
         <Button size="sm" onClick={handleCreateFile}>
-          <NotebookPen className="w-4 h-4" /> New file
+          <NotebookPen className="size-4" /> New file
         </Button>
       </div>
     )
@@ -236,15 +236,15 @@ export function BrowserPage() {
                     })
                   }
                 >
-                  <Edit3 className="w-4 h-4 mr-2 text-current" />
+                  <Edit3 className="size-4 mr-2 text-current" />
                   Open
                 </ContextMenuItem>
                 <ContextMenuItem onClick={() => handleCopyFilePath(file.path)}>
-                  <Copy className="w-4 h-4 mr-2 text-current" />
+                  <Copy className="size-4 mr-2 text-current" />
                   Copy path
                 </ContextMenuItem>
                 <ContextMenuItem onClick={() => handleOpenInFolder(file.path)}>
-                  <FolderOpen className="w-4 h-4 mr-2 text-current" />
+                  <FolderOpen className="size-4 mr-2 text-current" />
                   Open in folder
                 </ContextMenuItem>
                 <ContextMenuSeparator />
@@ -253,7 +253,7 @@ export function BrowserPage() {
                   disabled={isDeletingFile}
                   className="text-destructive focus:text-destructive"
                 >
-                  <Trash2 className="w-4 h-4 mr-2 text-current" />
+                  <Trash2 className="size-4 mr-2 text-current" />
                   Delete
                 </ContextMenuItem>
               </ContextMenuContent>

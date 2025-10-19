@@ -2,8 +2,8 @@
 
 <div align="center">
   <img src="src/assets/allein-logo.png" alt="Allein logo" width="80" />
-  <h2>A lightweight, AI-powered markdown editor</h2>
-  <p>Designed to help your ideas flow. Local-first, no account needed.</p>
+  <h2 style="border-bottom:none;margin-bottom: 0;">Markdown editor with built-in Ollama support</h2>
+  <p>Intelligent auto-completion while working locally.</p>
 </div>
 
 ---
@@ -19,11 +19,11 @@
 
 ### Setup
 
-This project uses [mise](https://mise.jn.sh) to manage required tools (Node.js, pnpm, Rust). If you haven't installed mise yet:
+This project uses [mise](https://mise.jdx.dev/) to manage required tools (Node.js, pnpm, Rust). If you haven't installed mise yet:
 
 ```bash
 # Install mise (macOS/Linux)
-curl https://mise.jn.sh | sh
+curl https://mise.run | sh
 ```
 
 Then clone and get developing:
@@ -61,6 +61,7 @@ Allein integrates with [Ollama](https://ollama.ai) to bring AI writing assistanc
 ### Enable AI Features
 
 1. **Install Ollama**
+
    ```bash
    # macOS
    brew install ollama
@@ -69,11 +70,13 @@ Allein integrates with [Ollama](https://ollama.ai) to bring AI writing assistanc
    ```
 
 2. **Start Ollama server**
+
    ```bash
    ollama serve
    ```
 
 3. **Download a model** (we recommend `gemma3:12b` for best results)
+
    ```bash
    ollama pull gemma3:12b
    ```
@@ -99,7 +102,3 @@ We'd love your help making Allein better! Whether it's bug fixes, features, or d
 ## License
 
 MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-Made with focus. Built for writers.

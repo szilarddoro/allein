@@ -29,7 +29,7 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { CheckCircle2, Info, RefreshCcw, XCircle } from 'lucide-react'
+import { CheckCircle2, CircleAlert, Info, RefreshCcw } from 'lucide-react'
 import { ReactNode, useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDebounceValue } from 'usehooks-ts'
@@ -314,8 +314,8 @@ export function AIAssistantConfigPanel({
 
                       {!connectionLoading && !isConnected && (
                         <>
-                          <XCircle className="size-4" /> Can&apos;t connect to{' '}
-                          {debouncedOllamaUrl}.
+                          <CircleAlert className="size-4" /> Can&apos;t connect
+                          to {debouncedOllamaUrl}.
                         </>
                       )}
                     </FieldDescription>
@@ -412,7 +412,7 @@ export function AIAssistantConfigPanel({
 
                   {(modelsError || fieldState.invalid) && (
                     <FieldError className="flex flex-row gap-1 items-center">
-                      <XCircle className="size-4" />
+                      <CircleAlert className="size-4" />
                       {fieldState.error?.message || 'Failed to load models.'}
                     </FieldError>
                   )}

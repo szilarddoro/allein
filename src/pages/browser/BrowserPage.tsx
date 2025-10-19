@@ -189,8 +189,8 @@ export function BrowserPage() {
                   <Card
                     className={cn(
                       'aspect-[3/4] px-3 py-2 pb-0 select-none overflow-hidden gap-0 relative',
-                      'before:absolute before:top-0 before:left-0 before:size-full before:z-10 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
-                      'after:absolute after:bottom-0 after:left-0 after:w-full after:h-22 after:z-20 after:bg-gradient-to-t after:from-card after:to-transparent',
+                      'before:absolute before:top-0 before:left-0 before:size-full before:z-20 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
+                      'after:absolute after:bottom-0 after:left-0 after:w-full after:h-22 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent',
                     )}
                   >
                     <CardHeader className="px-0">

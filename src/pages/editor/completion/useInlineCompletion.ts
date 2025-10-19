@@ -3,8 +3,13 @@ import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { useMonaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useMemo } from 'react'
 import { buildCompletionPrompt } from './completionSystemPrompt'
+import { AutocompleteDebouncer } from './AutocompleteDebouncer'
+import { shouldPrefilter } from './prefiltering'
+import { processSingleLineCompletion } from './processSingleLineCompletion'
+import { getCompletionCache } from './CompletionCache'
+import { shouldCompleteMultiline } from './multilineClassification'
 
 export interface UseInlineCompletionOptions {
   debounceDelay?: number
@@ -21,7 +26,7 @@ interface CachedSuggestion {
 }
 
 export function useInlineCompletion({
-  debounceDelay = 500,
+  debounceDelay = 350,
   disabled = false,
   editorRef,
   onLoadingChange,
@@ -29,7 +34,7 @@ export function useInlineCompletion({
 }: UseInlineCompletionOptions = {}) {
   const monacoInstance = useMonaco()
   const currentRequest = useRef<AbortController | null>(null)
-  const debounceTimeout = useRef<number | null>(null)
+  const debouncer = useMemo(() => new AutocompleteDebouncer(), [])
   const activeSuggestion = useRef<CachedSuggestion | null>(null)
   const lastDocumentLength = useRef<number>(0)
   const { ollamaProvider, ollamaModel, ollamaUrl } = useOllamaConfig()
@@ -75,11 +80,9 @@ export function useInlineCompletion({
       if (currentRequest.current) {
         currentRequest.current.abort()
       }
-      if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current)
-      }
+      debouncer.cancel()
     }
-  }, [])
+  }, [debouncer])
 
   useEffect(() => {
     if (!monacoInstance || disabled) {
@@ -198,158 +201,77 @@ export function useInlineCompletion({
             (hasTypedMultipleWords && lastChar === ' ')
 
           if (!shouldTrigger) {
-            // Clear any pending timeout when user continues typing
-            if (debounceTimeout.current) {
-              clearTimeout(debounceTimeout.current)
-              debounceTimeout.current = null
-            }
             return { items: [] }
           }
 
-          // Clear any existing timeout
-          if (debounceTimeout.current) {
-            clearTimeout(debounceTimeout.current)
+          // Apply prefiltering to skip unnecessary requests
+          const shouldSkip = shouldPrefilter({
+            filepath: model.uri.path,
+            fileContents: model.getValue(),
+            currentLine,
+            cursorPosition: {
+              lineNumber: position.lineNumber,
+              column: position.column,
+            },
+          })
+
+          if (shouldSkip) {
+            return { items: [] }
           }
 
           // Cancel any pending request
           if (currentRequest.current) {
             currentRequest.current.abort()
+            currentRequest.current = null
           }
 
-          // Return a promise that resolves after debounce delay
-          return new Promise((resolve) => {
-            debounceTimeout.current = window.setTimeout(async () => {
-              try {
-                // Check if AI assistance is available
-                if (
-                  !isAiAssistanceAvailable ||
-                  !ollamaProvider ||
-                  !ollamaModel
-                ) {
-                  resolve({ items: [] })
-                  return
-                }
+          // Use Continue-style debouncing
+          return (async () => {
+            // Wait for debounce delay and check if we should proceed
+            const shouldDebounce =
+              await debouncer.delayAndShouldDebounce(debounceDelay)
 
-                // Require document context, but allow empty current line (for new lines)
-                if (!textBeforeCursor.trim()) {
-                  resolve({ items: [] })
-                  return
-                }
+            if (shouldDebounce) {
+              // A newer request has superseded this one
+              return { items: [] }
+            }
 
-                // Create new abort controller for this request
-                currentRequest.current = new AbortController()
+            try {
+              // Check if AI assistance is available
+              if (!isAiAssistanceAvailable || !ollamaProvider || !ollamaModel) {
+                return { items: [] }
+              }
 
-                // Build context: send entire document with cursor marker
-                const fullDocument = model.getValue()
-                const cursorOffset = model.getOffsetAt(position)
-                const textAfterCursor = fullDocument.substring(cursorOffset)
+              // Check cache first
+              const cache = getCompletionCache()
+              const cachedCompletion = cache.get(textBeforeCursor)
 
-                const textWithCursor =
-                  textBeforeCursor + '<|CURSOR|>' + textAfterCursor
-
-                // Build the complete prompt with instructions
-                const { system: systemPrompt, user: userPrompt } =
-                  buildCompletionPrompt(documentTitle, textWithCursor)
-
-                // Notify loading started
-                onLoadingChange?.(true)
-
-                const generateResponse = await fetch(
-                  `${ollamaUrl}/api/generate`,
-                  {
-                    method: 'POST',
-                    body: JSON.stringify({
-                      model: ollamaModel,
-                      system: systemPrompt,
-                      prompt: userPrompt,
-                      stream: false,
-                      keep_alive: -1,
-                      temperature: 0.3,
-                      num_predict: 20, // Allow up to ~20 tokens (reasonable upper bound)
-                    }),
-                    signal: currentRequest.current.signal,
-                  },
-                )
-
-                if (!generateResponse.ok) {
-                  return
-                }
-
-                const { response } = await generateResponse.json()
-
-                // Notify loading finished
-                onLoadingChange?.(false)
-
-                if (!response.trim()) {
-                  resolve({ items: [] })
-                  return
-                }
-
-                // Parse the completion
-                let completion = response.trim()
-
-                // Remove "Output:" prefix if model includes it
-                if (completion.toLowerCase().startsWith('output:')) {
-                  completion = completion.substring(7).trim()
-                }
-
-                // Remove "->" prefix if model includes it
-                if (completion.startsWith('->')) {
-                  completion = completion.substring(2).trim()
-                }
-
-                // Take only first line (in case model returns multiple lines)
-                completion = completion.split('\n')[0].trim()
-
-                // Remove markdown formatting
-                completion = completion
-                  .replace(/\*\*/g, '') // Remove bold
-                  .replace(/\*/g, '') // Remove italic
-                  .replace(/`/g, '') // Remove code
-                  .replace(/~/g, '') // Remove strikethrough
-                  .trim()
-
-                // Remove surrounding quotes if present
-                if (
-                  (completion.startsWith('"') && completion.endsWith('"')) ||
-                  (completion.startsWith("'") && completion.endsWith("'"))
-                ) {
-                  completion = completion.slice(1, -1).trim()
-                }
-
-                if (!completion || completion.length === 0) {
-                  resolve({ items: [] })
-                  return
-                }
-
-                // Always insert at cursor position (no line replacement logic)
-                const currentLine = model.getLineContent(position.lineNumber)
-                const textBeforeCursorOnLine = currentLine.substring(
+              if (cachedCompletion) {
+                // Cache hit! Return cached completion immediately
+                const currentLineObj = model.getLineContent(position.lineNumber)
+                const textBeforeCursorOnLine = currentLineObj.substring(
                   0,
                   position.column - 1,
                 )
 
-                // Just append to cursor position
-                const range = {
-                  startLineNumber: position.lineNumber,
-                  startColumn: position.column,
-                  endLineNumber: position.lineNumber,
-                  endColumn: position.column,
-                }
-
-                // If cursor is after a space, don't add another space
-                // Otherwise, ensure completion starts with a space
+                // Add leading space if needed
                 const needsLeadingSpace =
                   textBeforeCursorOnLine.slice(-1) !== ' ' &&
-                  textBeforeCursorOnLine.length > 0
-                const insertText = needsLeadingSpace
-                  ? ' ' + completion
-                  : completion
+                  textBeforeCursorOnLine.length > 0 &&
+                  !cachedCompletion.startsWith(' ')
 
-                // Create a single completion item
+                const insertText = needsLeadingSpace
+                  ? ' ' + cachedCompletion
+                  : cachedCompletion
+
                 const item = {
                   insertText,
-                  range,
+                  range: {
+                    startLineNumber: position.lineNumber,
+                    startColumn: position.column,
+                    endLineNumber: position.lineNumber,
+                    endColumn: position.column,
+                  },
                 }
 
                 // Cache the suggestion for persistence
@@ -362,21 +284,201 @@ export function useInlineCompletion({
                   contextBefore: textBeforeCursor,
                 }
 
-                const result = { items: [item] }
+                return { items: [item] }
+              }
 
-                resolve(result)
-              } catch (error) {
-                // Notify loading finished on error
+              // Cache miss - proceed with API call
+              // Create new abort controller for this request
+              currentRequest.current = new AbortController()
+
+              // Build context: send entire document with cursor marker
+              const fullDocument = model.getValue()
+              const cursorOffset = model.getOffsetAt(position)
+              const textAfterCursor = fullDocument.substring(cursorOffset)
+
+              const textWithCursor =
+                textBeforeCursor + '<|CURSOR|>' + textAfterCursor
+
+              // Build the complete prompt with instructions
+              const { system: systemPrompt, user: userPrompt } =
+                buildCompletionPrompt(documentTitle, textWithCursor)
+
+              // Notify loading started
+              onLoadingChange?.(true)
+
+              const generateResponse = await fetch(
+                `${ollamaUrl}/api/generate`,
+                {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    model: ollamaModel,
+                    system: systemPrompt,
+                    prompt: userPrompt,
+                    stream: false,
+                    keep_alive: -1,
+                    temperature: 0.3,
+                    num_predict: 20, // Allow up to ~20 tokens (reasonable upper bound)
+                  }),
+                  signal: currentRequest.current.signal,
+                },
+              )
+
+              if (!generateResponse.ok) {
                 onLoadingChange?.(false)
+                return { items: [] }
+              }
 
-                if (error instanceof Error && error.name === 'AbortError') {
-                  resolve({ items: [] })
-                } else {
-                  resolve({ items: [] })
+              const { response } = await generateResponse.json()
+
+              // Notify loading finished
+              onLoadingChange?.(false)
+
+              if (!response.trim()) {
+                return { items: [] }
+              }
+
+              // Parse the completion
+              let completion = response.trim()
+
+              // Remove "Output:" prefix if model includes it
+              if (completion.toLowerCase().startsWith('output:')) {
+                completion = completion.substring(7).trim()
+              }
+
+              // Remove "->" prefix if model includes it
+              if (completion.startsWith('->')) {
+                completion = completion.substring(2).trim()
+              }
+
+              // Take only first line (in case model returns multiple lines)
+              completion = completion.split('\n')[0].trim()
+
+              // Remove markdown formatting
+              completion = completion
+                .replace(/\*\*/g, '') // Remove bold
+                .replace(/\*/g, '') // Remove italic
+                .replace(/`/g, '') // Remove code
+                .replace(/~/g, '') // Remove strikethrough
+                .trim()
+
+              // Remove surrounding quotes if present
+              if (
+                (completion.startsWith('"') && completion.endsWith('"')) ||
+                (completion.startsWith("'") && completion.endsWith("'"))
+              ) {
+                completion = completion.slice(1, -1).trim()
+              }
+
+              if (!completion || completion.length === 0) {
+                return { items: [] }
+              }
+
+              // Get text after cursor for word-level diffing
+              const currentLineObj = model.getLineContent(position.lineNumber)
+              const textBeforeCursorOnLine = currentLineObj.substring(
+                0,
+                position.column - 1,
+              )
+              const textAfterCursorOnLine = currentLineObj.substring(
+                position.column - 1,
+              )
+
+              // Check if multiline completions should be allowed
+              const allowMultiline = shouldCompleteMultiline({
+                currentLine: currentLineObj,
+                fullPrefix: textBeforeCursor,
+                fullSuffix: textAfterCursor,
+                cursorPosition: {
+                  lineNumber: position.lineNumber,
+                  column: position.column,
+                },
+              })
+
+              // Check if this is a single-line completion
+              const isSingleLine = !completion.includes('\n')
+
+              // If completion is multiline but we shouldn't allow it, take only first line
+              if (!isSingleLine && !allowMultiline) {
+                completion = completion.split('\n')[0].trim()
+              }
+
+              let insertText = completion
+              let range = {
+                startLineNumber: position.lineNumber,
+                startColumn: position.column,
+                endLineNumber: position.lineNumber,
+                endColumn: position.column,
+              }
+
+              if (isSingleLine) {
+                // Use word-level diffing for single-line completions
+                const result = processSingleLineCompletion(
+                  completion,
+                  textAfterCursorOnLine,
+                  position.column,
+                )
+
+                if (!result) {
+                  return { items: [] }
+                }
+
+                insertText = result.completionText
+
+                // If diffing detected that model repeated text, update range
+                if (result.range) {
+                  range = {
+                    startLineNumber: position.lineNumber,
+                    startColumn: result.range.start,
+                    endLineNumber: position.lineNumber,
+                    endColumn: result.range.end,
+                  }
                 }
               }
-            }, debounceDelay)
-          })
+
+              // Add leading space if needed
+              const needsLeadingSpace =
+                textBeforeCursorOnLine.slice(-1) !== ' ' &&
+                textBeforeCursorOnLine.length > 0 &&
+                !insertText.startsWith(' ')
+
+              if (needsLeadingSpace) {
+                insertText = ' ' + insertText
+              }
+
+              // Create completion item
+              const item = {
+                insertText,
+                range,
+              }
+
+              // Store in cache for future use (without leading space)
+              const completionToCache = needsLeadingSpace
+                ? insertText.slice(1)
+                : insertText
+              cache.put(textBeforeCursor, completionToCache)
+
+              // Cache the suggestion for persistence
+              activeSuggestion.current = {
+                text: item.insertText,
+                position: {
+                  lineNumber: position.lineNumber,
+                  column: position.column,
+                },
+                contextBefore: textBeforeCursor,
+              }
+
+              return { items: [item] }
+            } catch (error) {
+              // Notify loading finished on error
+              onLoadingChange?.(false)
+
+              if (error instanceof Error && error.name === 'AbortError') {
+                return { items: [] }
+              } else {
+                return { items: [] }
+              }
+            }
+          })()
         },
         // @ts-expect-error Monaco expects this method at runtime but it's not in the TypeScript definitions
         freeInlineCompletions: () => {},
@@ -395,5 +497,6 @@ export function useInlineCompletion({
     isAiAssistanceAvailable,
     ollamaUrl,
     documentTitle,
+    debouncer,
   ])
 }

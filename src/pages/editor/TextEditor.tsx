@@ -184,24 +184,28 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       onEditorReady?.(editor)
     }
 
+    const isDev = import.meta.env.DEV
+
     return (
       <div className="relative flex flex-col flex-1 min-h-0" ref={ref}>
-        <div
-          role="status"
-          aria-label="Loading inline completion"
-          className={cn(
-            'absolute inset-0 rounded-lg overflow-hidden transition-opacity duration-300 opacity-0',
-            isInlineCompletionLoading && 'opacity-100',
-          )}
-        >
+        {isDev && (
           <div
+            role="status"
+            aria-label="Loading inline completion"
             className={cn(
-              'absolute inset-0 bg-gradient-to-r animate-[spin_5s_linear_infinite] scale-200',
-              'from-rose-500/50 via-sky-500/50 to-emerald-500/50',
-              'dark:from-rose-500/40 dark:via-sky-500/40 dark:to-emerald-500/40',
+              'absolute inset-0 rounded-lg overflow-hidden transition-opacity duration-300 opacity-0',
+              isInlineCompletionLoading && 'opacity-100',
             )}
-          />
-        </div>
+          >
+            <div
+              className={cn(
+                'absolute inset-0 bg-gradient-to-r animate-[spin_5s_linear_infinite] scale-200',
+                'from-rose-500/50 via-sky-500/50 to-emerald-500/50',
+                'dark:from-rose-500/40 dark:via-sky-500/40 dark:to-emerald-500/40',
+              )}
+            />
+          </div>
+        )}
 
         <Card
           className={cn(

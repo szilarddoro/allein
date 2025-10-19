@@ -32,6 +32,7 @@ export function EditorPage() {
   const [markdownContent, setMarkdownContent] = useState('')
   const [showImprovementDialog, setShowImprovementDialog] = useState(false)
   const [selectedText, setSelectedText] = useState('')
+  const [inlineCompletionLoading, setInlineCompletionLoading] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
@@ -226,6 +227,7 @@ export function EditorPage() {
         onTogglePreview={() => setShowPreview(!showPreview)}
         onFormatDocument={handleFormatDocument}
         onFileRenamed={updateCurrentFilePath}
+        inlineCompletionLoading={inlineCompletionLoading}
         ref={previewButtonRef}
       />
 
@@ -245,6 +247,7 @@ export function EditorPage() {
             onEditorReady={handleEditorReadyWithRef}
             placeholder="Start writing..."
             documentTitle={currentFile?.name || 'Untitled'}
+            onInlineCompletionLoadingChange={setInlineCompletionLoading}
           />
         </div>
 

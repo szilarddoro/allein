@@ -1,15 +1,14 @@
-import { forwardRef, useRef, useState } from 'react'
+import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { Card } from '@/components/ui/card'
+import { useAIConfig } from '@/lib/ai/useAIConfig'
+import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
+import { useModelWarmup } from '@/lib/ollama/warmupModel'
 import MonacoEditor, { Monaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
-import { Card } from '@/components/ui/card'
-import { ActivityIndicator } from '@/components/ActivityIndicator'
-import { useInlineCompletion } from './completion/useInlineCompletion'
 import { useTheme } from 'next-themes'
-import { useAIConfig } from '@/lib/ai/useAIConfig'
-import { cn } from '@/lib/utils'
+import { forwardRef, useRef } from 'react'
+import { useInlineCompletion } from './completion/useInlineCompletion'
 import { defineCustomThemes } from './monaco-themes'
-import { useModelWarmup } from '@/lib/ollama/warmupModel'
-import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 
 export interface TextEditorProps {
   value?: string
@@ -17,6 +16,7 @@ export interface TextEditorProps {
   placeholder?: string
   onKeyDown?: (event: monaco.IKeyboardEvent) => void
   onEditorReady?: (editor: monaco.editor.IStandaloneCodeEditor) => void
+  onInlineCompletionLoadingChange?: (loading: boolean) => void
   documentTitle?: string
 }
 
@@ -28,6 +28,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       placeholder,
       onKeyDown,
       onEditorReady,
+      onInlineCompletionLoadingChange,
       documentTitle = 'Untitled',
     },
     ref,
@@ -36,8 +37,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     const { theme, systemTheme } = useTheme()
     const { aiAssistanceEnabled } = useAIConfig()
     const { ollamaUrl, ollamaModel } = useOllamaConfig()
-    const [isInlineCompletionLoading, setIsInlineCompletionLoading] =
-      useState(false)
 
     // Warm up the model when AI assistance is enabled
     useModelWarmup(ollamaUrl, ollamaModel, aiAssistanceEnabled ?? false)
@@ -46,7 +45,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     useInlineCompletion({
       disabled: !aiAssistanceEnabled,
       editorRef,
-      onLoadingChange: setIsInlineCompletionLoading,
+      onLoadingChange: onInlineCompletionLoadingChange,
       documentTitle,
     })
 
@@ -184,37 +183,9 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       onEditorReady?.(editor)
     }
 
-    const isDev = import.meta.env.DEV
-
     return (
       <div className="relative flex flex-col flex-1 min-h-0" ref={ref}>
-        {isDev && (
-          <div
-            role="status"
-            aria-label="Loading inline completion"
-            className={cn(
-              'absolute inset-0 rounded-lg overflow-hidden transition-opacity duration-300 opacity-0',
-              isInlineCompletionLoading && 'opacity-100',
-            )}
-          >
-            <div
-              className={cn(
-                'absolute inset-0 bg-gradient-to-r animate-[spin_5s_linear_infinite] scale-200',
-                'from-rose-500/50 via-sky-500/50 to-emerald-500/50',
-                'dark:from-rose-500/40 dark:via-sky-500/40 dark:to-emerald-500/40',
-              )}
-            />
-          </div>
-        )}
-
-        <Card
-          className={cn(
-            'flex flex-col flex-1 min-h-0 p-0 m-0.5 overflow-hidden relative transition-colors duration-300',
-            isDev &&
-              isInlineCompletionLoading &&
-              'border-card dark:border-card',
-          )}
-        >
+        <Card className="flex flex-col flex-1 min-h-0 p-0 m-0.5 overflow-hidden relative transition-colors duration-300">
           <div className="flex-1 min-h-0">
             <MonacoEditor
               key={theme}

@@ -9,11 +9,13 @@ import { cn } from '@/lib/utils'
 import { Eye, EyeOff, WandSparkles } from 'lucide-react'
 import { forwardRef } from 'react'
 import { FileNameEditor } from './FileNameEditor'
+import { ActivityIndicator } from '@/components/ActivityIndicator'
 
 export interface EditorHeaderProps {
   currentFile: FileContent | null
   showPreview: boolean
   sidebarOpen: boolean
+  inlineCompletionLoading?: boolean
   onTogglePreview: () => void
   onFormatDocument: () => void
   onFileRenamed: (newPath: string) => void
@@ -29,6 +31,7 @@ export const EditorHeader = forwardRef<HTMLButtonElement, EditorHeaderProps>(
       currentFile,
       showPreview,
       sidebarOpen,
+      inlineCompletionLoading,
       onTogglePreview,
       onFormatDocument,
       onFileRenamed,
@@ -48,6 +51,17 @@ export const EditorHeader = forwardRef<HTMLButtonElement, EditorHeaderProps>(
         />
 
         <div className="flex items-center gap-1">
+          <div
+            className={cn(
+              'size-9 flex items-center justify-center motion-safe:transition-opacity opacity-0',
+              inlineCompletionLoading && 'opacity-100',
+            )}
+          >
+            <ActivityIndicator srOnly>
+              Inline completion loading
+            </ActivityIndicator>
+          </div>
+
           <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={onFormatDocument}>

@@ -186,20 +186,23 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                   {children}
                 </Blockquote>
               ),
-              a: ({ children, href }) => (
-                <a
-                  draggable={false}
-                  href={href}
-                  onClick={(event) => {
-                    event.preventDefault()
-                    if (!href) return
-                    openUrl(href)
-                  }}
-                  className="text-blue-500 hover:text-blue-600 hover:underline"
-                >
-                  {children}
-                </a>
-              ),
+              a: ({ children, href }) =>
+                renderType === 'embedded' ? (
+                  <span className="text-blue-500">{children}</span>
+                ) : (
+                  <a
+                    draggable={false}
+                    href={href}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      if (!href) return
+                      openUrl(href)
+                    }}
+                    className="text-blue-500 hover:text-blue-600 hover:underline"
+                  >
+                    {children}
+                  </a>
+                ),
               table: ({ children }) => (
                 <div className="my-4 overflow-x-auto">
                   <Table>{children}</Table>

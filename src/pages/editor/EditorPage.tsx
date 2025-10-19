@@ -49,13 +49,21 @@ export function EditorPage() {
       const editor = monacoEditorRef.current
       if (!editor) return
 
+      const model = editor.getModel()
+
+      if (!model) return
+
       const selection = editor.getSelection()
-      const text = selection
-        ? editor.getModel()?.getValueInRange(selection) || ''
-        : ''
+
+      // Check if selection is empty (cursor position only, not actual text selected)
+      const isSelectionEmpty = selection?.isEmpty() ?? true
+      const text =
+        !isSelectionEmpty && selection
+          ? model?.getValueInRange(selection) || ''
+          : model?.getValue() || ''
 
       if (!text.trim()) {
-        toast.warning('Please select some text to improve')
+        toast.warning('Text not available for improvement')
         return
       }
 
@@ -92,12 +100,19 @@ export function EditorPage() {
     const editor = monacoEditorRef.current
     if (!editor) return
 
+    const model = editor.getModel()
+    if (!model) return
+
     const selection = editor.getSelection()
-    if (!selection) return
+
+    // If no selection or selection is empty (cursor only), replace the entire document
+    const isSelectionEmpty = selection?.isEmpty() ?? true
+    const range =
+      !isSelectionEmpty && selection ? selection : model.getFullModelRange()
 
     editor.executeEdits('improve-writing', [
       {
-        range: selection,
+        range,
         text: improvedText,
       },
     ])

@@ -26,7 +26,7 @@ interface ImprovementDialogProps {
   onClose?: () => void
 }
 
-const IDEAL_TEXT_LENGTH = 255
+const IDEAL_TEXT_LENGTH = 500
 
 export function ImprovementDialog({
   open,
@@ -184,7 +184,7 @@ export function ImprovementDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
+          <Button variant="ghost" onClick={handleCancel}>
             Cancel
           </Button>
           <Button

@@ -172,9 +172,9 @@ export function ImprovementDialog({
           </div>
 
           {showLongTextInfo && isAiAssistanceAvailable && (
-            <Alert className="border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300">
+            <Alert variant="info">
               <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <AlertDescription className="text-blue-600 dark:text-blue-300">
+              <AlertDescription>
                 Text improvements work best with short texts (under{' '}
                 {IDEAL_TEXT_LENGTH} characters). Your selection exceeds this
                 limit and may take a while to improve.

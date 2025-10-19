@@ -12,6 +12,8 @@ export interface AIAssistantStepProps {
 }
 
 export function AIAssistantStep({ onNext, onSkip }: AIAssistantStepProps) {
+  // TODO: Implement better state when Ollama is disabled initially.
+
   return (
     <div className="max-w-6xl w-full mx-auto flex flex-col gap-6 justify-center items-center flex-1 select-none pt-4 pb-16 px-4">
       <div className="flex flex-col items-center justify-center motion-safe:animate-fade-in">
@@ -21,11 +23,11 @@ export function AIAssistantStep({ onNext, onSkip }: AIAssistantStepProps) {
           width={1024}
           height={1024}
           alt="Letter A in a rounded rectangle"
-          className="w-20 h-20 mb-2"
+          className="size-16 mb-2"
         />
 
         <H1 className="my-0 text-3xl font-bold mb-1 text-center">
-          Configure the AI assistant
+          Configure the AI Assistant
         </H1>
       </div>
 

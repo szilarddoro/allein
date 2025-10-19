@@ -9,6 +9,7 @@ import {
   FieldLabel,
   FieldSet,
 } from '@/components/ui/field'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -28,7 +29,7 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { CheckCircle2, RefreshCcw, XCircle } from 'lucide-react'
+import { CheckCircle2, Info, RefreshCcw, XCircle } from 'lucide-react'
 import { ReactNode, useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDebounceValue } from 'usehooks-ts'
@@ -135,8 +136,11 @@ export function AIAssistantConfigPanel({
 
   const targetOllamaUrl = debouncedOllamaUrl || form.getValues().serverUrl
 
-  const { data: isConnected, isLoading: connectionLoading } =
-    useOllamaConnection(targetOllamaUrl, configLoading)
+  const {
+    data: isConnected,
+    isLoading: connectionLoading,
+    refetch: reconnect,
+  } = useOllamaConnection(targetOllamaUrl, configLoading)
 
   const {
     data: models,
@@ -154,6 +158,17 @@ export function AIAssistantConfigPanel({
   async function handleCopyOllamaPullCommand() {
     await writeText(`ollama pull ${RECOMMENDED_MODEL}`)
     toast.success('Copied to clipboard')
+  }
+
+  async function handleReconnect() {
+    const { data: isConnected } = await reconnect()
+
+    if (!isConnected) {
+      toast.error(`Can't connect to ${targetOllamaUrl}. Is Ollama running?`)
+      return
+    }
+
+    toast.success('Connection successful')
   }
 
   async function handleRefreshModels() {
@@ -197,9 +212,10 @@ export function AIAssistantConfigPanel({
                       <span aria-hidden="true">AI Assistant</span>
                       <span className="sr-only">Toggle AI Assistant</span>
                     </FieldLabel>
-                    <FieldDescription>
+
+                    <FieldDescription className="max-w-2xl">
                       When enabled, the AI assistant will provide inline writing
-                      suggestions based on your document context.
+                      suggestions.
                     </FieldDescription>
 
                     {fieldState.invalid && (
@@ -219,6 +235,22 @@ export function AIAssistantConfigPanel({
             />
           </div>
 
+          {watchAiAssistantEnabled && !isConnected && !connectionLoading && (
+            <Alert
+              variant="info"
+              className={cn(
+                'w-full -mt-3',
+                !disableAnimations && 'motion-safe:animate-fade-in delay-200',
+              )}
+            >
+              <Info className="size-4 text-blue-600 dark:text-blue-400" />
+              <AlertDescription>
+                Make sure Ollama is running on your computer to use the AI
+                assistant.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div
             className={cn(
               !disableAnimations && 'motion-safe:animate-fade-in delay-300',
@@ -231,18 +263,31 @@ export function AIAssistantConfigPanel({
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="serverUrl">Server URL</FieldLabel>
 
-                  <Input
-                    {...field}
-                    id="serverUrl"
-                    placeholder={`e.g. ${DEFAULT_OLLAMA_URL}`}
-                    aria-invalid={fieldState.invalid}
-                    autoComplete="off"
-                    disabled={!watchAiAssistantEnabled}
-                    onChange={(ev) => {
-                      field.onChange(ev)
-                      setDebouncedOllamaUrl(ev.target.value)
-                    }}
-                  />
+                  <div className="flex flex-row gap-2 w-full">
+                    <Input
+                      {...field}
+                      id="serverUrl"
+                      className="flex-1"
+                      placeholder={`e.g. ${DEFAULT_OLLAMA_URL}`}
+                      aria-invalid={fieldState.invalid}
+                      autoComplete="off"
+                      disabled={!watchAiAssistantEnabled}
+                      onChange={(ev) => {
+                        field.onChange(ev)
+                        setDebouncedOllamaUrl(ev.target.value)
+                      }}
+                    />
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleReconnect}
+                    >
+                      <RefreshCcw />
+                      <span className="sr-only">Reconnect</span>
+                    </Button>
+                  </div>
 
                   {fieldState.invalid ? (
                     <FieldError errors={[fieldState.error]} />
@@ -269,7 +314,8 @@ export function AIAssistantConfigPanel({
 
                       {!connectionLoading && !isConnected && (
                         <>
-                          <XCircle className="w-4 h-4" /> Not Connected
+                          <XCircle className="w-4 h-4" /> Can&apos;t connect to{' '}
+                          {debouncedOllamaUrl}.
                         </>
                       )}
                     </FieldDescription>
@@ -298,7 +344,8 @@ export function AIAssistantConfigPanel({
                       disabled={
                         !watchAiAssistantEnabled ||
                         !models ||
-                        models.length === 0
+                        models.length === 0 ||
+                        (!isConnected && !connectionLoading)
                       }
                     >
                       <SelectTrigger
@@ -364,16 +411,10 @@ export function AIAssistantConfigPanel({
                   )}
 
                   {(modelsError || fieldState.invalid) && (
-                    <FieldError
-                      errors={[
-                        modelsError
-                          ? {
-                              message:
-                                'Failed to load models. Check your server URL configuration.',
-                            }
-                          : fieldState.error,
-                      ]}
-                    />
+                    <FieldError className="flex flex-row gap-1 items-center">
+                      <XCircle className="size-4" />
+                      {fieldState.error?.message || 'Failed to load models.'}
+                    </FieldError>
                   )}
                 </Field>
               )}

@@ -51,6 +51,29 @@ gh release create v{VERSION} --notes "your custom release notes"
 
 **IMPORTANT**: Always use the version number (e.g., `v0.7.2`) as the release name. Never include additional details in the release name - keep it clean and simple.
 
+### Git Commits
+
+When making commits, always include yourself as a committer using the following format:
+
+```bash
+git commit -m "message" -m "🤖 Generated with Claude Code" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+Or use a HEREDOC for multi-line commits:
+
+```bash
+git commit -m "$(cat <<'EOF'
+commit message here
+
+🤖 Generated with Claude Code
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+This ensures proper attribution and makes it clear that the commit was generated with Claude Code.
+
 ## Architecture
 
 ### Frontend Structure (React)

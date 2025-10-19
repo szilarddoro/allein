@@ -46,8 +46,10 @@ git push && git push --tags
 
 To create a GitHub release after bumping:
 ```bash
-gh release create v{VERSION} --generate-notes
+gh release create v{VERSION} --notes "your custom release notes"
 ```
+
+**IMPORTANT**: Always use the version number (e.g., `v0.7.2`) as the release name. Never include additional details in the release name - keep it clean and simple.
 
 ## Architecture
 

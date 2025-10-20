@@ -51,16 +51,18 @@ export const EditorHeader = forwardRef<HTMLButtonElement, EditorHeaderProps>(
         />
 
         <div className="flex items-center gap-1">
-          <div
-            className={cn(
-              'size-9 flex items-center justify-center motion-safe:transition-opacity opacity-0',
-              inlineCompletionLoading && 'opacity-100',
-            )}
-          >
-            <ActivityIndicator srOnly>
-              Inline completion loading
-            </ActivityIndicator>
-          </div>
+          {import.meta.env.DEV && (
+            <div
+              className={cn(
+                'size-9 flex items-center justify-center motion-safe:transition-opacity opacity-0',
+                inlineCompletionLoading && 'opacity-100',
+              )}
+            >
+              <ActivityIndicator srOnly>
+                Inline completion loading
+              </ActivityIndicator>
+            </div>
+          )}
 
           <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>

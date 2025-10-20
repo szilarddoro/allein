@@ -16,6 +16,8 @@
         "backgroundColor": "#ff0000",
         "width": 1440,
         "height": 900,
+        "minWidth": 880,
+        "minHeight": 550,
         "hiddenTitle": true,
         "titleBarStyle": "Overlay",
         "acceptFirstMouse": true,

@@ -188,7 +188,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               ),
               a: ({ children, href }) =>
                 renderType === 'embedded' ? (
-                  <span className="text-blue-500">{children}</span>
+                  <span className="text-blue-500 break-words">{children}</span>
                 ) : (
                   <a
                     draggable={false}
@@ -198,7 +198,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                       if (!href) return
                       openUrl(href)
                     }}
-                    className="text-blue-500 hover:text-blue-600 hover:underline"
+                    className="break-words text-blue-500 hover:text-blue-600 hover:underline"
                   >
                     {children}
                   </a>

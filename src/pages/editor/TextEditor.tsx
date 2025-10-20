@@ -66,6 +66,68 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       editor.onKeyDown((event: monaco.IKeyboardEvent) => {
         onKeyDown?.(event)
 
+        // Handle Tab key for list indentation (only when cursor is near the marker)
+        if (
+          event.keyCode === _monaco.KeyCode.Tab &&
+          !event.shiftKey &&
+          !event.ctrlKey &&
+          !event.metaKey &&
+          !event.altKey
+        ) {
+          const model = editor.getModel()
+          if (!model) return
+
+          const position = editor.getPosition()
+          if (!position) return
+
+          const currentLine = model.getLineContent(position.lineNumber)
+          const cursorColumn = position.column
+
+          // Check if line is a bullet list item
+          const bulletMatch = currentLine.match(/^(\s*)([-*+])(\s)?/)
+          // Check if line is a numbered list item
+          const numberedMatch = currentLine.match(/^(\s*)(\d+)\.(\s)?/)
+
+          if (bulletMatch || numberedMatch) {
+            const [marker, indent, , whitespace] = bulletMatch || numberedMatch!
+
+            const markerLength = marker?.length || 0
+            const indentLength = indent?.length || 0
+            const whitespaceLength = whitespace?.length || 0
+
+            // Position of marker end (indent + marker)
+            const markerEndPos =
+              indentLength + (bulletMatch ? 1 : markerLength) + whitespaceLength
+
+            // Only handle Tab if cursor is before or at the marker
+            if (cursorColumn <= markerEndPos + 1) {
+              event.preventDefault()
+              event.stopPropagation()
+
+              // Insert 2 spaces at the beginning of the line
+              editor.executeEdits('', [
+                {
+                  range: new _monaco.Range(
+                    position.lineNumber,
+                    0,
+                    position.lineNumber,
+                    0,
+                  ),
+                  text: '  ',
+                },
+              ])
+
+              // Move cursor 2 positions to the right
+              editor.setPosition({
+                lineNumber: position.lineNumber,
+                column: cursorColumn + 2,
+              })
+
+              return
+            }
+          }
+        }
+
         // Handle Enter key for list continuation
         if (event.keyCode === _monaco.KeyCode.Enter && !event.shiftKey) {
           const model = editor.getModel()

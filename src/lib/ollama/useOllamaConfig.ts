@@ -6,6 +6,7 @@ import { DEFAULT_OLLAMA_URL } from './ollama'
 export function useOllamaConfig() {
   const {
     data: config,
+    status: configStatus,
     isLoading: configLoading,
     refetch: refetchConfig,
   } = useConfig()
@@ -24,6 +25,7 @@ export function useOllamaConfig() {
     ollamaUrl,
     ollamaModel,
     ollamaProvider,
+    configStatus,
     configLoading,
     refetchConfig,
   }

@@ -5,9 +5,12 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import { useConfig } from '@/lib/db/useConfig'
 import { useUpdateConfig } from '@/lib/db/useUpdateConfig'
+import { cn } from '@/lib/utils'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 export function AIAssistantCard() {
+  const [isFormDirty, setIsFormDirty] = useState(false)
   const { refetch: refetchConfig } = useConfig()
   const { mutateAsync: updateConfig } = useUpdateConfig({
     onSuccess: refetchConfig,
@@ -34,12 +37,18 @@ export function AIAssistantCard() {
   }
 
   return (
-    <Card>
+    <Card
+      className={cn(
+        'motion-safe:transition-colors',
+        isFormDirty && 'border-blue-500/50 dark:border-blue-300/50',
+      )}
+    >
       <CardContent>
         <AIAssistantConfigPanel
           onSubmit={handleSubmit}
+          onDirtyChange={setIsFormDirty}
           submitLabel={{ label: 'Save' }}
-          footerClassName="w-full justify-end"
+          footerClassName="w-full justify-start border-t border-input/80 -mt-3 pt-4"
           disableAnimations
           disableSkip
           placement="settings"

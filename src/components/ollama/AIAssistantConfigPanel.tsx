@@ -82,6 +82,7 @@ export type AssistantSettingsFormValues = z.infer<
 export interface AIAssistantConfigPanelProps {
   onSubmit: (values: AssistantSettingsFormValues) => void
   onSkip?: () => void
+  onDirtyChange?: (dirty: boolean) => void
   disableAnimations?: boolean
   disableSkip?: boolean
   submitLabel?: {
@@ -101,6 +102,7 @@ export function AIAssistantConfigPanel({
   onSkip,
   disableAnimations,
   disableSkip,
+  onDirtyChange,
   submitLabel = {
     label: 'Finish',
     srLabel: 'Finish onboarding',
@@ -112,19 +114,23 @@ export function AIAssistantConfigPanel({
   footerClassName,
   placement = 'onboarding',
 }: AIAssistantConfigPanelProps) {
-  const { ollamaUrl, ollamaModel, configLoading } = useOllamaConfig()
+  const { ollamaUrl, ollamaModel, configStatus, configLoading } =
+    useOllamaConfig()
   const { aiAssistanceEnabled } = useAIConfig()
   const { toast } = useToast()
 
   const form = useForm<z.infer<typeof assistantSettingsFormValues>>({
     resolver: zodResolver(assistantSettingsFormValues),
-    values: {
+    defaultValues: {
       aiAssistantEnabled:
         aiAssistanceEnabled == null ? true : aiAssistanceEnabled,
       serverUrl: ollamaUrl || 'http://localhost:11434',
       model: ollamaModel || '',
     },
   })
+
+  const formReset = form.reset
+  const isFormDirty = form.formState.isDirty
 
   // Watch the AI assistant enabled state for conditional disabling
   const watchAiAssistantEnabled = form.watch('aiAssistantEnabled')
@@ -138,22 +144,71 @@ export function AIAssistantConfigPanel({
 
   const {
     data: isConnected,
+    status: connectionStatus,
     isLoading: connectionLoading,
     refetch: reconnect,
   } = useOllamaConnection(targetOllamaUrl, configLoading)
 
   const {
     data: models,
+    status: modelsStatus,
     isLoading: modelsLoading,
     error: modelsError,
     refetch: refetchModels,
   } = useOllamaModels(targetOllamaUrl, configLoading)
 
+  // Initialize useForm lazily
   useEffect(() => {
-    if (!isConnected && form.formState.isDirty) {
-      form.setValue('model', '')
+    if (
+      connectionStatus !== 'success' ||
+      modelsStatus !== 'success' ||
+      configStatus !== 'success'
+    ) {
+      return
     }
-  }, [form, isConnected])
+
+    formReset({
+      aiAssistantEnabled:
+        aiAssistanceEnabled == null ? true : aiAssistanceEnabled,
+      serverUrl: ollamaUrl || 'http://localhost:11434',
+      model: ollamaModel || '',
+    })
+  }, [
+    formReset,
+    connectionStatus,
+    modelsStatus,
+    configStatus,
+    aiAssistanceEnabled,
+    ollamaUrl,
+    ollamaModel,
+  ])
+
+  useEffect(() => {
+    if (connectionStatus !== 'success' || !isFormDirty || isConnected) {
+      return
+    }
+
+    form.setValue('model', '')
+  }, [form, isFormDirty, isConnected, connectionStatus])
+
+  useEffect(() => {
+    if (
+      modelsStatus !== 'success' ||
+      ollamaModel === '' ||
+      models.some((model) => model.name === ollamaModel)
+    ) {
+      return
+    }
+
+    form.setValue('model', '', { shouldDirty: true, shouldTouch: true })
+    form.setError('model', {
+      message: 'Model is required when AI assistant is enabled',
+    })
+  }, [form, models, modelsStatus, ollamaModel])
+
+  useEffect(() => {
+    onDirtyChange?.(isFormDirty)
+  }, [isFormDirty, onDirtyChange])
 
   async function handleCopyOllamaPullCommand() {
     await writeText(`ollama pull ${RECOMMENDED_MODEL}`)

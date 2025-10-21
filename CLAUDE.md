@@ -122,27 +122,25 @@ Custom configuration:
 
 Path: `src/pages/editor/completion/`
 
-Architecture:
-1. **Provider Registration**: Monaco inline completion provider for markdown
-2. **Triggering**: At word boundaries, after sentence endings, and after typing multiple words
-3. **Debouncing**: 500ms delay for faster suggestions
-4. **Request Flow**:
-   - Sends full document with `<|CURSOR|>` marker to indicate completion position
-   - Uses Ollama API directly with streaming disabled
-   - System prompt optimized for inline completions (`completionSystemPrompt.ts`)
-   - Temperature: 0.3 for focused completions
-   - num_predict: 20 tokens maximum
-5. **Quality Filtering**:
-   - Removes markdown formatting (bold, italic, code)
-   - Removes "Output:" and "->" prefixes from model responses
-   - Takes only first line of multi-line responses
-   - Removes surrounding quotes
-   - Checks for duplicate text already present on current line
-6. **Persistent Suggestions**: Cached suggestions persist as user types, with case-insensitive matching
+**Overview**: Inline completion provider powered by local Ollama models. Sends document context with cursor position to Ollama and returns AI-generated suggestions.
+
+**Key Components**:
+- `useInlineCompletion.ts` - Main Monaco inline completion provider hook
+- `completionSystemPrompt.ts` - System prompt for completion requests
+- `AutocompleteDebouncer.ts` - Debouncing to prevent excessive requests
+- `CompletionCache.ts` - LRU cache for completion results
+- `prefiltering.ts` - Skips unnecessary completion requests based on context
+- `multilineClassification.ts` - Determines when to allow multiline completions
+- `processSingleLineCompletion.ts` - Word-level diffing for single-line results
+
+**Triggering**: Activates at word boundaries, after sentence endings, and when multiple words have been typed.
+
+**Quality Filtering**: Removes markdown formatting, filters prefixes like "Output:", takes first line only, removes quotes, and checks for duplicate text already present.
 
 **Important**:
 - Inline completion is disabled when `ai_assistance_enabled` config is false
-- Visual feedback: Rotating gradient border appears during completion generation (dev mode only)
+- Inspired by [continuedev/continue](https://github.com/continuedev/continue) (Apache 2.0 licensed)
+- See NOTICE file for attribution details
 
 ### Ollama Integration
 
@@ -189,6 +187,12 @@ Hook: `useCurrentFilePath()` syncs query param with URL state.
 - Monaco Editor theme switches with app theme (vs/vs-dark)
 - All file operations are async and handled via React Query mutations
 - Toast notifications use `sonner` library via custom `useToast()` hook
+
+## Licensing
+
+This project is licensed under the **MIT License** (see LICENSE file).
+
+**Attribution**: The AI completion system was inspired by [continuedev/continue](https://github.com/continuedev/continue), which is licensed under Apache License 2.0. See the NOTICE file for full attribution details.
 
 ## Code Organization Guidelines
 

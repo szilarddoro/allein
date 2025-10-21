@@ -1,3 +1,5 @@
+import { useAIConfig } from '@/lib/ai/useAIConfig'
+import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useQuery } from '@tanstack/react-query'
 
 /**
@@ -12,25 +14,27 @@ async function warmupModel(
     method: 'POST',
     body: JSON.stringify({
       model: modelName,
+      prompt: 'ping',
+      stream: false,
+      options: {
+        temperature: 0.01,
+        num_predict: 1,
+        keep_alive: 3600,
+      },
     }),
   })
 
   return response.ok
 }
 
-/**
- * React hook to warm up and keep the Ollama model loaded
- * Uses continuous refetching to maintain model in memory
- */
-export function useModelWarmup(
-  ollamaUrl: string | null,
-  modelName: string | null,
-  enabled: boolean,
-) {
+export function useModelWarmup() {
+  const { aiAssistanceEnabled } = useAIConfig()
+  const { ollamaUrl, ollamaModel } = useOllamaConfig()
+
   return useQuery({
-    queryKey: ['ollama-warmup', ollamaUrl, modelName],
-    queryFn: () => warmupModel(ollamaUrl!, modelName!),
-    enabled: enabled && !!ollamaUrl && !!modelName,
+    queryKey: ['ollama-warmup', ollamaUrl, ollamaModel],
+    queryFn: () => warmupModel(ollamaUrl!, ollamaModel!),
+    enabled: (aiAssistanceEnabled ?? false) && !!ollamaUrl && !!ollamaModel,
     refetchInterval: 1 * 60 * 1000,
     refetchIntervalInBackground: true,
     retry: false,

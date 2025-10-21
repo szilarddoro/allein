@@ -315,10 +315,12 @@ export function useInlineCompletion({
                     system: systemPrompt,
                     prompt: userPrompt,
                     stream: false,
-                    keep_alive: -1,
-                    temperature: 0.1, // Low temperature for predictable inline completions (was 0.3)
-                    num_predict: 50, // Allow longer completions, rely on multiline classifier to trim (was 20)
-                    stop: ['\n\n', '##', '```', '<|CURSOR|>'], // Stop at paragraph breaks, headings, code blocks
+                    options: {
+                      temperature: 0.01,
+                      keep_alive: 3600,
+                      num_predict: 10,
+                      stop: ['\n\n', '##', '```', '<|CURSOR|>'], // Stop at paragraph breaks, headings, code blocks
+                    },
                   }),
                   signal: currentRequest.current.signal,
                 },

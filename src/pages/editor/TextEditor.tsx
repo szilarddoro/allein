@@ -1,8 +1,6 @@
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { Card } from '@/components/ui/card'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
-import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
-import { useModelWarmup } from '@/lib/ollama/warmupModel'
 import MonacoEditor, { Monaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { useTheme } from 'next-themes'
@@ -36,10 +34,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
     const { theme, systemTheme } = useTheme()
     const { aiAssistanceEnabled } = useAIConfig()
-    const { ollamaUrl, ollamaModel } = useOllamaConfig()
-
-    // Warm up the model when AI assistance is enabled
-    useModelWarmup(ollamaUrl, ollamaModel, aiAssistanceEnabled ?? false)
 
     // Enable inline completion for the Monaco Editor
     useInlineCompletion({

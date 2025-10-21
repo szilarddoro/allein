@@ -18,6 +18,7 @@ import { useToast } from '@/lib/useToast'
 import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { BaseLayout } from '@/components/layout/BaseLayout'
 import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
+import { useModelWarmup } from '@/lib/ollama/warmupModel'
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -65,6 +66,9 @@ export function AppLayout() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [navigate, createFile, toast])
+
+  // Warm up the model when AI assistance is enabled
+  useModelWarmup()
 
   if (progressStatus === 'pending') {
     return null

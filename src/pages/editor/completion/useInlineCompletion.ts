@@ -294,14 +294,46 @@ export function useInlineCompletion({
               // Build context: send entire document with cursor marker
               const fullDocument = model.getValue()
               const cursorOffset = model.getOffsetAt(position)
+              const currentLine = model.getLineContent(position.lineNumber)
+              const currentLineBeforeCursor = currentLine.substring(
+                0,
+                position.column - 1,
+              )
+
               const textAfterCursor = fullDocument.substring(cursorOffset)
 
               const textWithCursor =
                 textBeforeCursor + '<|CURSOR|>' + textAfterCursor
 
+              // Extract current sentence from the text before cursor
+              const sentenceMatch = currentLineBeforeCursor.match(
+                /(?:^|\.|!|\?|\n)(?:\s*)([^.!?]*?)$/,
+              )
+              let currentSentence = sentenceMatch
+                ? sentenceMatch[1].trim()
+                : currentLineBeforeCursor.trim()
+
+              // If current sentence is empty, try to get the previous sentence
+              if (!currentSentence) {
+                const previousSentenceMatch = currentLineBeforeCursor.match(
+                  /([^.!?]*?[.!?])(?:\s*)$/,
+                )
+                currentSentence = previousSentenceMatch
+                  ? previousSentenceMatch[1].trim()
+                  : currentLineBeforeCursor.trim()
+              }
+
+              const lineWithCursor = currentSentence
+                ? `${currentSentence} <|CURSOR|>`
+                : ''
+
               // Build the complete prompt with instructions
               const { system: systemPrompt, user: userPrompt } =
-                buildCompletionPrompt(documentTitle, textWithCursor)
+                buildCompletionPrompt(
+                  documentTitle,
+                  textWithCursor,
+                  lineWithCursor,
+                )
 
               // Notify loading started
               onLoadingChange?.(true)
@@ -315,6 +347,7 @@ export function useInlineCompletion({
                     system: systemPrompt,
                     prompt: userPrompt,
                     stream: false,
+                    think: false,
                     options: {
                       temperature: 0.01,
                       keep_alive: 3600,

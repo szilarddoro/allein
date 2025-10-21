@@ -1,50 +1,41 @@
-/**
- * System prompt optimized for inline completion in markdown
- * Inspired by Continue.dev's approach but adapted for prose
- */
 export function buildCompletionPrompt(
   documentTitle: string,
   textWithCursor: string,
+  lineWithCursor: string,
 ) {
   return {
     system: `You are an INLINE COMPLETION assistant for markdown documents. Your task is to predict the next few words that would naturally continue from the <|CURSOR|> position.
 
 CRITICAL RULES:
 - Output ONLY the predicted text - no explanations, quotes, or formatting
-- Predict 1-8 words (prefer brevity for single-line contexts)
+- Predict 1-4 words (prefer brevity for single-line contexts)
+- ALWAYS start a new sentence if the cursor follows a complete sentence (ending with . ! ?)
+- NEVER start a new sentence, unless the previous sentence is completed.
 - Match the existing writing style, tone, and vocabulary
-- NEVER include markdown syntax (-, *, #, \`, etc.) - assume it already exists
+- NEVER include markdown syntax (-, *, #, \`, etc.)
 - NEVER repeat text that appears before <|CURSOR|>
-- NEVER answer questions - just continue the natural flow
-- For list items, provide ONLY the content without the bullet symbol
-- Stop at natural boundaries (end of sentence, end of phrase, or end of list item)
+- Stop at natural boundaries
 
 EXAMPLES:
 
-Input: The project status is <|CURSOR|>
-Output: complete and ready for deployment
+Input: The project is complete. <|CURSOR|>
+Output: We can now move to testing.
 
-Input: ## Features
-- Authentication system
-- <|CURSOR|>
-Output: Real-time data synchronization
+Input: The project is <|CURSOR|>
+Output: nearly complete
 
-Input: We decided to use <|CURSOR|>
-Output: a different approach
+Input: We need to fix this issue. <|CURSOR|>
+Output: The solution requires immediate attention.
 
-Input: The main goal is to <|CURSOR|> the performance
-Output: optimize
+ALWAYS prefer speed and concision over grammar.
 
-Input: - First item
-- <|CURSOR|>
-Output: Second important consideration
+Now autocomplete the text where <|CURSOR|> is positioned.`,
+    user: `Document title for context:
+${documentTitle}
 
-Input: This will help us <|CURSOR|>
-Output: achieve better results
+Full document for context (including the <|CURSOR|> placement):
+${textWithCursor}
 
-Now complete:`,
-    user: `Document: ${documentTitle}
-
-${textWithCursor}`,
+${lineWithCursor ? `THIS IS THE TEXT YOU SHOULD AUTOCOMPLETE, WATCH OUT FOR SENTENCE BOUNDARIES: ${lineWithCursor}` : ''}`,
   }
 }

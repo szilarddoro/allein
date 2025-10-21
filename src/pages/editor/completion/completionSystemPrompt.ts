@@ -1,3 +1,11 @@
+/**
+ * System prompt for inline code completion
+ *
+ * Approach inspired by continuedev/continue
+ * https://github.com/continuedev/continue
+ * Licensed under Apache License 2.0
+ */
+
 export function buildCompletionPrompt(
   documentTitle: string,
   textWithCursor: string,

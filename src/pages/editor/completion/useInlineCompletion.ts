@@ -1,3 +1,11 @@
+/**
+ * Inline completion provider for Monaco Editor
+ *
+ * Implementation inspired by continuedev/continue
+ * https://github.com/continuedev/continue
+ * Licensed under Apache License 2.0
+ */
+
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { useAIConfig } from '@/lib/ai/useAIConfig'

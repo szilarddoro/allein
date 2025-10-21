@@ -1,0 +1,17 @@
+Allein
+
+Copyright (c) 2025 Szilárd Dóró
+
+================================================================================
+
+This project was inspired by and contains implementations based on:
+
+- continue (https://github.com/continuedev/continue)
+  Licensed under the Apache License, Version 2.0
+  Copyright (c) continue developers
+
+  The AI completion system, particularly the inline completion provider and
+  prompt formatting logic, were adapted from the continue project's approach
+  to context-aware code suggestions.
+
+================================================================================

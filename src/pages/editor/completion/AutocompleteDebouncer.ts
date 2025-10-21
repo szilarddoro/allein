@@ -1,7 +1,11 @@
 import { v4 as uuidv4 } from 'uuid'
 
 /**
- * Debouncer for autocomplete requests inspired by Continue.dev
+ * Debouncer for autocomplete requests
+ * Inspired by continuedev/continue
+ * https://github.com/continuedev/continue
+ * Licensed under Apache License 2.0
+ *
  * Ensures only the most recent request is processed after a delay period.
  */
 export class AutocompleteDebouncer {

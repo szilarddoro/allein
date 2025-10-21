@@ -1,6 +1,8 @@
 /**
  * Simple in-memory LRU cache for completion results
- * Inspired by Continue.dev but simplified for browser environment
+ * Inspired by continuedev/continue
+ * https://github.com/continuedev/continue
+ * Licensed under Apache License 2.0
  */
 
 interface CacheEntry {

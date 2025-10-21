@@ -1,7 +1,9 @@
 /**
  * Multiline completion classification logic
  * Determines when to allow multiline vs single-line completions
- * Inspired by Continue.dev but adapted for markdown
+ * Inspired by continuedev/continue
+ * https://github.com/continuedev/continue
+ * Licensed under Apache License 2.0
  */
 
 export interface MultilineContext {

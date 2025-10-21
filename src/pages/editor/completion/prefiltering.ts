@@ -1,6 +1,8 @@
 /**
  * Prefiltering logic to skip unnecessary completion requests
- * Inspired by Continue.dev's prefiltering system
+ * Inspired by continuedev/continue
+ * https://github.com/continuedev/continue
+ * Licensed under Apache License 2.0
  */
 
 export interface PrefilterContext {

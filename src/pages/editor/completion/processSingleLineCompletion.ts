@@ -1,6 +1,8 @@
 /**
  * Process single-line completions using word-level diffing
- * Inspired by Continue.dev's implementation
+ * Inspired by continuedev/continue
+ * https://github.com/continuedev/continue
+ * Licensed under Apache License 2.0
  *
  * This handles cases where the model repeats text that's already after the cursor.
  */

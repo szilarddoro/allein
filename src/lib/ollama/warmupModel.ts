@@ -14,12 +14,8 @@ async function warmupModel(
     method: 'POST',
     body: JSON.stringify({
       model: modelName,
-      prompt: 'ping',
-      stream: false,
       options: {
-        temperature: 0.01,
-        num_predict: 1,
-        keep_alive: 3600,
+        keep_alive: '5m',
       },
     }),
   })
@@ -35,7 +31,7 @@ export function useModelWarmup() {
     queryKey: ['ollama-warmup', ollamaUrl, ollamaModel],
     queryFn: () => warmupModel(ollamaUrl!, ollamaModel!),
     enabled: (aiAssistanceEnabled ?? false) && !!ollamaUrl && !!ollamaModel,
-    refetchInterval: 1 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
     refetchIntervalInBackground: true,
     retry: false,
     staleTime: Infinity, // Data never goes stale

@@ -1,5 +1,5 @@
 /**
- * System prompt for inline code completion
+ * System and user prompt for inline code completion
  *
  * Approach inspired by continuedev/continue
  * https://github.com/continuedev/continue

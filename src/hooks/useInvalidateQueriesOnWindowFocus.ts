@@ -15,7 +15,7 @@ export function useInvalidateQueriesOnWindowFocus() {
     let unlisten: () => void | undefined
 
     const setupListeners = async () => {
-      unlisten = await listen('tauri://focus', () => {
+      unlisten = await listen('tauri://focus', async () => {
         if (
           lastRefetchTime.current &&
           Date.now() - lastRefetchTime.current < 1000
@@ -24,20 +24,27 @@ export function useInvalidateQueriesOnWindowFocus() {
         }
 
         lastRefetchTime.current = Date.now()
-        queryClient.invalidateQueries({
-          queryKey: FILES_WITH_PREVIEW_QUERY_KEY(),
-        })
-        queryClient.invalidateQueries({
-          predicate: (query) =>
-            query.queryKey.includes(READ_FILE_BASE_QUERY_KEY),
-        })
-        queryClient.invalidateQueries({
-          predicate: (query) =>
-            query.queryKey.includes(OLLAMA_MODEL_BASE_QUERY_KEY),
-        })
-        queryClient.invalidateQueries({
-          queryKey: [OLLAMA_WARMUP_BASE_QUERY_KEY],
-        })
+
+        try {
+          await Promise.all([
+            queryClient.invalidateQueries({
+              queryKey: FILES_WITH_PREVIEW_QUERY_KEY(),
+            }),
+            queryClient.invalidateQueries({
+              predicate: (query) =>
+                query.queryKey.includes(READ_FILE_BASE_QUERY_KEY),
+            }),
+            queryClient.invalidateQueries({
+              predicate: (query) =>
+                query.queryKey.includes(OLLAMA_MODEL_BASE_QUERY_KEY),
+            }),
+            queryClient.invalidateQueries({
+              queryKey: [OLLAMA_WARMUP_BASE_QUERY_KEY],
+            }),
+          ])
+        } catch {
+          // silently ignore invalidation errors
+        }
       })
     }
 

@@ -199,7 +199,7 @@ export function FileNameEditor({
                   size="sm"
                   onClick={handleFileNameClick}
                   onContextMenu={(e) => e.stopPropagation()}
-                  className="text-left select-none px-1.5 py-0.5 h-auto font-normal rounded-md"
+                  className="text-left px-1.5 py-0.5 h-auto font-normal rounded-md"
                 >
                   {fileName}
                 </Button>

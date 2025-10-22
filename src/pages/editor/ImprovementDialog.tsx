@@ -101,7 +101,7 @@ export function ImprovementDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-5xl max-h-[85vh] flex flex-col select-none p-6">
+      <DialogContent className="sm:max-w-5xl max-h-[85vh] flex flex-col p-6">
         <DialogHeader>
           <DialogTitle>Improve Writing</DialogTitle>
           <DialogDescription className="sr-only">

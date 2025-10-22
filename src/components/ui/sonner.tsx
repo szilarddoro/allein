@@ -24,7 +24,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           />
         ),
       }}
-      className="toaster group select-none"
+      className="toaster group"
       toastOptions={{
         classNames: {
           default: '!bg-secondary !text-foreground !border !border-input',

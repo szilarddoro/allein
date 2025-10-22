@@ -27,10 +27,14 @@ export function useUpdateOnboardingProgress() {
         [status, currentStep],
       )
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [ONBOARDING_PROGRESS_QUERY_KEY],
-      })
+    onSuccess: async () => {
+      try {
+        await queryClient.invalidateQueries({
+          queryKey: [ONBOARDING_PROGRESS_QUERY_KEY],
+        })
+      } catch {
+        // silently ignore invalidation errors
+      }
     },
   })
 }

@@ -12,7 +12,7 @@ import { shouldPrefilter } from './prefiltering'
 import { processSingleLineCompletion } from './processSingleLineCompletion'
 import { getCompletionCache } from './CompletionCache'
 import { shouldCompleteMultiline } from './multilineClassification'
-import { buildCompletionPrompt } from './completionSystemPrompt'
+import { buildCompletionPrompt } from './buildCompletionPrompt'
 
 interface CachedSuggestion {
   text: string
@@ -375,13 +375,6 @@ export class CompletionProvider {
     this.currentRequest = new AbortController()
 
     try {
-      // Build context: send entire document with cursor marker
-      const fullDocument = model.getValue()
-      const cursorOffset = model.getOffsetAt(position)
-      const textAfterCursor = fullDocument.substring(cursorOffset)
-
-      const textWithCursor = textBeforeCursor + '<|CURSOR|>' + textAfterCursor
-
       // Extract current sentence from the text before cursor
       const sentenceMatch = textBeforeCursorOnCurrentLine.match(
         /(?:^|\.|!|\?|\n)(?:\s*)([^.!?]*?)$/,
@@ -400,19 +393,11 @@ export class CompletionProvider {
           : textBeforeCursorOnCurrentLine.trim()
       }
 
-      const lineWithCursor = currentSentence
-        ? `${currentSentence} <|CURSOR|>`
-        : ''
-
-      // Build the complete prompt with instructions
-      const { system: systemPrompt, user: userPrompt } = buildCompletionPrompt(
-        this.config.documentTitle,
-        textWithCursor,
-        lineWithCursor,
-      )
-
       // Notify loading started
       this.config.onLoadingChange?.(true)
+
+      const { prompt, stop, isNewSentence } =
+        buildCompletionPrompt(currentSentence)
 
       const generateResponse = await fetch(
         `${this.config.ollamaUrl}/api/generate`,
@@ -420,15 +405,12 @@ export class CompletionProvider {
           method: 'POST',
           body: JSON.stringify({
             model: this.config.ollamaModel,
-            system: systemPrompt,
-            prompt: userPrompt,
+            prompt,
             stream: false,
-            think: false,
             options: {
+              think: false,
               temperature: 0.01,
-              keep_alive: 3600,
-              num_predict: 10,
-              stop: ['\n\n', '##', '```', '<|CURSOR|>'],
+              stop,
             },
           }),
           signal: this.currentRequest.signal,
@@ -457,6 +439,7 @@ export class CompletionProvider {
         textBeforeCursor,
         currentLine,
         textBeforeCursorOnCurrentLine,
+        isNewSentence,
       )
     } catch (error) {
       // Notify loading finished on error
@@ -480,6 +463,7 @@ export class CompletionProvider {
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
+    isNewSentence: boolean,
   ): monaco.languages.InlineCompletions {
     // Remove "Output:" prefix if model includes it
     if (completion.toLowerCase().startsWith('output:')) {
@@ -500,6 +484,7 @@ export class CompletionProvider {
       .replace(/\*/g, '') // Remove italic
       .replace(/`/g, '') // Remove code
       .replace(/~/g, '') // Remove strikethrough
+      .replace(/^\.\.\./, '')
       .trim()
 
     // Remove surrounding quotes if present
@@ -512,6 +497,12 @@ export class CompletionProvider {
 
     if (!completion || completion.length === 0) {
       return { items: [] }
+    }
+
+    if (isNewSentence) {
+      completion = completion.charAt(0).toUpperCase() + completion.substring(1)
+    } else {
+      completion = completion.charAt(0).toLowerCase() + completion.substring(1)
     }
 
     // Get text after cursor for word-level diffing
@@ -597,7 +588,7 @@ export class CompletionProvider {
 
     // Cache the suggestion for persistence
     this.activeSuggestion = {
-      text: item.insertText,
+      text: item.insertText.trim(),
       position: {
         lineNumber: position.lineNumber,
         column: position.column,

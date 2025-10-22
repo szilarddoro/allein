@@ -13,6 +13,7 @@ import { processSingleLineCompletion } from './processSingleLineCompletion'
 import { getCompletionCache } from './CompletionCache'
 import { shouldCompleteMultiline } from './multilineClassification'
 import { buildCompletionPrompt } from './buildCompletionPrompt'
+import { getCompletionMetrics } from './CompletionMetrics'
 
 interface CachedSuggestion {
   text: string
@@ -328,6 +329,9 @@ export class CompletionProvider {
     textBeforeCursor: string,
     textBeforeCursorOnCurrentLine: string,
   ): monaco.languages.InlineCompletions {
+    // Record cache hit metric (instantaneous, basically 0ms)
+    getCompletionMetrics().recordRequest(0, true)
+
     // Add leading space if needed
     const needsLeadingSpace =
       textBeforeCursorOnCurrentLine.slice(-1) !== ' ' &&
@@ -374,6 +378,9 @@ export class CompletionProvider {
     // Create new abort controller for this request
     this.currentRequest = new AbortController()
 
+    // Record start time for metrics
+    const startTime = performance.now()
+
     try {
       // Extract current sentence from the text before cursor
       const sentenceMatch = textBeforeCursorOnCurrentLine.match(
@@ -419,6 +426,9 @@ export class CompletionProvider {
 
       if (!generateResponse.ok) {
         this.config.onLoadingChange?.(false)
+        // Record metric on error
+        const duration = performance.now() - startTime
+        getCompletionMetrics().recordRequest(duration, false)
         return { items: [] }
       }
 
@@ -426,6 +436,10 @@ export class CompletionProvider {
 
       // Notify loading finished
       this.config.onLoadingChange?.(false)
+
+      // Record metric for successful API call
+      const duration = performance.now() - startTime
+      getCompletionMetrics().recordRequest(duration, false)
 
       if (!response.trim()) {
         return { items: [] }
@@ -444,6 +458,10 @@ export class CompletionProvider {
     } catch (error) {
       // Notify loading finished on error
       this.config.onLoadingChange?.(false)
+
+      // Record metric on exception
+      const duration = performance.now() - startTime
+      getCompletionMetrics().recordRequest(duration, false)
 
       if (error instanceof Error && error.name === 'AbortError') {
         return { items: [] }

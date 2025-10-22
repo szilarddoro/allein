@@ -150,6 +150,46 @@ describe('extractSentences', () => {
     })
   })
 
+  describe('full document context (across paragraphs)', () => {
+    it('finds context from previous paragraph when current line has none', () => {
+      // Simulates: Previous paragraph with context.\n\nCurrent line at start of new paragraph
+      const fullDocText =
+        'First paragraph. Important context.\n\nNew paragraph start'
+      const result = extractSentences(fullDocText)
+
+      expect(result.currentSentence).toBe('New paragraph start')
+      expect(result.previousSentence).toBe('Important context.')
+    })
+
+    it('prefers current line context when available', () => {
+      // If current line has its own previous sentence, use that instead of looking back
+      const fullDocText =
+        'Old context. Older.\n\nPrevious sentence. Current sentence'
+      const result = extractSentences(fullDocText)
+
+      expect(result.currentSentence).toBe('Current sentence')
+      expect(result.previousSentence).toBe('Previous sentence.')
+    })
+
+    it('handles multiple paragraph transitions', () => {
+      const fullDocText =
+        'Section one. Content.\n\nSection two. More content.\n\nSection three'
+      const result = extractSentences(fullDocText)
+
+      expect(result.currentSentence).toBe('Section three')
+      expect(result.previousSentence).toBe('More content.')
+    })
+
+    it('gracefully handles paragraphs with complex structure', () => {
+      const fullDocText =
+        'First part. Second part.\n\nThird part. Fourth part.\n\nFinal'
+      const result = extractSentences(fullDocText)
+
+      expect(result.currentSentence).toBe('Final')
+      expect(result.previousSentence).toBe('Fourth part.')
+    })
+  })
+
   describe('real-world examples', () => {
     it('handles markdown prose example 1', () => {
       const result = extractSentences(

@@ -1,12 +1,12 @@
 /**
- * Extracts the current and previous sentences from a text string
+ * Extracts the current and previous sentences from text
  *
- * Strips newline characters first to ensure the last sentence from the
- * previous text block is included if no previous sentence exists in the
- * current line.
+ * Strips newline characters to ensure sentences across text blocks are included.
+ * By passing the full document context, the function can find previous context
+ * even if there's no previous sentence on the current line.
  */
 
-interface SentenceExtraction {
+export interface SentenceExtraction {
   currentSentence: string
   previousSentence?: string
 }
@@ -14,24 +14,30 @@ interface SentenceExtraction {
 /**
  * Extract current and previous sentences from text
  *
- * @param text - The text to extract sentences from (e.g., line content before cursor)
+ * Typically called with the full document text before cursor, which allows the function
+ * to naturally look backwards through the entire document to find context. If only the
+ * current line is needed, pass just that text.
+ *
+ * @param textBeforeCursor - The text to extract sentences from (can be full document or just current line)
  * @returns Object containing currentSentence and optional previousSentence
  *
  * @example
+ * // From current line only
  * extractSentences("Hello world. This is a test")
  * // Returns: { currentSentence: "This is a test", previousSentence: "Hello world." }
  *
  * @example
- * extractSentences("Hello world.")
- * // Returns: { currentSentence: "Hello world.", previousSentence: undefined }
+ * // From full document - gets context from previous paragraphs
+ * extractSentences("First para. Context.\n\nSecond para. Current")
+ * // Returns: { currentSentence: "Current", previousSentence: "Context." }
  *
  * @example
  * extractSentences("Incomplete sentence at end")
  * // Returns: { currentSentence: "Incomplete sentence at end", previousSentence: undefined }
  */
-export function extractSentences(text: string): SentenceExtraction {
-  // Strip newline characters first to include previous text block context
-  const cleanText = text.replace(/\n/g, ' ').trim()
+export function extractSentences(textBeforeCursor: string): SentenceExtraction {
+  // Strip newline characters to include previous text block context
+  const cleanText = textBeforeCursor.replace(/\n/g, ' ').trim()
 
   if (!cleanText) {
     return { currentSentence: '' }

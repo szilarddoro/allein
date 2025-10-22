@@ -31,6 +31,8 @@ interface CompletionProviderConfig {
   onLoadingChange?: (loading: boolean) => void
 }
 
+const leadingUpperCaseMatchRegExp = /^[A-Z]{2,}/g
+
 /**
  * Stateful inline completion provider
  * Manages completion requests, caching, and suggestion persistence
@@ -383,10 +385,11 @@ export class CompletionProvider {
     const startTime = performance.now()
 
     try {
-      // Extract current and previous sentences
-      const { currentSentence, previousSentence } = extractSentences(
-        textBeforeCursorOnCurrentLine,
-      )
+      // Extract current and previous sentences from full context
+      // This allows finding previous context from earlier paragraphs if no previous
+      // sentence exists on the current line
+      const { currentSentence, previousSentence } =
+        extractSentences(textBeforeCursor)
 
       // Notify loading started
       this.config.onLoadingChange?.(true)
@@ -511,7 +514,11 @@ export class CompletionProvider {
     if (startedNewSentence) {
       completion = completion.charAt(0).toUpperCase() + completion.substring(1)
     } else {
-      completion = completion.charAt(0).toLowerCase() + completion.substring(1)
+      // Abbreviations should not be converted to lowercase incorrectly
+      // (e.g., AI to aI, DLQ to dLQ, etc.)
+      completion = leadingUpperCaseMatchRegExp.test(completion)
+        ? completion
+        : completion.charAt(0).toLowerCase() + completion.substring(1)
     }
 
     // Get text after cursor for word-level diffing

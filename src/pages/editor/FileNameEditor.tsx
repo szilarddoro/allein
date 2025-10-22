@@ -97,6 +97,10 @@ export function FileNameEditor({
           file.path !== currentFile?.path,
       )
     ) {
+      requestAnimationFrame(() => {
+        fileNameInputRef.current?.focus()
+        fileNameInputRef.current?.select()
+      })
       setFileNameValidationErrorType('duplicate')
       return
     }
@@ -177,7 +181,7 @@ export function FileNameEditor({
           {fileNameValidationErrorType !== 'none' && (
             <div
               id="file-name-error"
-              className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-600 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-300 font-normal z-1000"
+              className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-950 dark:border-yellow-700 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-400 font-normal z-1000"
             >
               <TriangleAlert className="w-3 h-3" />
               {fileNameValidationErrorType === 'invalid'

@@ -164,7 +164,7 @@ export function FileNameEditor({
             onChange={handleFileNameChange}
             onBlur={handleFileNameBlur}
             onKeyDown={handleFileNameKeyDown}
-            className="w-full focus:outline-none"
+            className="w-full focus:outline-none px-1.5 py-0.5"
             maxLength={255}
             spellCheck={false}
             autoCorrect="off"

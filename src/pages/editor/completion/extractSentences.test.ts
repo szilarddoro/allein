@@ -53,12 +53,13 @@ describe('extractSentences', () => {
       expect(result.previousSentence).toBeUndefined()
     })
 
-    it('strips newlines to preserve context across blocks', () => {
-      // When stripped: "What is this?  This is great!"
-      // Last terminator is ! at the end with no text after, so entire text is current
+    it('preserves paragraph context with previous paragraph lookup', () => {
+      // Two paragraphs separated by double newline
+      // Last paragraph is "This is great!" (the current sentence)
+      // Previous paragraph is "What is this?" (the previous sentence)
       const result = extractSentences('What is this?\n\nThis is great!')
-      expect(result.currentSentence).toBe('What is this?  This is great!')
-      expect(result.previousSentence).toBeUndefined()
+      expect(result.currentSentence).toBe('This is great!')
+      expect(result.previousSentence).toBe('What is this?')
     })
   })
 
@@ -190,6 +191,104 @@ describe('extractSentences', () => {
     })
   })
 
+  describe('markdown stripping', () => {
+    it('strips bold markdown from sentences', () => {
+      const result = extractSentences('This is **bold** text. Next sentence')
+      expect(result.currentSentence).toBe('Next sentence')
+      expect(result.previousSentence).toBe('This is bold text.')
+      expect(result.currentSentence).not.toContain('**')
+      expect(result.previousSentence).not.toContain('**')
+    })
+
+    it('strips italic markdown from sentences', () => {
+      const result = extractSentences('This is *italic* text. Next sentence')
+      expect(result.currentSentence).toBe('Next sentence')
+      expect(result.previousSentence).toBe('This is italic text.')
+      expect(result.currentSentence).not.toContain('*')
+      expect(result.previousSentence).not.toContain('*italic*')
+    })
+
+    it('strips headers from sentences', () => {
+      const result = extractSentences('# Main heading here. Some content')
+      expect(result.currentSentence).toBe('Some content')
+      expect(result.previousSentence).toBe('Main heading here.')
+      expect(result.previousSentence).not.toContain('#')
+    })
+
+    it('strips code blocks from sentences', () => {
+      const result = extractSentences('Use `const x = 5;` here. Next part')
+      expect(result.currentSentence).toBe('Next part')
+      expect(result.previousSentence).toContain('Use const x = 5; here.')
+      expect(result.previousSentence).not.toContain('`')
+    })
+
+    it('strips links from sentences', () => {
+      const result = extractSentences(
+        'Check [this link](https://example.com) here. Next sentence',
+      )
+      expect(result.currentSentence).toBe('Next sentence')
+      expect(result.previousSentence).toBe('Check this link here.')
+      expect(result.previousSentence).not.toContain('[')
+      expect(result.previousSentence).not.toContain('](')
+    })
+
+    it('strips images from sentences', () => {
+      const result = extractSentences(
+        'Here is ![alt text](image.png) embedded. Next part',
+      )
+      expect(result.currentSentence).toBe('Next part')
+      expect(result.previousSentence).toContain('Here is')
+      expect(result.previousSentence).toContain('embedded.')
+      expect(result.previousSentence).not.toContain('![')
+    })
+
+    it('strips images with long URLs from sentences', () => {
+      const result = extractSentences(
+        'This is a ![cat image](https://plus.unsplash.com/premium_photo-1667030474693-6d0632f97029?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=987).',
+      )
+      expect(result.currentSentence).toBe('This is a cat image.')
+      expect(result.currentSentence).not.toContain('![')
+      expect(result.currentSentence).not.toContain('https://')
+      expect(result.currentSentence).not.toContain('unsplash')
+    })
+
+    it('strips blockquotes from sentences', () => {
+      const result = extractSentences('> Quote text here. After quote')
+      expect(result.currentSentence).toBe('After quote')
+      expect(result.previousSentence).toBe('Quote text here.')
+      expect(result.previousSentence).not.toContain('>')
+    })
+
+    it('strips list markers from sentences', () => {
+      const result = extractSentences('- First item here. - Second item')
+      expect(result.currentSentence).toContain('Second item')
+      expect(result.previousSentence).toContain('First item here.')
+      // List markers should be removed
+      expect(result.previousSentence).not.toContain('- ')
+    })
+
+    it('handles multiple markdown types in one sentence', () => {
+      const result = extractSentences(
+        'This has **bold** and *italic* and `code`. Next sentence',
+      )
+      expect(result.currentSentence).toBe('Next sentence')
+      expect(result.previousSentence).toBe('This has bold and italic and code.')
+      expect(result.previousSentence).not.toContain('**')
+      expect(result.previousSentence).not.toContain('*')
+      expect(result.previousSentence).not.toContain('`')
+    })
+
+    it('strips markdown across paragraph boundaries', () => {
+      const result = extractSentences(
+        '# Header. **Bold** text.\n\n*Italic* continuation',
+      )
+      expect(result.currentSentence).toBe('Italic continuation')
+      expect(result.previousSentence).toContain('Bold text.')
+      expect(result.currentSentence).not.toContain('*')
+      expect(result.previousSentence).not.toContain('**')
+    })
+  })
+
   describe('real-world examples', () => {
     it('handles markdown prose example 1', () => {
       const result = extractSentences(
@@ -224,6 +323,54 @@ describe('extractSentences', () => {
       const result = extractSentences('First item. Still part of first')
       expect(result.currentSentence).toBe('Still part of first')
       expect(result.previousSentence).toBe('First item.')
+    })
+
+    it('handles paragraph with markdown that needs cleaning', () => {
+      const result = extractSentences(
+        'The **important** context. The *current* sentence here',
+      )
+      expect(result.currentSentence).toBe('The current sentence here')
+      expect(result.previousSentence).toBe('The important context.')
+      // Verify markdown is stripped
+      expect(result.currentSentence).not.toContain('*')
+      expect(result.previousSentence).not.toContain('**')
+    })
+
+    it('handles complex markdown document structure', () => {
+      const complexDoc = `# Main Title
+
+The **first** paragraph. This has *emphasis*.
+
+## Section Two
+
+Another paragraph with \`code\`.`
+
+      const result = extractSentences(complexDoc)
+      // Should extract clean sentences without markdown
+      expect(result.currentSentence).not.toContain('**')
+      expect(result.currentSentence).not.toContain('*')
+      expect(result.currentSentence).not.toContain('`')
+      expect(result.currentSentence).not.toContain('#')
+      if (result.previousSentence) {
+        expect(result.previousSentence).not.toContain('**')
+        expect(result.previousSentence).not.toContain('*')
+        expect(result.previousSentence).not.toContain('`')
+      }
+    })
+
+    it('handles multiple sections properly', () => {
+      const complexDoc = `# Writing Demo Doc
+
+I'll restart this document again to demonstrate how the inline completions work within the text editor. 
+
+This is a ![cat image](https://plus.unsplash.com/premium_photo-1667030474693-6d0632f97029?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=987) which is `
+
+      const result = extractSentences(complexDoc)
+
+      expect(result.currentSentence).toBe('This is a cat image which is')
+      expect(result.previousSentence).toBe(
+        "I'll restart this document again to demonstrate how the inline completions work within the text editor.",
+      )
     })
   })
 })

@@ -1,7 +1,10 @@
+import removeMd from 'remove-markdown'
+
 /**
  * Extracts the current and previous sentences from text
  *
  * Strips newline characters to ensure sentences across text blocks are included.
+ * Removes markdown formatting from extracted sentences to prevent confusing AI models.
  * By passing the full document context, the function can find previous context
  * even if there's no previous sentence on the current line.
  */
@@ -36,8 +39,22 @@ export interface SentenceExtraction {
  * // Returns: { currentSentence: "Incomplete sentence at end", previousSentence: undefined }
  */
 export function extractSentences(textBeforeCursor: string): SentenceExtraction {
-  // Strip newline characters to include previous text block context
-  const cleanText = textBeforeCursor.replace(/\n/g, ' ').trim()
+  // Remove markdown formatting first to extract clean sentences
+  const withoutMarkdown = removeMd(textBeforeCursor)
+
+  // Split into paragraphs (separated by double newlines)
+  const paragraphs = withoutMarkdown
+    .split(/\n\n+/)
+    .map((p) => p.replace(/\n/g, ' ').trim()) // Replace single newlines with spaces within paragraphs
+    .filter((p) => p.length > 0) // Remove empty paragraphs
+
+  if (paragraphs.length === 0) {
+    return { currentSentence: '' }
+  }
+
+  // Extract from the last paragraph (most recent content)
+  const lastParagraph = paragraphs[paragraphs.length - 1]
+  const cleanText = lastParagraph
 
   if (!cleanText) {
     return { currentSentence: '' }
@@ -114,6 +131,45 @@ export function extractSentences(textBeforeCursor: string): SentenceExtraction {
     } else {
       // No text after last terminator, treat the entire text as current sentence
       currentSentence = cleanText.trim()
+    }
+  }
+
+  // If no previous sentence found in current paragraph, look in the previous paragraph
+  if (!previousSentence && paragraphs.length > 1) {
+    const previousParagraph = paragraphs[paragraphs.length - 2]
+    if (previousParagraph) {
+      // Get the last sentence from the previous paragraph
+      const lastPeriodIdx = previousParagraph.lastIndexOf('.')
+      const lastExclamationIdx = previousParagraph.lastIndexOf('!')
+      const lastQuestionIdx = previousParagraph.lastIndexOf('?')
+
+      const lastTerminatorIdx = Math.max(
+        lastPeriodIdx,
+        lastExclamationIdx,
+        lastQuestionIdx,
+      )
+
+      if (lastTerminatorIdx !== -1) {
+        // Find the sentence terminator before the last one
+        const beforeLastIdx = Math.max(
+          previousParagraph.lastIndexOf('.', lastTerminatorIdx - 1),
+          previousParagraph.lastIndexOf('!', lastTerminatorIdx - 1),
+          previousParagraph.lastIndexOf('?', lastTerminatorIdx - 1),
+        )
+
+        let sentenceStart = 0
+        if (beforeLastIdx !== -1) {
+          sentenceStart = beforeLastIdx + 1
+        }
+
+        const lastSentence = previousParagraph
+          .substring(sentenceStart, lastTerminatorIdx + 1)
+          .trim()
+
+        if (lastSentence && lastSentence.length > 1) {
+          previousSentence = lastSentence
+        }
+      }
     }
   }
 

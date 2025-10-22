@@ -5,6 +5,7 @@ export function buildCompletionPrompt(
   const combinedSentences = [previousSentence?.trim(), currentSentence.trim()]
     .filter(Boolean)
     .join(' ')
+
   const sentenceTerminatorCharacters = ['.', '?', '!']
 
   if (
@@ -13,20 +14,22 @@ export function buildCompletionPrompt(
     )
   ) {
     return {
-      prompt: `Start a new sentence with 3-8 words after this sentence: "${combinedSentences} ____". Only respond with the continuation text.`,
+      prompt: `Start a new sentence with a couple of words after this sentence: "${combinedSentences}"`,
       modelOptions: {
         stop: ['.', '\n\n', '##', '```'],
-        num_predict: 30,
+        num_predict: 8,
+        temperature: 1,
       },
       startedNewSentence: true,
     }
   }
 
   return {
-    prompt: `Fill in the blank with 1-4 words: "${combinedSentences} ____". Only respond with the continuation text.`,
+    prompt: `Fill in the blank with 1-4 words: "${combinedSentences} ____"`,
     modelOptions: {
       stop: ['\n\n', '##', '```'],
       num_predict: 8,
+      temperature: 0.3,
     },
     startedNewSentence: false,
   }

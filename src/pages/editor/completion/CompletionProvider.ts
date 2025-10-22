@@ -407,7 +407,7 @@ export class CompletionProvider {
             stream: false,
             options: {
               think: false,
-              temperature: 0.01,
+              temperature: modelOptions.temperature || 0.01,
               num_predict: modelOptions.num_predict,
               stop: modelOptions.stop,
             },

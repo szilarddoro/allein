@@ -31,7 +31,7 @@ interface CompletionProviderConfig {
   onLoadingChange?: (loading: boolean) => void
 }
 
-const leadingUpperCaseMatchRegExp = /^[A-Z]{2,}/g
+const leadingUpperCaseMatchRegExp = /^([A-Z]{2,}|I\s)/g
 
 /**
  * Stateful inline completion provider

@@ -14,9 +14,9 @@ export function buildCompletionPrompt(
     )
   ) {
     return {
-      prompt: `Start a new sentence with a couple of words after this sentence: "${combinedSentences}"`,
+      prompt: `Start a new sentence with a couple of words after this sentence: "${combinedSentences}" ____`,
       modelOptions: {
-        stop: ['.', '\n\n', '##', '```'],
+        stop: ['.', '\n'],
         num_predict: 8,
         temperature: 1,
       },
@@ -25,10 +25,10 @@ export function buildCompletionPrompt(
   }
 
   return {
-    prompt: `Fill in the blank with 1-4 words: "${combinedSentences} ____"`,
+    prompt: `Fill in the blank with 1-4 words: "${combinedSentences} ____". Respond only with the answer.`,
     modelOptions: {
-      stop: ['\n\n', '##', '```'],
-      num_predict: 8,
+      stop: ['\n'],
+      num_predict: 30,
       temperature: 0.3,
     },
     startedNewSentence: false,

@@ -173,7 +173,7 @@ export function extractSentences(textBeforeCursor: string): SentenceExtraction {
         // No sentence terminator in previous paragraph, use the entire paragraph if it's substantial
         const trimmedParagraph = previousParagraph.trim()
         if (trimmedParagraph && trimmedParagraph.length > 1) {
-          previousSentence = trimmedParagraph
+          previousSentence = `${trimmedParagraph}.`
         }
       }
     }

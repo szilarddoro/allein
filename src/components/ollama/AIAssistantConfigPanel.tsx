@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { CheckCircle2, CircleAlert, Info, RefreshCcw } from 'lucide-react'
-import { ReactNode, useEffect } from 'react'
+import { ReactNode, useEffect, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDebounceValue } from 'usehooks-ts'
 import * as z from 'zod'
@@ -118,6 +118,7 @@ export function AIAssistantConfigPanel({
     useOllamaConfig()
   const { aiAssistanceEnabled } = useAIConfig()
   const { toast } = useToast()
+  const formInitializedRef = useRef(false)
 
   const form = useForm<z.infer<typeof assistantSettingsFormValues>>({
     resolver: zodResolver(assistantSettingsFormValues),
@@ -129,7 +130,7 @@ export function AIAssistantConfigPanel({
     },
   })
 
-  const formReset = form.reset
+  const { reset: formReset } = form
   const isFormDirty = form.formState.isDirty
 
   // Watch the AI assistant enabled state for conditional disabling
@@ -162,7 +163,8 @@ export function AIAssistantConfigPanel({
     if (
       connectionStatus !== 'success' ||
       modelsStatus !== 'success' ||
-      configStatus !== 'success'
+      configStatus !== 'success' ||
+      formInitializedRef.current
     ) {
       return
     }
@@ -173,6 +175,8 @@ export function AIAssistantConfigPanel({
       serverUrl: ollamaUrl || 'http://localhost:11434',
       model: ollamaModel || '',
     })
+
+    formInitializedRef.current = true
   }, [
     formReset,
     connectionStatus,
@@ -235,13 +239,18 @@ export function AIAssistantConfigPanel({
     }
   }
 
+  function handleSubmit(values: AssistantSettingsFormValues) {
+    onSubmit?.(values)
+    formReset(values, { keepDirty: false })
+  }
+
   if (configLoading) {
     return null
   }
 
   return (
     <form
-      onSubmit={form.handleSubmit(onSubmit)}
+      onSubmit={form.handleSubmit(handleSubmit)}
       className="flex flex-col gap-6 items-start w-full"
     >
       <FieldSet className="w-full relative">

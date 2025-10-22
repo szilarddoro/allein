@@ -2,9 +2,11 @@
  * Tracks metrics for completion requests including latency and cache hit rates
  */
 
+type RequestType = 'cached' | 'rejected' | 'resolved' | 'canceled'
+
 interface RequestMetric {
   duration: number // milliseconds
-  isCacheHit: boolean
+  type: RequestType
   timestamp: number
 }
 
@@ -29,10 +31,10 @@ class CompletionMetrics {
   /**
    * Record a completion request
    */
-  recordRequest(durationMs: number, isCacheHit: boolean): void {
+  recordRequest(durationMs: number, { type }: { type: RequestType }): void {
     this.metrics.push({
       duration: durationMs,
-      isCacheHit,
+      type,
       timestamp: Date.now(),
     })
 
@@ -44,13 +46,18 @@ class CompletionMetrics {
 
   /**
    * Get the median request duration in milliseconds
+   *
+   * @param {boolean} includeAll - Whether to include canceled and cached requests.
    */
-  getMedianDuration(): number | null {
+  getMedianDuration(includeAll: boolean = false): number | null {
     if (this.metrics.length === 0) {
       return null
     }
 
     const sorted = [...this.metrics]
+      .filter((m) =>
+        includeAll ? true : m.type === 'resolved' || m.type === 'rejected',
+      )
       .map((m) => m.duration)
       .sort((a, b) => a - b)
 
@@ -65,13 +72,21 @@ class CompletionMetrics {
 
   /**
    * Get the average request duration in milliseconds
+   *
+   * @param {boolean} includeAll - Whether to include canceled and cached requests.
    */
-  getAverageDuration(): number | null {
+  getAverageDuration(includeAll: boolean = false): number | null {
     if (this.metrics.length === 0) {
       return null
     }
 
-    const sum = this.metrics.reduce((acc, m) => acc + m.duration, 0)
+    const sum = this.metrics.reduce((acc, m) => {
+      if (!includeAll && (m.type === 'cached' || m.type === 'canceled')) {
+        return acc
+      }
+
+      return acc + m.duration
+    }, 0)
     return sum / this.metrics.length
   }
 
@@ -86,7 +101,7 @@ class CompletionMetrics {
    * Get cache hit count
    */
   getCacheHitCount(): number {
-    return this.metrics.filter((m) => m.isCacheHit).length
+    return this.metrics.filter((m) => m.type === 'cached').length
   }
 
   /**

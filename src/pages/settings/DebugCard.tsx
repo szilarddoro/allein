@@ -93,14 +93,14 @@ export function DebugCard() {
                 {metricsStats.requestCount > 0 ? (
                   <span className="flex gap-3">
                     <span>
-                      Median:{' '}
+                      Med:{' '}
                       {metricsStats.median !== null
                         ? `${Math.round(metricsStats.median)}ms`
                         : 'N/A'}
                     </span>
-                    <span>Requests: {metricsStats.requestCount}</span>
+                    <span>Req: {metricsStats.requestCount}</span>
                     <span>
-                      Hit rate:{' '}
+                      Hit:{' '}
                       {metricsStats.cacheHitRate !== null
                         ? `${Math.round(metricsStats.cacheHitRate)}%`
                         : 'N/A'}

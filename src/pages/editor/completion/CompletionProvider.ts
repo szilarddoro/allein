@@ -301,7 +301,7 @@ export class CompletionProvider {
       }
 
       // Cache miss - proceed with API call
-      return await this.requestCompletion(
+      return this.requestCompletion(
         model,
         position,
         textBeforeCursor,
@@ -330,7 +330,7 @@ export class CompletionProvider {
     textBeforeCursorOnCurrentLine: string,
   ): monaco.languages.InlineCompletions {
     // Record cache hit metric (instantaneous, basically 0ms)
-    getCompletionMetrics().recordRequest(0, true)
+    getCompletionMetrics().recordRequest(0, { type: 'cached' })
 
     // Add leading space if needed
     const needsLeadingSpace =
@@ -428,7 +428,7 @@ export class CompletionProvider {
         this.config.onLoadingChange?.(false)
         // Record metric on error
         const duration = performance.now() - startTime
-        getCompletionMetrics().recordRequest(duration, false)
+        getCompletionMetrics().recordRequest(duration, { type: 'rejected' })
         return { items: [] }
       }
 
@@ -439,7 +439,7 @@ export class CompletionProvider {
 
       // Record metric for successful API call
       const duration = performance.now() - startTime
-      getCompletionMetrics().recordRequest(duration, false)
+      getCompletionMetrics().recordRequest(duration, { type: 'resolved' })
 
       if (!response.trim()) {
         return { items: [] }
@@ -461,11 +461,12 @@ export class CompletionProvider {
 
       // Record metric on exception
       const duration = performance.now() - startTime
-      getCompletionMetrics().recordRequest(duration, false)
 
       if (error instanceof Error && error.name === 'AbortError') {
+        getCompletionMetrics().recordRequest(duration, { type: 'canceled' })
         return { items: [] }
       } else {
+        getCompletionMetrics().recordRequest(duration, { type: 'rejected' })
         return { items: [] }
       }
     }

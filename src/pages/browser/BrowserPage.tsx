@@ -175,7 +175,7 @@ export function BrowserPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="relative flex flex-col gap-6 pl-6 pr-4 pt-4 pb-16 max-w-7xl w-full mx-auto">
+      <div className="relative flex flex-col gap-6 pl-6 pr-4 pt-4 pb-16 max-w-7xl w-full mx-auto select-none">
         <H1 className="my-0 text-3xl">Browser</H1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

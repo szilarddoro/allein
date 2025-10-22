@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -193,13 +194,15 @@ export function FileNameEditor({
               className="cursor-pointer hover:text-foreground transition-colors focus:outline-none focus:ring-[3px] focus:ring-ring/50 rounded"
             >
               <ContextMenuTrigger asChild>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={handleFileNameClick}
                   onContextMenu={(e) => e.stopPropagation()}
-                  className="text-left select-none"
+                  className="text-left select-none px-1.5 py-0.5 h-auto font-normal rounded-md"
                 >
                   {fileName}
-                </button>
+                </Button>
               </ContextMenuTrigger>
             </TooltipTrigger>
 

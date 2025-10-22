@@ -106,7 +106,12 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 </H4>
               ),
               p: ({ children }) => (
-                <P className={cn(renderType === 'embedded' && 'text-sm')}>
+                <P
+                  className={cn(
+                    renderType === 'embedded' && 'text-sm',
+                    'first-of-type:mt-0',
+                  )}
+                >
                   {children}
                 </P>
               ),

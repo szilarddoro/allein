@@ -193,7 +193,12 @@ export function BrowserPage() {
                       'after:absolute after:bottom-0 after:left-0 after:w-full after:h-22 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent',
                     )}
                   >
-                    <CardHeader className="px-0">
+                    <CardHeader
+                      className={cn(
+                        'px-0',
+                        file.preview.length > 0 && 'sr-only',
+                      )}
+                    >
                       <H3 className="text-xs text-muted-foreground font-normal mb-0 truncate">
                         <span aria-hidden="true">
                           {getDisplayName(file.name)}
@@ -205,7 +210,7 @@ export function BrowserPage() {
                       </H3>
                     </CardHeader>
 
-                    <CardContent className="px-0 pb-0 overflow-hidden">
+                    <CardContent className="px-0 pt-0.5 pb-0 overflow-hidden">
                       {file.preview ? (
                         <>
                           <MarkdownPreview

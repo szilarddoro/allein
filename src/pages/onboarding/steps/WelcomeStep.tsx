@@ -28,7 +28,7 @@ interface WelcomeStepProps {
 
 export function WelcomeStep({ onNext, onSkip }: WelcomeStepProps) {
   return (
-    <div className="relative max-w-4xl w-full mx-auto flex flex-col gap-6 items-center justify-center flex-1 select-none pt-4 pb-16 px-4">
+    <div className="relative max-w-4xl w-full mx-auto flex flex-col gap-6 items-center justify-center flex-1 pt-4 pb-16 px-4">
       <div className="flex flex-col items-center justify-center motion-safe:animate-fade-in">
         <img
           draggable={false}

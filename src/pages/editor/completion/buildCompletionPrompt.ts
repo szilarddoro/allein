@@ -1,21 +1,33 @@
-export function buildCompletionPrompt(currentSentence: string) {
+export function buildCompletionPrompt(
+  currentSentence: string,
+  previousSentence?: string,
+) {
+  const combinedSentences = [previousSentence?.trim(), currentSentence.trim()]
+    .filter(Boolean)
+    .join(' ')
   const sentenceTerminatorCharacters = ['.', '?', '!']
 
   if (
     sentenceTerminatorCharacters.some((char) =>
-      currentSentence.trim().endsWith(char),
+      combinedSentences.endsWith(char),
     )
   ) {
     return {
-      prompt: `Start a new sentence after this sentence: "${currentSentence.trim()}". Only respond with the completion text without formatting. Aim for 3-8 words.`,
-      stop: ['.', '\n\n', '##', '```'],
-      isNewSentence: true,
+      prompt: `Start a new sentence with 3-8 words after this sentence: "${combinedSentences} ____". Only respond with the continuation text.`,
+      modelOptions: {
+        stop: ['.', '\n\n', '##', '```'],
+        num_predict: 30,
+      },
+      startedNewSentence: true,
     }
   }
 
   return {
-    prompt: `Continue this sentence naturally: "${currentSentence.trim()} ". Only respond with the completion text without formatting. Aim for 1-4 words.`,
-    stop: ['\n\n', '##', '```'],
-    isNewSentence: false,
+    prompt: `Fill in the blank with 1-4 words: "${combinedSentences} ____". Only respond with the continuation text.`,
+    modelOptions: {
+      stop: ['\n\n', '##', '```'],
+      num_predict: 8,
+    },
+    startedNewSentence: false,
   }
 }

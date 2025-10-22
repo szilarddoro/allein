@@ -14,6 +14,7 @@ import { getCompletionCache } from './CompletionCache'
 import { shouldCompleteMultiline } from './multilineClassification'
 import { buildCompletionPrompt } from './buildCompletionPrompt'
 import { getCompletionMetrics } from './CompletionMetrics'
+import { extractSentences } from './extractSentences'
 
 interface CachedSuggestion {
   text: string
@@ -382,29 +383,16 @@ export class CompletionProvider {
     const startTime = performance.now()
 
     try {
-      // Extract current sentence from the text before cursor
-      const sentenceMatch = textBeforeCursorOnCurrentLine.match(
-        /(?:^|\.|!|\?|\n)(?:\s*)([^.!?]*?)$/,
+      // Extract current and previous sentences
+      const { currentSentence, previousSentence } = extractSentences(
+        textBeforeCursorOnCurrentLine,
       )
-      let currentSentence = sentenceMatch
-        ? sentenceMatch[1].trim()
-        : textBeforeCursorOnCurrentLine.trim()
-
-      // If current sentence is empty, try to get the previous sentence
-      if (!currentSentence) {
-        const previousSentenceMatch = textBeforeCursorOnCurrentLine.match(
-          /([^.!?]*?[.!?])(?:\s*)$/,
-        )
-        currentSentence = previousSentenceMatch
-          ? previousSentenceMatch[1].trim()
-          : textBeforeCursorOnCurrentLine.trim()
-      }
 
       // Notify loading started
       this.config.onLoadingChange?.(true)
 
-      const { prompt, stop, isNewSentence } =
-        buildCompletionPrompt(currentSentence)
+      const { prompt, modelOptions, startedNewSentence } =
+        buildCompletionPrompt(currentSentence, previousSentence)
 
       const generateResponse = await fetch(
         `${this.config.ollamaUrl}/api/generate`,
@@ -417,7 +405,8 @@ export class CompletionProvider {
             options: {
               think: false,
               temperature: 0.01,
-              stop,
+              num_predict: modelOptions.num_predict,
+              stop: modelOptions.stop,
             },
           }),
           signal: this.currentRequest.signal,
@@ -453,7 +442,7 @@ export class CompletionProvider {
         textBeforeCursor,
         currentLine,
         textBeforeCursorOnCurrentLine,
-        isNewSentence,
+        startedNewSentence,
       )
     } catch (error) {
       // Notify loading finished on error
@@ -482,7 +471,7 @@ export class CompletionProvider {
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
-    isNewSentence: boolean,
+    startedNewSentence: boolean,
   ): monaco.languages.InlineCompletions {
     // Remove "Output:" prefix if model includes it
     if (completion.toLowerCase().startsWith('output:')) {
@@ -518,7 +507,8 @@ export class CompletionProvider {
       return { items: [] }
     }
 
-    if (isNewSentence) {
+    // Completion should be uppercase/lowercase based on the sentence status
+    if (startedNewSentence) {
       completion = completion.charAt(0).toUpperCase() + completion.substring(1)
     } else {
       completion = completion.charAt(0).toLowerCase() + completion.substring(1)

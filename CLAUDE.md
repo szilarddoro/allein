@@ -124,16 +124,25 @@ Custom configuration:
 
 Path: `src/pages/editor/completion/`
 
-**Overview**: Inline completion provider powered by local Ollama models. Sends document context with cursor position to Ollama and returns AI-generated suggestions.
+**Overview**: Inline completion provider powered by local Ollama models. Sends document context with cursor position to Ollama and returns AI-generated suggestions with previous sentence context for better coherence.
 
 **Key Components**:
 - `useInlineCompletion.ts` - Main Monaco inline completion provider hook
-- `completionSystemPrompt.ts` - System prompt for completion requests
-- `AutocompleteDebouncer.ts` - Debouncing to prevent excessive requests
-- `CompletionCache.ts` - LRU cache for completion results
+- `buildCompletionPrompt.ts` - Constructs prompts with current and previous sentence context
+- `extractSentences.ts` - Extracts current and previous sentences from full document text for context
+- `CompletionProvider.ts` - Core provider managing completion requests, caching, and metrics
+- `CompletionMetrics.ts` - Tracks request latency and performance statistics
+- `AutocompleteDebouncer.ts` - Debouncing to prevent excessive requests (350ms default)
+- `CompletionCache.ts` - LRU cache with 500 capacity for completion results
 - `prefiltering.ts` - Skips unnecessary completion requests based on context
 - `multilineClassification.ts` - Determines when to allow multiline completions
 - `processSingleLineCompletion.ts` - Word-level diffing for single-line results
+
+**Context Enhancement**:
+- Uses `extractSentences()` to automatically find previous sentence context from full document
+- Strips newlines to preserve context across paragraph boundaries
+- If no previous sentence exists on current line, looks back through earlier paragraphs
+- Previous sentence included in prompt: "Previous sentence: X\n\nStart/Continue..."
 
 **Triggering**: Activates at word boundaries, after sentence endings, and when multiple words have been typed.
 

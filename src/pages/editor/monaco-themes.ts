@@ -17,7 +17,7 @@ export const defineCustomThemes = (monaco: Monaco) => {
     colors: {
       'editor.background': '#ffffff',
       'editor.foreground': '#09090b',
-      'editor.lineHighlightBackground': '#f6f8fa',
+      'editor.lineHighlightBackground': '#f6f6f6',
       'editorCursor.foreground': '#0366d6',
       'editor.selectionBackground': '#c8e1ff',
       'editorLineNumber.foreground': '#959da5',
@@ -40,7 +40,7 @@ export const defineCustomThemes = (monaco: Monaco) => {
     colors: {
       'editor.background': '#171717',
       'editor.foreground': '#fafafa',
-      'editor.lineHighlightBackground': '#282828',
+      'editor.lineHighlightBackground': '#1c1c1f',
       'editorCursor.foreground': '#8ec5ff',
       'editor.selectionBackground': '#1a368c',
       'editorLineNumber.foreground': '#858585',

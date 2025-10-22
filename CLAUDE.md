@@ -53,6 +53,8 @@ gh release create v{VERSION} --notes "your custom release notes"
 
 ### Git Commits
 
+**IMPORTANT**: Never commit changes without the developer testing and approving the changes first. Always present the changes for review before committing.
+
 When making commits, always include yourself as a committer using the following format:
 
 ```bash

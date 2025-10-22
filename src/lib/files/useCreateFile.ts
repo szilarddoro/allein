@@ -9,11 +9,17 @@ export function useCreateFile() {
 
   return useMutation({
     mutationFn: () => invoke<FileContent>('create_file'),
-    onSuccess: (newFile) => {
-      queryClient.invalidateQueries({ queryKey: FILES_QUERY_KEY() })
-      queryClient.invalidateQueries({
-        queryKey: READ_FILE_QUERY_KEY(newFile.path),
-      })
+    onSuccess: async (newFile) => {
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: FILES_QUERY_KEY() }),
+          queryClient.invalidateQueries({
+            queryKey: READ_FILE_QUERY_KEY(newFile.path),
+          }),
+        ])
+      } catch {
+        // silently ignore invalidation errors
+      }
     },
   })
 }

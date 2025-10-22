@@ -8,11 +8,17 @@ export function useDeleteFile() {
 
   return useMutation({
     mutationFn: (filePath: string) => invoke('delete_file', { filePath }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: FILES_QUERY_KEY() })
-      queryClient.invalidateQueries({
-        queryKey: FILES_WITH_PREVIEW_QUERY_KEY(),
-      })
+    onSuccess: async () => {
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: FILES_QUERY_KEY() }),
+          queryClient.invalidateQueries({
+            queryKey: FILES_WITH_PREVIEW_QUERY_KEY(),
+          }),
+        ])
+      } catch {
+        // silently ignore invalidation errors
+      }
     },
   })
 }

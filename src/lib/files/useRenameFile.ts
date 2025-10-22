@@ -45,9 +45,17 @@ export function useRenameFile() {
         )
       }
     },
-    onSuccess: (newPath) => {
-      queryClient.invalidateQueries({ queryKey: FILES_QUERY_KEY() })
-      queryClient.invalidateQueries({ queryKey: READ_FILE_QUERY_KEY(newPath) })
+    onSuccess: async (newPath) => {
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: FILES_QUERY_KEY() }),
+          queryClient.invalidateQueries({
+            queryKey: READ_FILE_QUERY_KEY(newPath),
+          }),
+        ])
+      } catch {
+        // silently ignore invalidation errors
+      }
     },
   })
 }

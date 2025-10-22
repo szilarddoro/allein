@@ -242,7 +242,7 @@ export function EditorPage() {
     <div
       className={cn(
         'h-full flex flex-col gap-1 overflow-hidden',
-        sidebarOpen && 'max-w-7xl pl-6 pr-4',
+        sidebarOpen && 'pl-6 pr-4',
       )}
     >
       <EditorHeader

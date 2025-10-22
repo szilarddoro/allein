@@ -359,17 +359,28 @@ Another paragraph with \`code\`.`
     })
 
     it('handles multiple sections properly', () => {
-      const complexDoc = `# Writing Demo Doc
+      const firstScenario = `# Writing Demo Doc
 
 I'll restart this document again to demonstrate how the inline completions work within the text editor. 
 
 This is a ![cat image](https://plus.unsplash.com/premium_photo-1667030474693-6d0632f97029?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=987) which is `
 
-      const result = extractSentences(complexDoc)
+      const firstResults = extractSentences(firstScenario)
 
-      expect(result.currentSentence).toBe('This is a cat image which is')
-      expect(result.previousSentence).toBe(
+      expect(firstResults.currentSentence).toBe('This is a cat image which is')
+      expect(firstResults.previousSentence).toBe(
         "I'll restart this document again to demonstrate how the inline completions work within the text editor.",
+      )
+
+      const secondScenario = `# Writing Document With Gemma3
+
+I'll start writing a longer `
+
+      const secondResults = extractSentences(secondScenario)
+
+      expect(secondResults.currentSentence).toBe("I'll start writing a longer")
+      expect(secondResults.previousSentence).toBe(
+        'Writing Document With Gemma3',
       )
     })
   })

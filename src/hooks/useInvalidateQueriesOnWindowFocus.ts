@@ -1,5 +1,6 @@
 import { FILES_WITH_PREVIEW_QUERY_KEY } from '@/lib/files/useFileListWithPreview'
 import { READ_FILE_BASE_QUERY_KEY } from '@/lib/files/useReadFile'
+import { OLLAMA_WARMUP_BASE_QUERY_KEY } from '@/lib/ollama/useModelWarmup'
 import { OLLAMA_MODEL_BASE_QUERY_KEY } from '@/lib/ollama/useOllamaModels'
 import { useQueryClient } from '@tanstack/react-query'
 import { listen } from '@tauri-apps/api/event'
@@ -33,6 +34,9 @@ export function useInvalidateQueriesOnWindowFocus() {
         queryClient.invalidateQueries({
           predicate: (query) =>
             query.queryKey.includes(OLLAMA_MODEL_BASE_QUERY_KEY),
+        })
+        queryClient.invalidateQueries({
+          queryKey: [OLLAMA_WARMUP_BASE_QUERY_KEY],
         })
       })
     }

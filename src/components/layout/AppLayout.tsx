@@ -18,7 +18,7 @@ import { useToast } from '@/lib/useToast'
 import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { BaseLayout } from '@/components/layout/BaseLayout'
 import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
-import { useModelWarmup } from '@/lib/ollama/warmupModel'
+import { useModelWarmup } from '@/lib/ollama/useModelWarmup'
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)

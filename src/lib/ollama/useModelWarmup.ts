@@ -2,6 +2,8 @@ import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useQuery } from '@tanstack/react-query'
 
+export const OLLAMA_WARMUP_BASE_QUERY_KEY = 'ollama-warmup'
+
 /**
  * Warms up the Ollama model by sending a minimal generation request
  * This loads the model into memory and keeps it ready for subsequent requests
@@ -25,11 +27,10 @@ export function useModelWarmup() {
   const { ollamaUrl, ollamaModel } = useOllamaConfig()
 
   return useQuery({
-    queryKey: ['ollama-warmup', ollamaUrl, ollamaModel],
+    queryKey: [OLLAMA_WARMUP_BASE_QUERY_KEY, ollamaUrl, ollamaModel],
     queryFn: () => warmupModel(ollamaUrl!, ollamaModel!),
     enabled: (aiAssistanceEnabled ?? false) && !!ollamaUrl && !!ollamaModel,
     refetchInterval: 5 * 60 * 1000,
-    refetchIntervalInBackground: true,
     retry: false,
     staleTime: Infinity, // Data never goes stale
   })

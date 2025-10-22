@@ -1,4 +1,3 @@
-import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { Button } from '@/components/ui/button'
 import {
   Field,
@@ -34,6 +33,7 @@ import { ReactNode, useEffect, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDebounceValue } from 'usehooks-ts'
 import * as z from 'zod'
+import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 
 const RECOMMENDED_MODEL = 'gemma3:latest'
 
@@ -365,9 +365,9 @@ export function AIAssistantConfigPanel({
                       )}
                     >
                       {connectionLoading && (
-                        <ActivityIndicator>
+                        <DelayedActivityIndicator delay={750}>
                           Checking connection...
-                        </ActivityIndicator>
+                        </DelayedActivityIndicator>
                       )}
 
                       {!connectionLoading && isConnected && (
@@ -450,7 +450,9 @@ export function AIAssistantConfigPanel({
                   {!fieldState.invalid && !modelsError && (
                     <FieldDescription>
                       {modelsLoading && (
-                        <ActivityIndicator>Loading models...</ActivityIndicator>
+                        <DelayedActivityIndicator delay={750}>
+                          Loading models...
+                        </DelayedActivityIndicator>
                       )}
 
                       {!modelsLoading && models && models.length === 0 && (

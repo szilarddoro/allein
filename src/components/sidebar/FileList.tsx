@@ -1,4 +1,4 @@
-import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -89,9 +89,9 @@ export function FileList() {
 
   if (status === 'pending') {
     return (
-      <ActivityIndicator className="self-center">
+      <DelayedActivityIndicator className="self-center">
         Loading files...
-      </ActivityIndicator>
+      </DelayedActivityIndicator>
     )
   }
 

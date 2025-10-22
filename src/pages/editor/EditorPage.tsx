@@ -1,4 +1,3 @@
-import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -23,6 +22,7 @@ import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
 import { useAutoSave } from './useAutoSave'
 import { useEditorKeyBindings } from './useEditorKeyBindings'
+import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 
 export function EditorPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -198,7 +198,7 @@ export function EditorPage() {
   if (currentFileStatus === 'pending') {
     return (
       <div className="h-full flex items-center justify-center">
-        <ActivityIndicator>Loading file...</ActivityIndicator>
+        <DelayedActivityIndicator>Loading file...</DelayedActivityIndicator>
       </div>
     )
   }

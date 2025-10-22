@@ -1,4 +1,4 @@
-import { ActivityIndicator } from '@/components/ActivityIndicator'
+import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,7 +109,7 @@ export function BrowserPage() {
   if (status === 'pending') {
     return (
       <div className="flex-1 overflow-hidden flex justify-center items-center select-none">
-        <ActivityIndicator>Loading files...</ActivityIndicator>
+        <DelayedActivityIndicator>Loading files...</DelayedActivityIndicator>
       </div>
     )
   }

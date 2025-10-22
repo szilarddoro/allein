@@ -1,4 +1,3 @@
-import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { Card } from '@/components/ui/card'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 import MonacoEditor, { Monaco } from '@monaco-editor/react'
@@ -7,6 +6,7 @@ import { useTheme } from 'next-themes'
 import { forwardRef, useRef } from 'react'
 import { useInlineCompletion } from './completion/useInlineCompletion'
 import { defineCustomThemes } from './monaco-themes'
+import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 
 export interface TextEditorProps {
   value?: string
@@ -255,7 +255,11 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
               onChange={handleEditorChange}
               beforeMount={handleBeforeMount}
               onMount={handleEditorDidMount}
-              loading={<ActivityIndicator>Loading editor...</ActivityIndicator>}
+              loading={
+                <DelayedActivityIndicator>
+                  Loading editor...
+                </DelayedActivityIndicator>
+              }
               options={{
                 tabSize: 2,
                 links: false,

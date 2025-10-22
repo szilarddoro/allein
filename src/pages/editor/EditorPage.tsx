@@ -239,7 +239,12 @@ export function EditorPage() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-1 overflow-hidden">
+    <div
+      className={cn(
+        'h-full flex flex-col gap-1 overflow-hidden',
+        sidebarOpen && 'max-w-7xl pl-6 pr-4',
+      )}
+    >
       <EditorHeader
         currentFile={currentFile || null}
         sidebarOpen={sidebarOpen}
@@ -251,9 +256,9 @@ export function EditorPage() {
         <div
           ref={editorRef}
           className={cn(
-            'flex flex-col flex-1 min-w-0 pl-2 pr-4 pb-4',
-            showPreview && 'w-1/2 pr-2',
-            !sidebarOpen && 'pl-4',
+            'flex flex-col flex-1 min-w-0 pb-4',
+            showPreview && 'w-1/2 pr-4',
+            !sidebarOpen && 'pl-4 pr-4',
           )}
         >
           <TextEditor
@@ -268,12 +273,12 @@ export function EditorPage() {
         </div>
 
         {showPreview && (
-          <div className="w-1/2 flex flex-col min-w-0 pl-2 pr-4 pb-4 min-h-0">
+          <div className="w-1/2 flex flex-col min-w-0 pb-4 min-h-0">
             <MarkdownPreview content={markdownContent} />
           </div>
         )}
 
-        <div className="absolute bottom-8 right-8 group">
+        <div className="absolute bottom-7 right-3 group">
           <div
             className={cn(
               'flex flex-row gap-1',

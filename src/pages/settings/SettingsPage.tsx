@@ -6,28 +6,26 @@ import { DebugCard } from '@/pages/settings/DebugCard'
 
 export function SettingsPage() {
   return (
-    <div className="p-6 pt-4 pb-32 flex-1 select-none">
-      <div className="max-w-4xl mx-auto flex flex-col gap-6">
-        <H1>Settings</H1>
+    <div className="pt-4 pl-6 pr-4 pb-32 flex-1 max-w-7xl mx-auto w-full flex flex-col gap-6">
+      <H1 className="my-0 text-3xl">Settings</H1>
 
+      <section>
+        <AIAssistantCard />
+      </section>
+
+      <section>
+        <AppearanceCard />
+      </section>
+
+      {import.meta.env.DEV && (
         <section>
-          <AIAssistantCard />
+          <DebugCard />
         </section>
+      )}
 
-        <section>
-          <AppearanceCard />
-        </section>
-
-        {import.meta.env.DEV && (
-          <section>
-            <DebugCard />
-          </section>
-        )}
-
-        <section>
-          <AboutCard />
-        </section>
-      </div>
+      <section>
+        <AboutCard />
+      </section>
     </div>
   )
 }

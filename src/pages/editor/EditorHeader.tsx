@@ -41,8 +41,8 @@ export function EditorHeader({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-2 pl-4 pr-6 py-1 grow-0 shrink-0',
-        !sidebarOpen && 'pl-6',
+        'flex items-center justify-between gap-2 py-1 grow-0 shrink-0',
+        !sidebarOpen && 'pl-4',
       )}
     >
       <FileNameEditor currentFile={currentFile} onFileRenamed={onFileRenamed} />

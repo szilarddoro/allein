@@ -240,7 +240,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
 
     return (
       <div className="relative flex flex-col flex-1 min-h-0" ref={ref}>
-        <Card className="flex flex-col flex-1 min-h-0 p-0 m-0.5 overflow-hidden relative transition-colors duration-300">
+        <Card className="flex flex-col flex-1 min-h-0 p-0 overflow-hidden relative transition-colors duration-300">
           <div className="flex-1 min-h-0">
             <MonacoEditor
               key={theme}

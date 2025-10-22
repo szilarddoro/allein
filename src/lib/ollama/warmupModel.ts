@@ -14,9 +14,6 @@ async function warmupModel(
     method: 'POST',
     body: JSON.stringify({
       model: modelName,
-      options: {
-        keep_alive: '5m',
-      },
     }),
   })
 

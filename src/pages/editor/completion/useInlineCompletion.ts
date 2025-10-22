@@ -358,7 +358,6 @@ export function useInlineCompletion({
                     think: false,
                     options: {
                       temperature: 0.01,
-                      keep_alive: 3600,
                       num_predict: 10,
                       stop: ['\n\n', '##', '```', '<|CURSOR|>'], // Stop at paragraph breaks, headings, code blocks
                     },

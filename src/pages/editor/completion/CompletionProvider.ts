@@ -7,7 +7,6 @@
  */
 
 import * as monaco from 'monaco-editor'
-import { AutocompleteDebouncer } from './AutocompleteDebouncer'
 import { shouldPrefilter } from './prefiltering'
 import { processSingleLineCompletion } from './processSingleLineCompletion'
 import { getCompletionCache } from './CompletionCache'
@@ -39,14 +38,12 @@ const textAndNumericMatchRegExp = /[a-zA-Z0-9]/g
  */
 export class CompletionProvider {
   private currentRequest: AbortController | null = null
-  private debouncer: AutocompleteDebouncer
   private activeSuggestion: CachedSuggestion | null = null
   private config: CompletionProviderConfig
   private disposable: monaco.IDisposable | null = null
 
   constructor(config: CompletionProviderConfig) {
     this.config = config
-    this.debouncer = new AutocompleteDebouncer()
   }
 
   /**
@@ -80,8 +77,6 @@ export class CompletionProvider {
       this.currentRequest.abort()
       this.currentRequest = null
     }
-
-    this.debouncer.cancel()
   }
 
   /**
@@ -98,6 +93,8 @@ export class CompletionProvider {
     model: monaco.editor.ITextModel,
     position: monaco.Position,
   ): Promise<monaco.languages.InlineCompletions | undefined> {
+    // TODO: Implement proper debouncing!
+
     // Get current line content
     const currentLine = model.getLineContent(position.lineNumber)
     const textBeforeCursor = model
@@ -255,7 +252,7 @@ export class CompletionProvider {
     }
 
     // Use Continue-style debouncing
-    return this.requestWithDebounce(
+    return this.requestWithCachePrefilter(
       model,
       position,
       textBeforeCursor,
@@ -267,23 +264,13 @@ export class CompletionProvider {
   /**
    * Request completion with debouncing
    */
-  private async requestWithDebounce(
+  private async requestWithCachePrefilter(
     model: monaco.editor.ITextModel,
     position: monaco.Position,
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
   ): Promise<monaco.languages.InlineCompletions> {
-    // Wait for debounce delay and check if we should proceed
-    const shouldDebounce = await this.debouncer.delayAndShouldDebounce(
-      this.config.debounceDelay,
-    )
-
-    if (shouldDebounce) {
-      // A newer request has superseded this one
-      return { items: [] }
-    }
-
     try {
       // Check if AI assistance is available
       if (!this.config.isAiAssistanceAvailable) {

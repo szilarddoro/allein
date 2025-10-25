@@ -16,6 +16,7 @@ export default defineConfig([
       'src-tauri',
       '*.config.js',
       '*.config.ts',
+      'coverage',
     ],
   },
   {

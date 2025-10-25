@@ -23,7 +23,7 @@ export function buildCompletionPrompt(input: CompletionPromptInput) {
   ) {
     const fullSentenceWithBlank = `${sentenceBeforeCursor} ____ ${sentenceAfterCursor}`
     return {
-      prompt: `Fill in the blank in this sentence with 1-3 words: "${fullSentenceWithBlank}". Respond ONLY with the answer.`,
+      prompt: `Fill in the blank in this text with 1-2 words: "${fullSentenceWithBlank}". Output only the completion, nothing else.`,
       modelOptions: {
         stop: ['\n'],
         num_predict: 10,
@@ -45,7 +45,7 @@ export function buildCompletionPrompt(input: CompletionPromptInput) {
   // This is an implicit mid-sentence context where we want to continue, not start new
   if (!isCompleteSentence && currentSentence.trim()) {
     return {
-      prompt: `Continue this sentence with 1-4 words: "${combinedSentences} ____". Respond only with the answer.`,
+      prompt: `Fill in the blank in the text with 1-2 words: "${combinedSentences} ____". Output only the completion, nothing else.`,
       modelOptions: {
         stop: ['\n'],
         num_predict: 15,
@@ -57,7 +57,7 @@ export function buildCompletionPrompt(input: CompletionPromptInput) {
 
   if (isCompleteSentence) {
     return {
-      prompt: `Start a new sentence with a couple of words after this sentence: "${combinedSentences}" ____`,
+      prompt: `Start a new sentence with a couple of words after this sentence: "${combinedSentences} ____"`,
       modelOptions: {
         stop: ['.', '\n'],
         num_predict: 8,
@@ -68,7 +68,7 @@ export function buildCompletionPrompt(input: CompletionPromptInput) {
   }
 
   return {
-    prompt: `Fill in the blank with 1-4 words: "${combinedSentences} ____". Respond only with the answer.`,
+    prompt: `Fill in the blank in the text with 1-4 words: "${combinedSentences} ____". Output only the completion, nothing else.`,
     modelOptions: {
       stop: ['\n'],
       num_predict: 15,

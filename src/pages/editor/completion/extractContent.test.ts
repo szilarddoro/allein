@@ -13,6 +13,10 @@ const documentLines = [
   '- Third list item with a single, unfinished sentence',
   '- Fourth list item with a finished sentence. Plus an unfinished sentence',
   '- Fifth list item with a finished sentence, and a trailing whitespace. ',
+  'Sentence ending with exclamation! ',
+  'Sentence ending with question? ',
+  'Sentence ending without trailing space.',
+  'Multiple sentences. Second one. Third one. ',
 ]
 
 describe('extractContent', () => {
@@ -43,14 +47,14 @@ describe('extractContent', () => {
     })
 
     it('should find sentences on previous lines when the first sentence is edited', () => {
-      const mockCursorPosition = createMockPosition(5, 8)
+      const mockCursorPosition = createMockPosition(5, 9)
       const { previousSentence, currentSentenceSegments } =
         extractPreviousAndCurrentSentence(mockTextModel, mockCursorPosition)
 
       expect(previousSentence).toBe('## Heading 1')
       expect(currentSentenceSegments).toMatchObject([
-        '- First',
-        ' sentence in this row.',
+        '- First ',
+        'sentence in this row.',
       ])
     })
 
@@ -103,6 +107,57 @@ describe('extractContent', () => {
       expect(currentSentenceSegments).toMatchObject([])
     })
 
-    // TODO: Add test case where cursor is at the end of the line, and there is an unfinished sentence at the end
+    it('should handle cursor after sentence ending with exclamation mark and trailing space', () => {
+      const mockCursorPosition = createMockPosition(10, 35)
+      // Line 10: "Sentence ending with exclamation! " (length 34)
+      const { previousSentence, currentSentenceSegments } =
+        extractPreviousAndCurrentSentence(mockTextModel, mockCursorPosition)
+
+      expect(previousSentence).toBe('Sentence ending with exclamation!')
+      expect(currentSentenceSegments).toMatchObject([])
+    })
+
+    it('should handle cursor after sentence ending with question mark and trailing space', () => {
+      const mockCursorPosition = createMockPosition(11, 32)
+      // Line 11: "Sentence ending with question? " (length 31)
+      const { previousSentence, currentSentenceSegments } =
+        extractPreviousAndCurrentSentence(mockTextModel, mockCursorPosition)
+
+      expect(previousSentence).toBe('Sentence ending with question?')
+      expect(currentSentenceSegments).toMatchObject([])
+    })
+
+    it('should handle cursor right after period without trailing space', () => {
+      const mockCursorPosition = createMockPosition(12, 40)
+      // Line 12: "Sentence ending without trailing space." (length 39)
+      const { previousSentence, currentSentenceSegments } =
+        extractPreviousAndCurrentSentence(mockTextModel, mockCursorPosition)
+
+      expect(previousSentence).toBe('Sentence ending without trailing space.')
+      expect(currentSentenceSegments).toMatchObject([])
+    })
+
+    it('should return the last sentence when cursor is at end of line with multiple sentences', () => {
+      const mockCursorPosition = createMockPosition(13, 44)
+      // Line 13: "Multiple sentences. Second one. Third one. " (length 43)
+      const { previousSentence, currentSentenceSegments } =
+        extractPreviousAndCurrentSentence(mockTextModel, mockCursorPosition)
+
+      expect(previousSentence).toBe('Third one.')
+      expect(currentSentenceSegments).toMatchObject([])
+    })
+
+    it('should return the very first sentence when cursor is at the beginning of the document', () => {
+      const mockCursorPosition = createMockPosition(0, 0)
+      // Line 13: "Multiple sentences. Second one. Third one. "
+      const { previousSentence, currentSentenceSegments } =
+        extractPreviousAndCurrentSentence(mockTextModel, mockCursorPosition)
+
+      expect(previousSentence).toBe('')
+      expect(currentSentenceSegments).toMatchObject([
+        '',
+        '# First line with two sentences.',
+      ])
+    })
   })
 })

@@ -37,16 +37,11 @@ export function extractPreviousAndCurrentSentence(
   const beforeCursorEndsWithWhitespace = currentLineBeforeCursor.endsWith(' ')
   const afterCursorStartsWithWhitespace = currentLineAfterCursor.startsWith(' ')
 
-  // TODO: This logic only works if we are currently in the middle of a sentence.
-  // If the cursor is right after a previous sentence, it will treat as if that sentence is the current one
   const currentSentenceStartSegment =
     extractSentences(currentLineBeforeCursor).pop() || ''
 
   const currentSentenceEndSegment =
     extractSentences(currentLineAfterCursor).shift() || ''
-
-  // IDEA: Try extracting sentences from individual segments after pop/shift
-  // If there are nested sentences, we should have treated the sentence as the previous sentence.
 
   const currentSentenceSegments = [
     beforeCursorEndsWithWhitespace

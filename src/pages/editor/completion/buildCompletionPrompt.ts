@@ -1,63 +1,50 @@
+import removeMd from 'remove-markdown'
+
 export interface CompletionPromptInput {
-  currentSentence: string
+  currentSentenceSegments: string[]
   previousSentence?: string
-  sentenceBeforeCursor?: string
-  sentenceAfterCursor?: string
+}
+
+const BLANK_PRE_CLEANUP_MARKER = '$$BLANK$$'
+const BLANK_POST_CLEANUP_MARKER = '____'
+
+const sentenceMarkerRegExp = /[.!?]\s*$/
+
+function joinSentences(previousSentenceRaw?: string, currentSentence?: string) {
+  let previousSentence = previousSentenceRaw?.trim() || ''
+
+  const isPreviousSentenceFinished = sentenceMarkerRegExp.test(previousSentence)
+
+  if (previousSentence !== '' && !isPreviousSentenceFinished) {
+    previousSentence = `${previousSentence}.`
+  }
+
+  const rv = [previousSentence, currentSentence]
+    .filter(Boolean)
+    .map((text) => removeMd(text!))
+    .join(' ')
+    .replace(BLANK_PRE_CLEANUP_MARKER, BLANK_POST_CLEANUP_MARKER)
+
+  return rv
 }
 
 export function buildCompletionPrompt(input: CompletionPromptInput) {
-  const {
-    currentSentence,
-    previousSentence,
-    sentenceBeforeCursor,
-    sentenceAfterCursor,
-  } = input
+  const { currentSentenceSegments, previousSentence } = input
+  const [firstSegment, secondSegment] = currentSentenceSegments || []
 
-  const sentenceTerminatorCharacters = ['.', '?', '!']
-
-  // Mid-sentence case 1: blank positioned between before and after cursor parts on same line
-  if (
-    sentenceBeforeCursor &&
-    sentenceAfterCursor &&
-    sentenceAfterCursor.trim()
-  ) {
-    const fullSentenceWithBlank = `${sentenceBeforeCursor} ____ ${sentenceAfterCursor}`
+  if (!previousSentence && !firstSegment && !secondSegment) {
     return {
-      prompt: `Fill in the blank in this text with 1-2 words: "${fullSentenceWithBlank}". Output only the completion, nothing else.`,
-      modelOptions: {
-        stop: ['\n'],
-        num_predict: 10,
-        temperature: 0.3,
-      },
+      prompt: '',
+      modelOptions: {},
       startedNewSentence: false,
+      preventCompletion: true,
     }
   }
 
-  const combinedSentences = [previousSentence?.trim(), currentSentence.trim()]
-    .filter(Boolean)
-    .join(' ')
-
-  const isCompleteSentence = sentenceTerminatorCharacters.some((char) =>
-    combinedSentences.endsWith(char),
-  )
-
-  // Mid-sentence case 2: currentSentence doesn't end with terminator = user is still typing the sentence
-  // This is an implicit mid-sentence context where we want to continue, not start new
-  if (!isCompleteSentence && currentSentence.trim()) {
+  // Scenario: Create new sentence
+  if (!firstSegment && !secondSegment) {
     return {
-      prompt: `Fill in the blank in the text with 1-2 words: "${combinedSentences} ____". Output only the completion, nothing else.`,
-      modelOptions: {
-        stop: ['\n'],
-        num_predict: 15,
-        temperature: 0.3,
-      },
-      startedNewSentence: false,
-    }
-  }
-
-  if (isCompleteSentence) {
-    return {
-      prompt: `Start a new sentence with a couple of words after this sentence: "${combinedSentences} ____"`,
+      prompt: `Start a new sentence with a couple of words after this sentence: "${removeMd(previousSentence!)} ${BLANK_POST_CLEANUP_MARKER}"`,
       modelOptions: {
         stop: ['.', '\n'],
         num_predict: 8,
@@ -67,8 +54,31 @@ export function buildCompletionPrompt(input: CompletionPromptInput) {
     }
   }
 
+  // Scenario: Complete in middle of the sentence
+  if (firstSegment.length > 0 && secondSegment.length > 0) {
+    const fullSentenceWithBlank = `${firstSegment.trim()} ${BLANK_PRE_CLEANUP_MARKER} ${secondSegment.trim()}`
+    const combinedSentences = joinSentences(
+      previousSentence,
+      fullSentenceWithBlank,
+    )
+
+    return {
+      prompt: `Fill in the blank in this text with 1-2 words: "${combinedSentences}". Output only the completion, nothing else.`,
+      modelOptions: {
+        stop: ['\n'],
+        num_predict: 10,
+        temperature: 0.3,
+      },
+      startedNewSentence: false,
+    }
+  }
+
+  // Scenario: Complete existing sentence
+  const currentSentence = currentSentenceSegments.join('')
+  const combinedSentences = joinSentences(previousSentence, currentSentence)
+
   return {
-    prompt: `Fill in the blank in the text with 1-4 words: "${combinedSentences} ____". Output only the completion, nothing else.`,
+    prompt: `Fill in the blank in this text with 1-4 words: "${combinedSentences} ${BLANK_POST_CLEANUP_MARKER}". Output only the completion, nothing else.`,
     modelOptions: {
       stop: ['\n'],
       num_predict: 15,

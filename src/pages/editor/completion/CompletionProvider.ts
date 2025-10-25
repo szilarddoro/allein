@@ -14,10 +14,7 @@ import { getCompletionCache } from './CompletionCache'
 import { shouldCompleteMultiline } from './multilineClassification'
 import { buildCompletionPrompt } from './buildCompletionPrompt'
 import { getCompletionMetrics } from './CompletionMetrics'
-import {
-  extractSentences,
-  extractSentencePartsAtCursor,
-} from './extractSentences'
+import { extractPreviousAndCurrentSentence } from '@/pages/editor/completion/extractContent'
 
 interface CachedSuggestion {
   text: string
@@ -388,30 +385,21 @@ export class CompletionProvider {
     const startTime = performance.now()
 
     try {
-      // Extract current and previous sentences from full context
-      // This allows finding previous context from earlier paragraphs if no previous
-      // sentence exists on the current line
-      const { currentSentence, previousSentence } =
-        extractSentences(textBeforeCursor)
-
-      // Check if we're in the middle of a sentence (cursor has text after it on the same line)
-      const { sentenceBeforeCursor, sentenceAfterCursor } =
-        extractSentencePartsAtCursor(
-          currentLine,
-          position.column,
-          textBeforeCursor,
-        )
+      const { currentSentenceSegments, previousSentence } =
+        extractPreviousAndCurrentSentence(model, position)
 
       // Notify loading started
       this.config.onLoadingChange?.(true)
 
-      const { prompt, modelOptions, startedNewSentence } =
+      const { prompt, modelOptions, startedNewSentence, preventCompletion } =
         buildCompletionPrompt({
-          currentSentence,
+          currentSentenceSegments,
           previousSentence,
-          sentenceBeforeCursor: sentenceBeforeCursor || undefined,
-          sentenceAfterCursor: sentenceAfterCursor || undefined,
         })
+
+      if (preventCompletion) {
+        return { items: [] }
+      }
 
       const generateResponse = await fetch(
         `${this.config.ollamaUrl}/api/generate`,

@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { extractSentences } from './extractSentences'
+import {
+  extractSentences,
+  extractSentencePartsAtCursor,
+} from './extractSentences'
 
 describe('extractSentences', () => {
   describe('basic sentence extraction', () => {
@@ -380,8 +383,152 @@ I'll start writing a longer `
 
       expect(secondResults.currentSentence).toBe("I'll start writing a longer")
       expect(secondResults.previousSentence).toBe(
-        'Writing Document With Gemma3',
+        'Writing Document With Gemma3.',
       )
+    })
+  })
+})
+
+describe('extractSentencePartsAtCursor', () => {
+  describe('basic cursor positioning', () => {
+    it('splits sentence at cursor position', () => {
+      const line = 'This is a great example'
+      // Column is 1-indexed, so column 16 is after "great " (T=1,h=2,i=3,s=4, =5,i=6,s=7, =8,a=9, =10,g=11,r=12,e=13,a=14,t=15, =16)
+      const cursorColumn = 16
+      const result = extractSentencePartsAtCursor(line, cursorColumn, line)
+
+      expect(result.sentenceBeforeCursor).toBe('This is a great')
+      expect(result.sentenceAfterCursor).toBe('example')
+    })
+
+    it('handles cursor at start of line', () => {
+      const line = 'This is text'
+      const cursorColumn = 1
+      const result = extractSentencePartsAtCursor(line, cursorColumn, line)
+
+      expect(result.sentenceBeforeCursor).toBe('')
+      expect(result.sentenceAfterCursor).toBe('This is text')
+    })
+
+    it('handles cursor at end of line', () => {
+      const line = 'This is text'
+      const cursorColumn = line.length + 1
+      const result = extractSentencePartsAtCursor(line, cursorColumn, line)
+
+      expect(result.sentenceBeforeCursor).toBe('This is text')
+      expect(result.sentenceAfterCursor).toBeUndefined()
+    })
+
+    it('handles cursor with whitespace after', () => {
+      const line = 'This is great   more text'
+      const cursorColumn = 16 // After "great   "
+      const result = extractSentencePartsAtCursor(line, cursorColumn, line)
+
+      expect(result.sentenceBeforeCursor).toBe('This is great')
+      expect(result.sentenceAfterCursor).toBe('more text')
+    })
+  })
+
+  describe('previous sentence extraction', () => {
+    it('extracts previous sentence from full document context', () => {
+      const fullDoc = 'First sentence. Second sentence'
+      const line = 'Second sentence'
+      const cursorColumn = 8 // After "Second "
+
+      const result = extractSentencePartsAtCursor(line, cursorColumn, fullDoc)
+
+      expect(result.sentenceBeforeCursor).toBe('Second')
+      expect(result.sentenceAfterCursor).toBe('sentence')
+      expect(result.previousSentence).toBe('First sentence.')
+    })
+
+    it('returns undefined previousSentence when there is none', () => {
+      const line = 'First sentence'
+      const cursorColumn = 6 // After "First "
+
+      const result = extractSentencePartsAtCursor(line, cursorColumn, line)
+
+      expect(result.sentenceBeforeCursor).toBe('First')
+      expect(result.sentenceAfterCursor).toBe('sentence')
+      expect(result.previousSentence).toBeUndefined()
+    })
+
+    it('extracts previous sentence across paragraphs', () => {
+      const fullDoc = 'First paragraph.\n\nSecond paragraph here'
+      const line = 'Second paragraph here'
+      const cursorColumn = 8 // After "Second "
+
+      const result = extractSentencePartsAtCursor(line, cursorColumn, fullDoc)
+
+      expect(result.sentenceBeforeCursor).toBe('Second')
+      expect(result.sentenceAfterCursor).toBe('paragraph here')
+      expect(result.previousSentence).toBe('First paragraph.')
+    })
+  })
+
+  describe('empty and whitespace cases', () => {
+    it('handles line with only whitespace before cursor', () => {
+      const line = '   text'
+      const cursorColumn = 4 // After "   "
+
+      const result = extractSentencePartsAtCursor(line, cursorColumn, line)
+
+      expect(result.sentenceBeforeCursor).toBe('')
+      expect(result.sentenceAfterCursor).toBe('text')
+    })
+
+    it('handles line with only whitespace after cursor', () => {
+      const line = 'text   '
+      const cursorColumn = 5 // After "text "
+
+      const result = extractSentencePartsAtCursor(line, cursorColumn, line)
+
+      expect(result.sentenceBeforeCursor).toBe('text')
+      expect(result.sentenceAfterCursor).toBeUndefined()
+    })
+
+    it('handles empty line', () => {
+      const line = ''
+      const cursorColumn = 1
+
+      const result = extractSentencePartsAtCursor(line, cursorColumn, '')
+
+      expect(result.sentenceBeforeCursor).toBe('')
+      expect(result.sentenceAfterCursor).toBeUndefined()
+    })
+  })
+
+  describe('real-world examples', () => {
+    it('handles cursor in middle of prose', () => {
+      const line = 'The quick brown fox jumps over the lazy dog'
+      // T=1,h=2,e=3, =4,q=5,u=6,i=7,c=8,k=9, =10,b=11,r=12,o=13,w=14,n=15, =16,f=17,o=18,x=19, =20
+      const cursorColumn = 20 // After "fox "
+
+      const result = extractSentencePartsAtCursor(line, cursorColumn, line)
+
+      expect(result.sentenceBeforeCursor).toBe('The quick brown fox')
+      expect(result.sentenceAfterCursor).toBe('jumps over the lazy dog')
+    })
+
+    it('handles cursor with punctuation ahead', () => {
+      const line = 'I really love this sentence.'
+      const cursorColumn = 15 // After "love "
+
+      const result = extractSentencePartsAtCursor(line, cursorColumn, line)
+
+      expect(result.sentenceBeforeCursor).toBe('I really love')
+      expect(result.sentenceAfterCursor).toBe('this sentence.')
+    })
+
+    it('handles markdown in text', () => {
+      const line = 'This is **bold** text here'
+      // T=1,h=2,i=3,s=4, =5,i=6,s=7, =8,*=9,*=10,b=11,o=12,l=13,d=14,*=15,*=16, =17
+      const cursorColumn = 17 // After "**bold** "
+
+      const result = extractSentencePartsAtCursor(line, cursorColumn, line)
+
+      expect(result.sentenceBeforeCursor).toBe('This is **bold**')
+      expect(result.sentenceAfterCursor).toBe('text here')
     })
   })
 })

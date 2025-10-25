@@ -14,7 +14,10 @@ import { getCompletionCache } from './CompletionCache'
 import { shouldCompleteMultiline } from './multilineClassification'
 import { buildCompletionPrompt } from './buildCompletionPrompt'
 import { getCompletionMetrics } from './CompletionMetrics'
-import { extractSentences } from './extractSentences'
+import {
+  extractSentences,
+  extractSentencePartsAtCursor,
+} from './extractSentences'
 
 interface CachedSuggestion {
   text: string
@@ -392,11 +395,24 @@ export class CompletionProvider {
       const { currentSentence, previousSentence } =
         extractSentences(textBeforeCursor)
 
+      // Check if we're in the middle of a sentence (cursor has text after it on the same line)
+      const { sentenceBeforeCursor, sentenceAfterCursor } =
+        extractSentencePartsAtCursor(
+          currentLine,
+          position.column,
+          textBeforeCursor,
+        )
+
       // Notify loading started
       this.config.onLoadingChange?.(true)
 
       const { prompt, modelOptions, startedNewSentence } =
-        buildCompletionPrompt(currentSentence, previousSentence)
+        buildCompletionPrompt({
+          currentSentence,
+          previousSentence,
+          sentenceBeforeCursor: sentenceBeforeCursor || undefined,
+          sentenceAfterCursor: sentenceAfterCursor || undefined,
+        })
 
       const generateResponse = await fetch(
         `${this.config.ollamaUrl}/api/generate`,

@@ -14,6 +14,12 @@ export interface SentenceExtraction {
   previousSentence?: string
 }
 
+export interface SentencePartsExtraction {
+  sentenceBeforeCursor: string
+  sentenceAfterCursor?: string
+  previousSentence?: string
+}
+
 /**
  * Extract current and previous sentences from text
  *
@@ -181,6 +187,48 @@ export function extractSentences(textBeforeCursor: string): SentenceExtraction {
 
   return {
     currentSentence,
+    previousSentence,
+  }
+}
+
+/**
+ * Extract sentence parts before and after cursor on the current line
+ *
+ * Used for mid-sentence completions where we want to place the blank
+ * indicator between the parts before and after the cursor.
+ *
+ * @param currentLine - The current line of text
+ * @param cursorColumn - The column position of the cursor (1-indexed)
+ * @param textBeforeCursor - Full document text before cursor (for getting previous sentence context)
+ * @returns Object containing sentence parts before/after cursor and previous sentence
+ *
+ * @example
+ * // Line: "This is a great example sentence"
+ * // Cursor at column 14 (after "great ")
+ * extractSentencePartsAtCursor("This is a great example sentence", 14, "...")
+ * // Returns: {
+ * //   sentenceBeforeCursor: "This is a great",
+ * //   sentenceAfterCursor: "example sentence",
+ * //   previousSentence: undefined
+ * // }
+ */
+export function extractSentencePartsAtCursor(
+  currentLine: string,
+  cursorColumn: number,
+  textBeforeCursor: string,
+): SentencePartsExtraction {
+  // Get text before cursor on current line
+  const textBeforeCursorOnLine = currentLine.substring(0, cursorColumn - 1)
+
+  // Get text after cursor on current line
+  const textAfterCursorOnLine = currentLine.substring(cursorColumn - 1)
+
+  // Extract previous sentence from full document context
+  const { previousSentence } = extractSentences(textBeforeCursor)
+
+  return {
+    sentenceBeforeCursor: textBeforeCursorOnLine.trim(),
+    sentenceAfterCursor: textAfterCursorOnLine.trim() || undefined,
     previousSentence,
   }
 }

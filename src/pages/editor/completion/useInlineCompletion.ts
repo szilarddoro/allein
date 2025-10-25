@@ -17,14 +17,12 @@ export interface UseInlineCompletionOptions {
   debounceDelay?: number
   disabled?: boolean
   onLoadingChange?: (loading: boolean) => void
-  documentTitle?: string
 }
 
 export function useInlineCompletion({
   debounceDelay = 350,
   disabled = false,
   onLoadingChange,
-  documentTitle = 'Untitled',
 }: UseInlineCompletionOptions = {}) {
   const monacoInstance = useMonaco()
   const { ollamaModel, ollamaUrl } = useOllamaConfig()
@@ -50,7 +48,6 @@ export function useInlineCompletion({
         ollamaModel,
         isAiAssistanceAvailable: isAiAssistanceAvailable || false,
         debounceDelay,
-        documentTitle,
         onLoadingChange,
       })
       providerRef.current.register(monacoInstance)
@@ -61,7 +58,6 @@ export function useInlineCompletion({
         ollamaModel,
         isAiAssistanceAvailable: isAiAssistanceAvailable || false,
         debounceDelay,
-        documentTitle,
         onLoadingChange,
       })
     }
@@ -77,7 +73,6 @@ export function useInlineCompletion({
     monacoInstance,
     disabled,
     debounceDelay,
-    documentTitle,
     isAiAssistanceAvailable,
     ollamaModel,
     ollamaUrl,

@@ -30,7 +30,6 @@ interface CompletionProviderConfig {
   ollamaModel: string
   isAiAssistanceAvailable: boolean
   debounceDelay: number
-  documentTitle: string
   onLoadingChange?: (loading: boolean) => void
 }
 

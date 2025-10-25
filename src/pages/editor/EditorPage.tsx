@@ -268,7 +268,6 @@ export function EditorPage() {
             onKeyDown={handleKeyDown}
             onEditorReady={handleEditorReadyWithRef}
             placeholder="Start writing..."
-            documentTitle={currentFile?.name || 'Untitled'}
             onInlineCompletionLoadingChange={setInlineCompletionLoading}
           />
         </div>

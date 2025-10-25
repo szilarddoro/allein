@@ -28,7 +28,7 @@ export function buildCompletionPrompt(
     prompt: `Fill in the blank with 1-4 words: "${combinedSentences} ____". Respond only with the answer.`,
     modelOptions: {
       stop: ['\n'],
-      num_predict: 30,
+      num_predict: 15,
       temperature: 0.3,
     },
     startedNewSentence: false,

@@ -30,7 +30,7 @@ function joinSentences(previousSentenceRaw?: string, currentSentence?: string) {
 
 export function buildCompletionPrompt(input: CompletionPromptInput) {
   const { currentSentenceSegments, previousSentence } = input
-  const [firstSegment, secondSegment] = currentSentenceSegments || []
+  const [firstSegment, secondSegment] = currentSentenceSegments
 
   if (!previousSentence && !firstSegment && !secondSegment) {
     return {
@@ -41,7 +41,7 @@ export function buildCompletionPrompt(input: CompletionPromptInput) {
     }
   }
 
-  // Scenario: Create new sentence
+  // Scenario: Create new sentence (empty segments with previous sentence)
   if (!firstSegment && !secondSegment) {
     return {
       prompt: `Start a new sentence with a couple of words after this sentence: "${removeMd(previousSentence!)} ${BLANK_POST_CLEANUP_MARKER}"`,
@@ -54,8 +54,13 @@ export function buildCompletionPrompt(input: CompletionPromptInput) {
     }
   }
 
-  // Scenario: Complete in middle of the sentence
-  if (firstSegment.length > 0 && secondSegment.length > 0) {
+  // Scenario: Complete in middle of the sentence (cursor between text)
+  if (
+    firstSegment &&
+    secondSegment &&
+    firstSegment.length > 0 &&
+    secondSegment.length > 0
+  ) {
     const fullSentenceWithBlank = `${firstSegment.trim()} ${BLANK_PRE_CLEANUP_MARKER} ${secondSegment.trim()}`
     const combinedSentences = joinSentences(
       previousSentence,

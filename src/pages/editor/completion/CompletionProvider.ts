@@ -32,6 +32,7 @@ interface CompletionProviderConfig {
 }
 
 const leadingUpperCaseMatchRegExp = /^([A-Z]{2,}|I\s)/g
+const textAndNumericMatchRegExp = /[a-zA-Z0-9]/g
 
 /**
  * Stateful inline completion provider
@@ -255,7 +256,7 @@ export class CompletionProvider {
     }
 
     // Use Continue-style debouncing
-    return await this.requestWithDebounce(
+    return this.requestWithDebounce(
       model,
       position,
       textBeforeCursor,
@@ -405,8 +406,8 @@ export class CompletionProvider {
             model: this.config.ollamaModel,
             prompt,
             stream: false,
+            think: false,
             options: {
-              think: false,
               temperature: modelOptions.temperature || 0.01,
               num_predict: modelOptions.num_predict,
               stop: modelOptions.stop,
@@ -491,11 +492,12 @@ export class CompletionProvider {
 
     // Remove markdown formatting
     completion = completion
-      .replace(/\*\*/g, '') // Remove bold
-      .replace(/\*/g, '') // Remove italic
-      .replace(/`/g, '') // Remove code
-      .replace(/~/g, '') // Remove strikethrough
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '')
+      .replace(/`/g, '')
+      .replace(/~/g, '')
       .replace(/^\.\.\./, '')
+      .replace(/\\"/, '"')
       .trim()
 
     // Remove surrounding quotes if present
@@ -506,7 +508,11 @@ export class CompletionProvider {
       completion = completion.slice(1, -1).trim()
     }
 
-    if (!completion || completion.length === 0) {
+    if (
+      !completion ||
+      completion.length === 0 ||
+      completion.match(textAndNumericMatchRegExp) == null
+    ) {
       return { items: [] }
     }
 

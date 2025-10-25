@@ -32,6 +32,9 @@ export default defineConfig({
     exclude: ['src-tauri', 'node_modules'],
     mockReset: true,
     restoreMocks: true,
+    coverage: {
+      exclude: ['src-tauri', 'node_modules'],
+    },
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

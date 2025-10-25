@@ -15,16 +15,38 @@ export function extractPreviousAndCurrentSentence(
     cursorPosition.column - 1,
   )
 
+  // Check if cursor is positioned after a complete sentence with nothing (or only whitespace) after it
+  const afterCursorIsEmpty = currentLineAfterCursor.trim() === ''
+  const beforeCursorEndsWithSentence = /[.!?]\s*$/.test(currentLineBeforeCursor)
+
+  if (afterCursorIsEmpty && beforeCursorEndsWithSentence) {
+    // Cursor is at the end after a completed sentence
+    // Treat the sentence as the previous sentence with empty current segments
+    const currentLineSentences = extractSentences(currentLineContent)
+    const previousSentence =
+      currentLineSentences[currentLineSentences.length - 1] || ''
+
+    return {
+      previousSentence,
+      currentSentenceSegments: [],
+    }
+  }
+
   // Note: 'sbd' removes trailing/leading whitespaces
   // We may want to restore all the whitespaces for all the segments
   const beforeCursorEndsWithWhitespace = currentLineBeforeCursor.endsWith(' ')
   const afterCursorStartsWithWhitespace = currentLineAfterCursor.startsWith(' ')
 
+  // TODO: This logic only works if we are currently in the middle of a sentence.
+  // If the cursor is right after a previous sentence, it will treat as if that sentence is the current one
   const currentSentenceStartSegment =
     extractSentences(currentLineBeforeCursor).pop() || ''
 
   const currentSentenceEndSegment =
     extractSentences(currentLineAfterCursor).shift() || ''
+
+  // IDEA: Try extracting sentences from individual segments after pop/shift
+  // If there are nested sentences, we should have treated the sentence as the previous sentence.
 
   const currentSentenceSegments = [
     beforeCursorEndsWithWhitespace

@@ -12,6 +12,7 @@ const documentLines = [
   '- Second list item with two sentences. This is the second sentence.',
   '- Third list item with a single, unfinished sentence',
   '- Fourth list item with a finished sentence. Plus an unfinished sentence',
+  '- Fifth list item with a finished sentence, and a trailing whitespace. ',
 ]
 
 describe('extractContent', () => {
@@ -90,5 +91,18 @@ describe('extractContent', () => {
         'st item with a finished sentence.',
       ])
     })
+
+    it('should return an empty array if the current sentence is empty', () => {
+      const mockCursorPosition = createMockPosition(9, 72)
+      const { previousSentence, currentSentenceSegments } =
+        extractPreviousAndCurrentSentence(mockTextModel, mockCursorPosition)
+
+      expect(previousSentence).toBe(
+        '- Fifth list item with a finished sentence, and a trailing whitespace.',
+      )
+      expect(currentSentenceSegments).toMatchObject([])
+    })
+
+    // TODO: Add test case where cursor is at the end of the line, and there is an unfinished sentence at the end
   })
 })

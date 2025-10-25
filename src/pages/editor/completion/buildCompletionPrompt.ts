@@ -43,8 +43,13 @@ export function buildCompletionPrompt(input: CompletionPromptInput) {
 
   // Scenario: Create new sentence (empty segments with previous sentence)
   if (!firstSegment && !secondSegment) {
+    const combinedSentences = joinSentences(
+      previousSentence,
+      BLANK_PRE_CLEANUP_MARKER,
+    )
+
     return {
-      prompt: `Start a new sentence with a couple of words after this sentence: "${removeMd(previousSentence!)} ${BLANK_POST_CLEANUP_MARKER}"`,
+      prompt: `Start a new sentence with a couple of words after this sentence: "${combinedSentences}"`,
       modelOptions: {
         stop: ['.', '\n'],
         num_predict: 8,
@@ -80,10 +85,13 @@ export function buildCompletionPrompt(input: CompletionPromptInput) {
 
   // Scenario: Complete existing sentence
   const currentSentence = currentSentenceSegments.join('')
-  const combinedSentences = joinSentences(previousSentence, currentSentence)
+  const combinedSentences = joinSentences(
+    previousSentence,
+    `${currentSentence.trim()} ${BLANK_PRE_CLEANUP_MARKER}`,
+  )
 
   return {
-    prompt: `Fill in the blank in this text with 1-4 words: "${combinedSentences} ${BLANK_POST_CLEANUP_MARKER}". Output only the completion, nothing else.`,
+    prompt: `Fill in the blank in this text with 1-4 words: "${combinedSentences}". Output only the completion, nothing else.`,
     modelOptions: {
       stop: ['\n'],
       num_predict: 15,

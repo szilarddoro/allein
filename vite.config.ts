@@ -33,6 +33,7 @@ export default defineConfig({
     mockReset: true,
     restoreMocks: true,
     coverage: {
+      provider: 'v8',
       exclude: ['src-tauri', 'node_modules'],
     },
   },

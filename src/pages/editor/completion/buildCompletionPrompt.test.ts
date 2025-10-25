@@ -247,6 +247,28 @@ describe('buildCompletionPrompt', () => {
         `"Fill in the blank in this text with 1-2 words: "First item with bold ____ Second item with code". Output only the completion, nothing else."`,
       )
     })
+
+    it('removes markdown formatting from previous sentence', () => {
+      const result = buildCompletionPrompt({
+        currentSentenceSegments: [],
+        previousSentence: 'This is **bold** and *italic* text.',
+      })
+
+      expect(result.prompt).toMatchInlineSnapshot(
+        `"Start a new sentence with a couple of words after this sentence: "This is bold and italic text. ____""`,
+      )
+    })
+
+    it('removes markdown formatting from current sentence segments', () => {
+      const result = buildCompletionPrompt({
+        currentSentenceSegments: ['Text with [link](url)', ' and `code`.'],
+        previousSentence: 'Previous.',
+      })
+
+      expect(result.prompt).toMatchInlineSnapshot(
+        `"Fill in the blank in this text with 1-2 words: "Previous. Text with link ____ and code.". Output only the completion, nothing else."`,
+      )
+    })
   })
 
   describe('edge cases', () => {
@@ -256,7 +278,7 @@ describe('buildCompletionPrompt', () => {
         previousSentence: 'Previous',
       })
       expect(result.prompt).toMatchInlineSnapshot(
-        `"Start a new sentence with a couple of words after this sentence: "Previous ____""`,
+        `"Start a new sentence with a couple of words after this sentence: "Previous. ____""`,
       )
       expect(result.startedNewSentence).toBe(true)
     })
@@ -266,7 +288,7 @@ describe('buildCompletionPrompt', () => {
         currentSentenceSegments: ['   '],
       })
       expect(result.prompt).toMatchInlineSnapshot(
-        `"Fill in the blank in this text with 1-4 words: "    ____". Output only the completion, nothing else."`,
+        `"Fill in the blank in this text with 1-4 words: " ____". Output only the completion, nothing else."`,
       )
     })
 

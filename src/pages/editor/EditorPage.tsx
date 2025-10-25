@@ -23,6 +23,7 @@ import { TextEditor } from './TextEditor'
 import { useAutoSave } from './useAutoSave'
 import { useEditorKeyBindings } from './useEditorKeyBindings'
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
+import { Hotkey } from '@/components/Hotkey'
 
 export function EditorPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -298,7 +299,8 @@ export function EditorPage() {
               </TooltipTrigger>
 
               <TooltipContent align="center" side="top" sideOffset={10}>
-                Format document
+                Format document{' '}
+                <Hotkey modifiers={['meta', 'shift']} keyCode="F" />
               </TooltipContent>
             </Tooltip>
 
@@ -326,7 +328,8 @@ export function EditorPage() {
                 </span>
                 <span aria-hidden="true">
                   {showPreview ? 'Hide preview' : 'Show preview'}
-                </span>
+                </span>{' '}
+                <Hotkey modifiers={['meta']} keyCode="P" />
               </TooltipContent>
             </Tooltip>
           </div>

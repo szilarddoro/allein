@@ -15,7 +15,6 @@ export interface TextEditorProps {
   onKeyDown?: (event: monaco.IKeyboardEvent) => void
   onEditorReady?: (editor: monaco.editor.IStandaloneCodeEditor) => void
   onInlineCompletionLoadingChange?: (loading: boolean) => void
-  documentTitle?: string
 }
 
 export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
@@ -27,7 +26,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       onKeyDown,
       onEditorReady,
       onInlineCompletionLoadingChange,
-      documentTitle = 'Untitled',
     },
     ref,
   ) => {
@@ -39,7 +37,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     useInlineCompletion({
       disabled: !aiAssistanceEnabled,
       onLoadingChange: onInlineCompletionLoadingChange,
-      documentTitle,
     })
 
     function handleEditorChange(value: string | undefined) {
@@ -275,7 +272,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                 occurrencesHighlight: 'off',
                 foldingHighlight: false,
                 selectionHighlight: false,
-                renderLineHighlight: 'none',
+                renderLineHighlight: import.meta.env.DEV ? 'line' : 'none',
                 hideCursorInOverviewRuler: true,
                 overviewRulerBorder: false,
                 scrollbar: {

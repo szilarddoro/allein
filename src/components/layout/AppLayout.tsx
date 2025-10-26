@@ -19,6 +19,7 @@ import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { BaseLayout } from '@/components/layout/BaseLayout'
 import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
 import { useModelWarmup } from '@/lib/ollama/useModelWarmup'
+import { Hotkey } from '@/components/Hotkey'
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -125,7 +126,7 @@ export function AppLayout() {
             </TooltipTrigger>
 
             <TooltipContent align="center" side="bottom">
-              Open Settings
+              Open Settings <Hotkey modifiers={['meta']} keyCode="," />
             </TooltipContent>
           </Tooltip>
         </div>

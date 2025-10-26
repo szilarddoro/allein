@@ -7,27 +7,25 @@
  */
 
 import * as monaco from 'monaco-editor'
-import { AutocompleteDebouncer } from './AutocompleteDebouncer'
 import { shouldPrefilter } from './prefiltering'
 import { processSingleLineCompletion } from './processSingleLineCompletion'
 import { getCompletionCache } from './CompletionCache'
 import { shouldCompleteMultiline } from './multilineClassification'
-import { buildCompletionPrompt } from './completionSystemPrompt'
-
-interface CachedSuggestion {
-  text: string
-  position: { lineNumber: number; column: number }
-  contextBefore: string
-}
+import { buildCompletionPrompt } from './buildCompletionPrompt'
+import { getCompletionMetrics } from './CompletionMetrics'
+import { extractPreviousAndCurrentSentence } from '@/pages/editor/completion/extractContent'
+import pDebounce from 'p-debounce'
 
 interface CompletionProviderConfig {
   ollamaUrl: string
   ollamaModel: string
   isAiAssistanceAvailable: boolean
   debounceDelay: number
-  documentTitle: string
   onLoadingChange?: (loading: boolean) => void
 }
+
+const leadingUpperCaseMatchRegExp = /^([A-Z]{2,}|I\s)/g
+const textAndNumericMatchRegExp = /[a-zA-Z0-9]/g
 
 /**
  * Stateful inline completion provider
@@ -35,28 +33,42 @@ interface CompletionProviderConfig {
  */
 export class CompletionProvider {
   private currentRequest: AbortController | null = null
-  private debouncer: AutocompleteDebouncer
-  private activeSuggestion: CachedSuggestion | null = null
   private config: CompletionProviderConfig
   private disposable: monaco.IDisposable | null = null
+  private debouncedHandleProvideInlineCompletions:
+    | ((
+        model: monaco.editor.ITextModel,
+        position: monaco.Position,
+      ) => Promise<{ items: monaco.languages.InlineCompletion[] }>)
+    | null = null
 
   constructor(config: CompletionProviderConfig) {
     this.config = config
-    this.debouncer = new AutocompleteDebouncer()
+    this.createDebouncedInlineCompletionsHandler()
+  }
+
+  createDebouncedInlineCompletionsHandler() {
+    this.debouncedHandleProvideInlineCompletions = pDebounce(
+      (model, position) => this.handleProvideInlineCompletions(model, position),
+      this.config.debounceDelay,
+    )
   }
 
   /**
    * Register the inline completion provider with Monaco editor
    */
-  register(monacoInstance: typeof monaco): void {
+  register(monacoInstance: typeof monaco) {
     if (this.disposable) {
       this.disposable.dispose()
     }
 
+    if (!this.debouncedHandleProvideInlineCompletions) {
+      return
+    }
+
     this.disposable =
       monacoInstance.languages.registerInlineCompletionsProvider('markdown', {
-        provideInlineCompletions:
-          this.handleProvideInlineCompletions.bind(this),
+        provideInlineCompletions: this.debouncedHandleProvideInlineCompletions,
         // @ts-expect-error Monaco expects this method at runtime but it's not in the TypeScript definitions
         freeInlineCompletions: () => {},
         disposeInlineCompletions: () => {},
@@ -66,7 +78,7 @@ export class CompletionProvider {
   /**
    * Unregister the provider and cleanup
    */
-  dispose(): void {
+  dispose() {
     if (this.disposable) {
       this.disposable.dispose()
       this.disposable = null
@@ -76,15 +88,14 @@ export class CompletionProvider {
       this.currentRequest.abort()
       this.currentRequest = null
     }
-
-    this.debouncer.cancel()
   }
 
   /**
    * Update configuration without re-registering the provider
    */
-  updateConfig(config: Partial<CompletionProviderConfig>): void {
+  updateConfig(config: Partial<CompletionProviderConfig>) {
     this.config = { ...this.config, ...config }
+    this.createDebouncedInlineCompletionsHandler()
   }
 
   /**
@@ -93,20 +104,12 @@ export class CompletionProvider {
   private async handleProvideInlineCompletions(
     model: monaco.editor.ITextModel,
     position: monaco.Position,
-  ): Promise<monaco.languages.InlineCompletions | undefined> {
+  ) {
     // Get current line content
     const currentLine = model.getLineContent(position.lineNumber)
     const textBeforeCursor = model
       .getValue()
       .substring(0, model.getOffsetAt(position))
-
-    if (this.activeSuggestion) {
-      return this.handleActiveSuggestion(
-        textBeforeCursor,
-        position,
-        this.activeSuggestion,
-      )
-    }
 
     return this.fetchNewSuggestion(
       model,
@@ -117,70 +120,6 @@ export class CompletionProvider {
   }
 
   /**
-   * Handle case where we have an active cached suggestion
-   */
-  private handleActiveSuggestion(
-    textBeforeCursor: string,
-    position: monaco.Position,
-    cached: CachedSuggestion,
-  ): monaco.languages.InlineCompletions {
-    // Check if cursor moved to different line
-    if (position.lineNumber !== cached.position.lineNumber) {
-      this.activeSuggestion = null
-      return { items: [] }
-    }
-
-    // Check if user deleted text (backspace) - text is now shorter
-    if (textBeforeCursor.length < cached.contextBefore.length) {
-      this.activeSuggestion = null
-      return { items: [] }
-    }
-
-    // Check if user typed non-matching characters
-    if (!textBeforeCursor.startsWith(cached.contextBefore)) {
-      this.activeSuggestion = null
-      return { items: [] }
-    }
-
-    // Calculate what user has typed since suggestion appeared
-    const typedSinceCompletion = textBeforeCursor.substring(
-      cached.contextBefore.length,
-    )
-
-    // Check if what they typed matches the beginning of suggestion (case-insensitive)
-    if (
-      !cached.text.toLowerCase().startsWith(typedSinceCompletion.toLowerCase())
-    ) {
-      this.activeSuggestion = null
-      return { items: [] }
-    }
-
-    // Return remaining part of cached suggestion
-    const remainingSuggestion = cached.text.substring(
-      typedSinceCompletion.length,
-    )
-
-    if (!remainingSuggestion) {
-      this.activeSuggestion = null
-      return { items: [] }
-    }
-
-    return {
-      items: [
-        {
-          insertText: remainingSuggestion,
-          range: {
-            startLineNumber: position.lineNumber,
-            startColumn: position.column,
-            endLineNumber: position.lineNumber,
-            endColumn: position.column,
-          },
-        },
-      ],
-    }
-  }
-
-  /**
    * Fetch a new completion suggestion
    */
   private async fetchNewSuggestion(
@@ -188,7 +127,7 @@ export class CompletionProvider {
     position: monaco.Position,
     currentLine: string,
     textBeforeCursor: string,
-  ): Promise<monaco.languages.InlineCompletions> {
+  ) {
     const textBeforeCursorOnCurrentLine = currentLine.substring(
       0,
       position.column - 1,
@@ -251,7 +190,7 @@ export class CompletionProvider {
     }
 
     // Use Continue-style debouncing
-    return await this.requestWithDebounce(
+    return this.requestWithCachePrefilter(
       model,
       position,
       textBeforeCursor,
@@ -263,23 +202,13 @@ export class CompletionProvider {
   /**
    * Request completion with debouncing
    */
-  private async requestWithDebounce(
+  private async requestWithCachePrefilter(
     model: monaco.editor.ITextModel,
     position: monaco.Position,
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
-  ): Promise<monaco.languages.InlineCompletions> {
-    // Wait for debounce delay and check if we should proceed
-    const shouldDebounce = await this.debouncer.delayAndShouldDebounce(
-      this.config.debounceDelay,
-    )
-
-    if (shouldDebounce) {
-      // A newer request has superseded this one
-      return { items: [] }
-    }
-
+  ) {
     try {
       // Check if AI assistance is available
       if (!this.config.isAiAssistanceAvailable) {
@@ -294,13 +223,12 @@ export class CompletionProvider {
         return this.handleCachedCompletion(
           cachedCompletion,
           position,
-          textBeforeCursor,
           textBeforeCursorOnCurrentLine,
         )
       }
 
       // Cache miss - proceed with API call
-      return await this.requestCompletion(
+      return this.requestCompletion(
         model,
         position,
         textBeforeCursor,
@@ -325,9 +253,11 @@ export class CompletionProvider {
   private handleCachedCompletion(
     cachedCompletion: string,
     position: monaco.Position,
-    textBeforeCursor: string,
     textBeforeCursorOnCurrentLine: string,
-  ): monaco.languages.InlineCompletions {
+  ) {
+    // Record cache hit metric (instantaneous, basically 0ms)
+    getCompletionMetrics().recordRequest(0, { type: 'cached' })
+
     // Add leading space if needed
     const needsLeadingSpace =
       textBeforeCursorOnCurrentLine.slice(-1) !== ' ' &&
@@ -339,23 +269,13 @@ export class CompletionProvider {
       : cachedCompletion
 
     const item = {
-      insertText,
+      insertText: insertText.trim(),
       range: {
         startLineNumber: position.lineNumber,
         startColumn: position.column,
         endLineNumber: position.lineNumber,
         endColumn: position.column,
       },
-    }
-
-    // Cache the suggestion for persistence
-    this.activeSuggestion = {
-      text: item.insertText,
-      position: {
-        lineNumber: position.lineNumber,
-        column: position.column,
-      },
-      contextBefore: textBeforeCursor,
     }
 
     return { items: [item] }
@@ -370,49 +290,29 @@ export class CompletionProvider {
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
-  ): Promise<monaco.languages.InlineCompletions> {
+  ) {
     // Create new abort controller for this request
     this.currentRequest = new AbortController()
 
+    // Record start time for metrics
+    const startTime = performance.now()
+
     try {
-      // Build context: send entire document with cursor marker
-      const fullDocument = model.getValue()
-      const cursorOffset = model.getOffsetAt(position)
-      const textAfterCursor = fullDocument.substring(cursorOffset)
-
-      const textWithCursor = textBeforeCursor + '<|CURSOR|>' + textAfterCursor
-
-      // Extract current sentence from the text before cursor
-      const sentenceMatch = textBeforeCursorOnCurrentLine.match(
-        /(?:^|\.|!|\?|\n)(?:\s*)([^.!?]*?)$/,
-      )
-      let currentSentence = sentenceMatch
-        ? sentenceMatch[1].trim()
-        : textBeforeCursorOnCurrentLine.trim()
-
-      // If current sentence is empty, try to get the previous sentence
-      if (!currentSentence) {
-        const previousSentenceMatch = textBeforeCursorOnCurrentLine.match(
-          /([^.!?]*?[.!?])(?:\s*)$/,
-        )
-        currentSentence = previousSentenceMatch
-          ? previousSentenceMatch[1].trim()
-          : textBeforeCursorOnCurrentLine.trim()
-      }
-
-      const lineWithCursor = currentSentence
-        ? `${currentSentence} <|CURSOR|>`
-        : ''
-
-      // Build the complete prompt with instructions
-      const { system: systemPrompt, user: userPrompt } = buildCompletionPrompt(
-        this.config.documentTitle,
-        textWithCursor,
-        lineWithCursor,
-      )
+      const { currentSentenceSegments, previousSentence } =
+        extractPreviousAndCurrentSentence(model, position)
 
       // Notify loading started
       this.config.onLoadingChange?.(true)
+
+      const { prompt, modelOptions, startedNewSentence, preventCompletion } =
+        buildCompletionPrompt({
+          currentSentenceSegments,
+          previousSentence,
+        })
+
+      if (preventCompletion) {
+        return { items: [] }
+      }
 
       const generateResponse = await fetch(
         `${this.config.ollamaUrl}/api/generate`,
@@ -420,15 +320,13 @@ export class CompletionProvider {
           method: 'POST',
           body: JSON.stringify({
             model: this.config.ollamaModel,
-            system: systemPrompt,
-            prompt: userPrompt,
+            prompt,
             stream: false,
             think: false,
             options: {
-              temperature: 0.01,
-              keep_alive: 3600,
-              num_predict: 10,
-              stop: ['\n\n', '##', '```', '<|CURSOR|>'],
+              temperature: modelOptions.temperature || 0.01,
+              num_predict: modelOptions.num_predict,
+              stop: modelOptions.stop,
             },
           }),
           signal: this.currentRequest.signal,
@@ -437,6 +335,9 @@ export class CompletionProvider {
 
       if (!generateResponse.ok) {
         this.config.onLoadingChange?.(false)
+        // Record metric on error
+        const duration = performance.now() - startTime
+        getCompletionMetrics().recordRequest(duration, { type: 'rejected' })
         return { items: [] }
       }
 
@@ -444,6 +345,10 @@ export class CompletionProvider {
 
       // Notify loading finished
       this.config.onLoadingChange?.(false)
+
+      // Record metric for successful API call
+      const duration = performance.now() - startTime
+      getCompletionMetrics().recordRequest(duration, { type: 'resolved' })
 
       if (!response.trim()) {
         return { items: [] }
@@ -457,14 +362,20 @@ export class CompletionProvider {
         textBeforeCursor,
         currentLine,
         textBeforeCursorOnCurrentLine,
+        startedNewSentence,
       )
     } catch (error) {
       // Notify loading finished on error
       this.config.onLoadingChange?.(false)
 
+      // Record metric on exception
+      const duration = performance.now() - startTime
+
       if (error instanceof Error && error.name === 'AbortError') {
+        getCompletionMetrics().recordRequest(duration, { type: 'canceled' })
         return { items: [] }
       } else {
+        getCompletionMetrics().recordRequest(duration, { type: 'rejected' })
         return { items: [] }
       }
     }
@@ -480,7 +391,8 @@ export class CompletionProvider {
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
-  ): monaco.languages.InlineCompletions {
+    startedNewSentence: boolean,
+  ) {
     // Remove "Output:" prefix if model includes it
     if (completion.toLowerCase().startsWith('output:')) {
       completion = completion.substring(7).trim()
@@ -496,10 +408,12 @@ export class CompletionProvider {
 
     // Remove markdown formatting
     completion = completion
-      .replace(/\*\*/g, '') // Remove bold
-      .replace(/\*/g, '') // Remove italic
-      .replace(/`/g, '') // Remove code
-      .replace(/~/g, '') // Remove strikethrough
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '')
+      .replace(/`/g, '')
+      .replace(/~/g, '')
+      .replace(/^\.\.\./, '')
+      .replace(/\\"/, '"')
       .trim()
 
     // Remove surrounding quotes if present
@@ -510,8 +424,23 @@ export class CompletionProvider {
       completion = completion.slice(1, -1).trim()
     }
 
-    if (!completion || completion.length === 0) {
+    if (
+      !completion ||
+      completion.length === 0 ||
+      completion.match(textAndNumericMatchRegExp) == null
+    ) {
       return { items: [] }
+    }
+
+    // Completion should be uppercase/lowercase based on the sentence status
+    if (startedNewSentence) {
+      completion = completion.charAt(0).toUpperCase() + completion.substring(1)
+    } else {
+      // Abbreviations should not be converted to lowercase incorrectly
+      // (e.g., AI to aI, DLQ to dLQ, etc.)
+      completion = leadingUpperCaseMatchRegExp.test(completion)
+        ? completion
+        : completion.charAt(0).toLowerCase() + completion.substring(1)
     }
 
     // Get text after cursor for word-level diffing
@@ -594,16 +523,6 @@ export class CompletionProvider {
       ? insertText.slice(1)
       : insertText
     cache.put(textBeforeCursor, completionToCache)
-
-    // Cache the suggestion for persistence
-    this.activeSuggestion = {
-      text: item.insertText,
-      position: {
-        lineNumber: position.lineNumber,
-        column: position.column,
-      },
-      contextBefore: textBeforeCursor,
-    }
 
     return { items: [item] }
   }

@@ -30,42 +30,18 @@ pnpm tauri build      # Build production executable
 
 ### Version Management
 ```bash
-./bump-version.sh [patch|minor|major]  # Bump version across all files, commit, and tag
+./bump-version.sh [patch|minor|major]  # Bump version, create commit & tag
+gh release create v{VERSION} --notes "release notes"
 ```
 
-**IMPORTANT**: Always use the `bump-version.sh` script to bump versions. It updates:
-- `package.json`
-- `src-tauri/Cargo.toml`
-- `src-tauri/Cargo.lock`
-- `src-tauri/tauri.conf.json`
-
-The script automatically creates a commit and git tag. After running it:
-```bash
-git push && git push --tags
-```
-
-To create a GitHub release after bumping:
-```bash
-gh release create v{VERSION} --notes "your custom release notes"
-```
-
-**IMPORTANT**: Always use the version number (e.g., `v0.7.2`) as the release name. Never include additional details in the release name - keep it clean and simple.
+**IMPORTANT**: Always use `bump-version.sh` (updates package.json, Cargo.toml, tauri.conf.json). Use clean version numbers (e.g., `v0.7.2`) for releases.
 
 ### Git Commits
 
-**IMPORTANT**: Never commit changes without the developer testing and approving the changes first. Always present the changes for review before committing.
-
-When making commits, always include yourself as a committer using the following format:
-
-```bash
-git commit -m "message" -m "🤖 Generated with Claude Code" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
-```
-
-Or use a HEREDOC for multi-line commits:
-
+Always include attribution in commit messages:
 ```bash
 git commit -m "$(cat <<'EOF'
-commit message here
+message here
 
 🤖 Generated with Claude Code
 
@@ -74,41 +50,32 @@ EOF
 )"
 ```
 
-This ensures proper attribution and makes it clear that the commit was generated with Claude Code.
-
 ## Architecture
 
 ### Frontend Structure (React)
 
-The app uses React Router with three main routes:
-- **`/` (BrowserPage)**: File browser/home view showing all markdown files
-- **`/editor` (EditorPage)**: Main editing interface with Monaco Editor and live preview
-- **`/settings` (SettingsPage)**: Configuration for Ollama connection and AI features
+Four routes via React Router:
+- **`/`**: File browser (BrowserPage)
+- **`/editor`**: Monaco editor with live preview (EditorPage)
+- **`/settings`**: Ollama configuration (SettingsPage)
+- **`/onboarding`**: Initial setup flow (OnboardingPage)
 
-Path: `src/main.tsx:15-34`
-
-Layout: `AppLayout` component wraps all routes, provides sidebar toggle and settings navigation.
+Layout: `AppLayout` wraps main routes, `OnboardingLayout` for onboarding.
 
 ### State Management
 
-- **React Query** (`@tanstack/react-query`): All async operations (file I/O, config, Ollama API)
-- **SQLite** (via Tauri plugin): Persistent storage for config
-  - Database: `database.db` in Tauri app data directory
-  - Tables: `config` (app settings)
-  - TypeScript interfaces: `src/lib/db/database.ts`
-  - **Migrations**: Defined in `src-tauri/src/lib.rs` (lines ~134-162)
-    - Migration 1: Creates `config` table
-    - **IMPORTANT**: Never modify existing migrations - always add new ones
-    - Tauri's migration system runs automatically on app startup
+- **React Query**: Handles all async operations (file I/O, config, Ollama API)
+- **SQLite** (via Tauri): Persistent config storage in `database.db`
+  - Config interfaces: `src/lib/db/database.ts`
+  - Migrations: `src-tauri/src/lib.rs` (never modify existing, always add new)
+  - Runs automatically on app startup
 
 ### File Storage
 
-Files are stored locally at `~/allein/docs/` as markdown files:
-- Backend: Rust commands in `src-tauri/src/lib.rs:20-130`
-- Commands: `list_files`, `read_file`, `write_file`, `create_file`, `delete_file`, `rename_file`
-- Frontend hooks: `src/lib/files/use*.ts`
-
-File naming convention: New files created as `Untitled-{N}.md` where N increments.
+Files stored at `~/allein/docs/` as markdown.
+- Backend: Tauri Rust commands in `src-tauri/src/lib.rs`
+- Frontend: React Query hooks in `src/lib/files/use*.ts`
+- Naming: `Untitled-{N}.md` with auto-incrementing N
 
 ### Monaco Editor Integration
 
@@ -124,109 +91,50 @@ Custom configuration:
 
 Path: `src/pages/editor/completion/`
 
-**Overview**: Inline completion provider powered by local Ollama models. Sends contextual prompts to Ollama with cursor position and document context, returning AI-generated suggestions with intelligent caching and debouncing to prevent excessive requests.
+**Overview**: Inline completion provider powered by local Ollama models with intelligent caching, debouncing (350ms), and context-aware prompt building.
 
-**Architecture Layers**:
+**Architecture**:
+1. **Integration** (`useInlineCompletion.ts`) - Registers with Monaco Editor inline completion API
+2. **Provider** (`CompletionProvider.ts`) - Manages lifecycle, caching, metrics, request cancellation
+3. **Context** (`extractContent.ts`, `buildCompletionPrompt.ts`) - Extracts sentences and builds contextual prompts
+4. **Filtering** (`prefiltering.ts`, `multilineClassification.ts`) - Prevents unnecessary requests
+5. **Processing** (`processSingleLineCompletion.ts`) - Word-level diffing and quality filtering
+6. **Performance** (`CompletionMetrics.ts`, `CompletionCache.ts`) - LRU cache (500 items) and metrics tracking
 
-1. **Integration Layer**:
-   - `useInlineCompletion.ts` - React hook that registers with Monaco Editor's inline completion API
-
-2. **Core Provider** (`CompletionProvider.ts`):
-   - Manages the completion lifecycle: triggering, fetching, caching, and metrics
-   - Handles request cancellation via AbortController
-   - Implements debouncing (350ms default) using p-debounce library for request throttling
-   - Maintains LRU completion cache and performance metrics
-
-3. **Context & Prompt Building**:
-   - `extractContent.ts` - Extracts current and previous sentences from full document text
-   - `buildCompletionPrompt.ts` - Constructs optimized prompts with contextual information
-   - Includes previous sentence context for better multi-sentence coherence
-   - Strips newlines to preserve context across paragraph boundaries
-
-4. **Request Filtering & Classification**:
-   - `prefiltering.ts` - Skips unnecessary completion requests based on cursor position and content
-   - `multilineClassification.ts` - Determines when to allow multiline completions
-   - Prevents excessive API calls through smart pre-filtering
-
-5. **Response Processing**:
-   - `processSingleLineCompletion.ts` - Word-level diffing for single-line results
-   - Quality filtering: removes markdown formatting, filters prefixes like "Output:", removes quotes
-   - Validates against existing text to prevent duplication
-
-6. **Performance & Monitoring**:
-   - `CompletionMetrics.ts` - Tracks request latency, cache hits, and error statistics
-   - `CompletionCache.ts` - LRU cache with 500 capacity for completion results
-
-**Data Flow**:
-1. User types → `useInlineCompletion` hook triggered
-2. `prefiltering` checks if completion should proceed
-3. Cache checked for existing completion
-4. If not cached: `extractContent` gets context, `buildCompletionPrompt` constructs prompt
-5. Debounced request sent to Ollama via `CompletionProvider`
-6. Response: `processSingleLineCompletion` applies quality filters and diffing
-7. Result cached and returned to Monaco Editor
-
-**Configuration**:
-- Debounce delay: 350ms (customizable via config)
-- Cache size: 500 entries (LRU eviction)
-- Multiline threshold: configurable context-based triggering
+**Key Features**:
+- Previous sentence context for multi-sentence coherence
+- Quality filtering: removes markdown, filters prefixes, removes duplication
+- LRU cache (500 entries) with debouncing to reduce API calls
+- Request cancellation and context preservation across paragraph boundaries
 - Disabled when `ai_assistance_enabled` config is false
 
-**Important**:
-- Inspired by [continuedev/continue](https://github.com/continuedev/continue) (Apache 2.0 licensed)
-- See NOTICE file for attribution details
+**Attribution**: Inspired by [continuedev/continue](https://github.com/continuedev/continue) (Apache 2.0). See NOTICE file for details.
 
 ### Ollama Integration
 
-Configuration hooks:
-- `useOllamaConfig()`: Returns provider instance, URL, and selected model
-- `useOllamaModels()`: Fetches available models from Ollama server
-- `useOllamaConnection()`: Tests connection to Ollama server
+- **Default URL**: `http://localhost:11434`
+- **Provider**: `ollama-ai-provider-v2` with Vercel AI SDK
+- **Hooks**: `useOllamaConfig()`, `useOllamaModels()`, `useOllamaConnection()`
 
-Default URL: `http://localhost:11434`
-
-Provider: Uses `ollama-ai-provider-v2` package with Vercel AI SDK.
-
-### Styling
+### Styling & Config
 
 - **Tailwind CSS v4** with `@tailwindcss/vite` plugin
 - **Shadcn UI** components (Radix UI primitives)
 - **Theme**: System/light/dark via `next-themes`
 - **Fonts**: Inter (UI), Roboto Mono (editor)
+- **Path alias**: `@/` → `src/` (vite.config.ts)
 
-Path alias: `@/` maps to `src/` (configured in `vite.config.ts:20-22`)
+## Key Details
 
-## Key Implementation Details
+**File Naming** (`src/lib/files/validation.ts`): No empty names, no leading/trailing whitespace, must be unique.
 
-### File Naming Validation
+**Editor State**: `/editor?file=/path/to/file.md` via `useCurrentFilePath()` hook.
 
-Path: `src/lib/files/validation.ts`
-
-Rules enforced when renaming:
-- No empty names
-- No leading/trailing whitespace
-- Must be unique among existing files
-- Validation errors shown inline during edit
-
-### React Router Query Params
-
-Editor file selection: `/editor?file=/path/to/file.md`
-
-Hook: `useCurrentFilePath()` syncs query param with URL state.
-
-## Development Notes
-
-- TypeScript strict mode enabled
-- ESLint with React, TypeScript, and React Hooks plugins
-- Monaco Editor theme switches with app theme (vs/vs-dark)
-- All file operations are async and handled via React Query mutations
-- Toast notifications use `sonner` library via custom `useToast()` hook
+**Setup**: TypeScript strict mode, ESLint (React/Hooks), React Query for async operations, Sonner for toast notifications.
 
 ## Licensing
 
-This project is licensed under the **MIT License** (see LICENSE file).
-
-**Attribution**: The AI completion system was inspired by [continuedev/continue](https://github.com/continuedev/continue), which is licensed under Apache License 2.0. See the NOTICE file for full attribution details.
+**MIT License** (see LICENSE file). AI completion system inspired by [continuedev/continue](https://github.com/continuedev/continue) (Apache 2.0). See NOTICE for details.
 
 ## Code Organization Guidelines
 

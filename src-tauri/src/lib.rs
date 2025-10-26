@@ -229,6 +229,21 @@ pub fn run() {
             );
             INSERT OR IGNORE INTO onboarding (id, status, current_step) VALUES (1, 'not_started', 0);",
         },
+        Migration {
+            version: 4,
+            description: "migrate_model_config_to_separate_models",
+            kind: MigrationKind::Up,
+            sql: "
+            -- Copy existing ollama_model to both new fields
+            INSERT OR IGNORE INTO config (key, value, created_at, updated_at)
+            SELECT 'completion_model', value, created_at, updated_at
+            FROM config WHERE key = 'ollama_model';
+
+            INSERT OR IGNORE INTO config (key, value, created_at, updated_at)
+            SELECT 'improvement_model', value, created_at, updated_at
+            FROM config WHERE key = 'ollama_model';
+            ",
+        },
     ];
 
     tauri::Builder::default()

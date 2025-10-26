@@ -25,7 +25,7 @@ export function useInlineCompletion({
   onLoadingChange,
 }: UseInlineCompletionOptions = {}) {
   const monacoInstance = useMonaco()
-  const { ollamaModel, ollamaUrl } = useOllamaConfig()
+  const { completionModel, ollamaUrl } = useOllamaConfig()
   const { aiAssistanceEnabled } = useAIConfig()
   const { data: isConnected, status: connectionStatus } =
     useOllamaConnection(ollamaUrl)
@@ -45,7 +45,7 @@ export function useInlineCompletion({
     if (!providerRef.current) {
       providerRef.current = new CompletionProvider({
         ollamaUrl,
-        ollamaModel,
+        ollamaModel: completionModel,
         isAiAssistanceAvailable: isAiAssistanceAvailable || false,
         debounceDelay,
         onLoadingChange,
@@ -55,7 +55,7 @@ export function useInlineCompletion({
       // Update config without re-registering
       providerRef.current.updateConfig({
         ollamaUrl,
-        ollamaModel,
+        ollamaModel: completionModel,
         isAiAssistanceAvailable: isAiAssistanceAvailable || false,
         debounceDelay,
         onLoadingChange,
@@ -74,7 +74,7 @@ export function useInlineCompletion({
     disabled,
     debounceDelay,
     isAiAssistanceAvailable,
-    ollamaModel,
+    completionModel,
     ollamaUrl,
     onLoadingChange,
   ])

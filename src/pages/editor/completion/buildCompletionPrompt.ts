@@ -12,20 +12,20 @@ const sentenceMarkerRegExp = /[.!?]\s*$/
 
 function joinSentences(previousSentenceRaw?: string, currentSentence?: string) {
   let previousSentence = previousSentenceRaw?.trim() || ''
+  let joinWithWhitespace = true
 
   const isPreviousSentenceFinished = sentenceMarkerRegExp.test(previousSentence)
 
   if (previousSentence !== '' && !isPreviousSentenceFinished) {
-    previousSentence = `${previousSentence}.`
+    previousSentence = `${previousSentence}\n`
+    joinWithWhitespace = false
   }
 
-  const rv = [previousSentence, currentSentence]
+  return [previousSentence, currentSentence]
     .filter(Boolean)
     .map((text) => removeMd(text!))
-    .join(' ')
+    .join(joinWithWhitespace ? ' ' : '')
     .replace(BLANK_PRE_CLEANUP_MARKER, BLANK_POST_CLEANUP_MARKER)
-
-  return rv
 }
 
 export function buildCompletionPrompt(input: CompletionPromptInput) {

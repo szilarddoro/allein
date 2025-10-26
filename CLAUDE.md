@@ -124,32 +124,55 @@ Custom configuration:
 
 Path: `src/pages/editor/completion/`
 
-**Overview**: Inline completion provider powered by local Ollama models. Sends document context with cursor position to Ollama and returns AI-generated suggestions with previous sentence context for better coherence.
+**Overview**: Inline completion provider powered by local Ollama models. Sends contextual prompts to Ollama with cursor position and document context, returning AI-generated suggestions with intelligent caching and debouncing to prevent excessive requests.
 
-**Key Components**:
-- `useInlineCompletion.ts` - Main Monaco inline completion provider hook
-- `buildCompletionPrompt.ts` - Constructs prompts with current and previous sentence context
-- `extractSentences.ts` - Extracts current and previous sentences from full document text for context
-- `CompletionProvider.ts` - Core provider managing completion requests, caching, and metrics
-- `CompletionMetrics.ts` - Tracks request latency and performance statistics
-- `AutocompleteDebouncer.ts` - Debouncing to prevent excessive requests (350ms default)
-- `CompletionCache.ts` - LRU cache with 500 capacity for completion results
-- `prefiltering.ts` - Skips unnecessary completion requests based on context
-- `multilineClassification.ts` - Determines when to allow multiline completions
-- `processSingleLineCompletion.ts` - Word-level diffing for single-line results
+**Architecture Layers**:
 
-**Context Enhancement**:
-- Uses `extractSentences()` to automatically find previous sentence context from full document
-- Strips newlines to preserve context across paragraph boundaries
-- If no previous sentence exists on current line, looks back through earlier paragraphs
-- Previous sentence included in prompt: "Previous sentence: X\n\nStart/Continue..."
+1. **Integration Layer**:
+   - `useInlineCompletion.ts` - React hook that registers with Monaco Editor's inline completion API
 
-**Triggering**: Activates at word boundaries, after sentence endings, and when multiple words have been typed.
+2. **Core Provider** (`CompletionProvider.ts`):
+   - Manages the completion lifecycle: triggering, fetching, caching, and metrics
+   - Handles request cancellation via AbortController
+   - Implements debouncing (350ms default) using p-debounce library for request throttling
+   - Maintains LRU completion cache and performance metrics
 
-**Quality Filtering**: Removes markdown formatting, filters prefixes like "Output:", takes first line only, removes quotes, and checks for duplicate text already present.
+3. **Context & Prompt Building**:
+   - `extractContent.ts` - Extracts current and previous sentences from full document text
+   - `buildCompletionPrompt.ts` - Constructs optimized prompts with contextual information
+   - Includes previous sentence context for better multi-sentence coherence
+   - Strips newlines to preserve context across paragraph boundaries
+
+4. **Request Filtering & Classification**:
+   - `prefiltering.ts` - Skips unnecessary completion requests based on cursor position and content
+   - `multilineClassification.ts` - Determines when to allow multiline completions
+   - Prevents excessive API calls through smart pre-filtering
+
+5. **Response Processing**:
+   - `processSingleLineCompletion.ts` - Word-level diffing for single-line results
+   - Quality filtering: removes markdown formatting, filters prefixes like "Output:", removes quotes
+   - Validates against existing text to prevent duplication
+
+6. **Performance & Monitoring**:
+   - `CompletionMetrics.ts` - Tracks request latency, cache hits, and error statistics
+   - `CompletionCache.ts` - LRU cache with 500 capacity for completion results
+
+**Data Flow**:
+1. User types → `useInlineCompletion` hook triggered
+2. `prefiltering` checks if completion should proceed
+3. Cache checked for existing completion
+4. If not cached: `extractContent` gets context, `buildCompletionPrompt` constructs prompt
+5. Debounced request sent to Ollama via `CompletionProvider`
+6. Response: `processSingleLineCompletion` applies quality filters and diffing
+7. Result cached and returned to Monaco Editor
+
+**Configuration**:
+- Debounce delay: 350ms (customizable via config)
+- Cache size: 500 entries (LRU eviction)
+- Multiline threshold: configurable context-based triggering
+- Disabled when `ai_assistance_enabled` config is false
 
 **Important**:
-- Inline completion is disabled when `ai_assistance_enabled` config is false
 - Inspired by [continuedev/continue](https://github.com/continuedev/continue) (Apache 2.0 licensed)
 - See NOTICE file for attribution details
 
@@ -220,9 +243,7 @@ src/pages/editor/
 ├── TextEditor.tsx           # Monaco wrapper
 ├── useAutoSave.ts          # Auto-save hook (used only by EditorPage)
 ├── useEditorKeyBindings.ts # Keybindings hook (used only by EditorPage)
-└── completion/             # Completion-related code
-    ├── useInlineCompletion.ts
-    └── CompletionFormatter.ts
+└── completion/             # All completion system code co-located
 ```
 
 **Avoid**:

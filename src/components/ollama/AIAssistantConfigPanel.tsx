@@ -41,10 +41,11 @@ const assistantSettingsFormValues = z
   .object({
     aiAssistantEnabled: z.boolean().optional(),
     serverUrl: z.string().optional(),
-    model: z.string().optional(),
+    completionModel: z.string().optional(),
+    improvementModel: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    // If AI assistant is enabled, validate serverUrl and model
+    // If AI assistant is enabled, validate serverUrl and models
     if (data.aiAssistantEnabled) {
       if (!data.serverUrl || data.serverUrl.length === 0) {
         ctx.addIssue({
@@ -65,11 +66,19 @@ const assistantSettingsFormValues = z
         }
       }
 
-      if (!data.model || data.model.length === 0) {
+      if (!data.completionModel || data.completionModel.length === 0) {
         ctx.addIssue({
           code: 'custom',
-          message: 'Model is required when AI assistant is enabled',
-          path: ['model'],
+          message: 'Completion model is required when AI assistant is enabled',
+          path: ['completionModel'],
+        })
+      }
+
+      if (!data.improvementModel || data.improvementModel.length === 0) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Improvement model is required when AI assistant is enabled',
+          path: ['improvementModel'],
         })
       }
     }
@@ -114,8 +123,13 @@ export function AIAssistantConfigPanel({
   footerClassName,
   placement = 'onboarding',
 }: AIAssistantConfigPanelProps) {
-  const { ollamaUrl, ollamaModel, configStatus, configLoading } =
-    useOllamaConfig()
+  const {
+    ollamaUrl,
+    completionModel,
+    improvementModel,
+    configStatus,
+    configLoading,
+  } = useOllamaConfig()
   const { aiAssistanceEnabled } = useAIConfig()
   const { toast } = useToast()
   const formInitializedRef = useRef(false)
@@ -126,7 +140,8 @@ export function AIAssistantConfigPanel({
       aiAssistantEnabled:
         aiAssistanceEnabled == null ? true : aiAssistanceEnabled,
       serverUrl: ollamaUrl || 'http://localhost:11434',
-      model: ollamaModel || '',
+      completionModel: completionModel || '',
+      improvementModel: improvementModel || '',
     },
   })
 
@@ -173,7 +188,8 @@ export function AIAssistantConfigPanel({
       aiAssistantEnabled:
         aiAssistanceEnabled == null ? true : aiAssistanceEnabled,
       serverUrl: ollamaUrl || 'http://localhost:11434',
-      model: ollamaModel || '',
+      completionModel: completionModel || '',
+      improvementModel: improvementModel || '',
     })
 
     formInitializedRef.current = true
@@ -184,7 +200,8 @@ export function AIAssistantConfigPanel({
     configStatus,
     aiAssistanceEnabled,
     ollamaUrl,
-    ollamaModel,
+    completionModel,
+    improvementModel,
   ])
 
   useEffect(() => {
@@ -192,23 +209,43 @@ export function AIAssistantConfigPanel({
       return
     }
 
-    form.setValue('model', '')
+    form.setValue('completionModel', '')
+    form.setValue('improvementModel', '')
   }, [form, isFormDirty, isConnected, connectionStatus])
 
   useEffect(() => {
-    if (
-      modelsStatus !== 'success' ||
-      ollamaModel === '' ||
-      models.some((model) => model.name === ollamaModel)
-    ) {
+    if (modelsStatus !== 'success' || models.length === 0) {
       return
     }
 
-    form.setValue('model', '', { shouldDirty: true, shouldTouch: true })
-    form.setError('model', {
-      message: 'Model is required when AI assistant is enabled',
-    })
-  }, [form, models, modelsStatus, ollamaModel])
+    // Validate completion model
+    if (
+      completionModel !== '' &&
+      !models.some((model) => model.name === completionModel)
+    ) {
+      form.setValue('completionModel', '', {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      form.setError('completionModel', {
+        message: 'Completion model is required when AI assistant is enabled',
+      })
+    }
+
+    // Validate improvement model
+    if (
+      improvementModel !== '' &&
+      !models.some((model) => model.name === improvementModel)
+    ) {
+      form.setValue('improvementModel', '', {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      form.setError('improvementModel', {
+        message: 'Improvement model is required when AI assistant is enabled',
+      })
+    }
+  }, [form, models, modelsStatus, completionModel, improvementModel])
 
   useEffect(() => {
     onDirtyChange?.(isFormDirty)
@@ -389,63 +426,84 @@ export function AIAssistantConfigPanel({
             />
           </div>
 
-          <div
+          {/* Models Section Header */}
+          <Field
+            orientation="horizontal"
             className={cn(
               !disableAnimations && 'motion-safe:animate-fade-in delay-500',
             )}
           >
+            <FieldContent>
+              <FieldLabel className="text-base">AI Models</FieldLabel>
+              <FieldDescription>
+                Choose models for specific tasks.
+              </FieldDescription>
+            </FieldContent>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleRefreshModels}
+              disabled={modelsError != null}
+            >
+              <RefreshCcw />
+              <span className="sr-only">Refresh models</span>
+            </Button>
+          </Field>
+
+          {/* Inline Completion Model */}
+          <div
+            className={cn(
+              '-mt-3',
+              !disableAnimations && 'motion-safe:animate-fade-in delay-550',
+            )}
+          >
             <Controller
-              name="model"
+              name="completionModel"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="model">Model</FieldLabel>
+                  <FieldLabel htmlFor="completionModel">
+                    <span aria-hidden="true">Inline Completions</span>
 
-                  <div className="flex flex-row gap-2 w-full">
-                    <Select
-                      value={field.value}
-                      onValueChange={(value) => field.onChange(value)}
-                      disabled={
-                        !watchAiAssistantEnabled ||
-                        !models ||
-                        models.length === 0 ||
-                        (!isConnected && !connectionLoading)
-                      }
-                    >
-                      <SelectTrigger
-                        id="model"
-                        aria-invalid={fieldState.invalid}
-                        className="flex-1"
-                      >
-                        <SelectValue placeholder="Select a model">
-                          {field.value}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(models || []).map((model) => (
-                          <SelectItem key={model.name} value={model.name}>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="font-medium">{model.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {formatBytesToGB(model.size)}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <span className="sr-only">
+                      Model used by the inline completion feature
+                    </span>
+                  </FieldLabel>
 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleRefreshModels}
-                      disabled={fieldState.invalid || modelsError != null}
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                    disabled={
+                      !watchAiAssistantEnabled ||
+                      !models ||
+                      models.length === 0 ||
+                      (!isConnected && !connectionLoading)
+                    }
+                  >
+                    <SelectTrigger
+                      id="completionModel"
+                      aria-invalid={fieldState.invalid}
+                      className="flex-1"
                     >
-                      <RefreshCcw />
-                      <span className="sr-only">Refresh models</span>
-                    </Button>
-                  </div>
+                      <SelectValue placeholder="Select a model">
+                        {field.value}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(models || []).map((model) => (
+                        <SelectItem key={model.name} value={model.name}>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium">{model.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatBytesToGB(model.size)}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
                   {!fieldState.invalid && !modelsError && (
                     <FieldDescription>
@@ -475,6 +533,70 @@ export function AIAssistantConfigPanel({
                       )}
                     </FieldDescription>
                   )}
+
+                  {(modelsError || fieldState.invalid) && (
+                    <FieldError className="flex flex-row gap-1 items-center">
+                      <CircleAlert className="size-4" />
+                      {fieldState.error?.message || 'Failed to load models.'}
+                    </FieldError>
+                  )}
+                </Field>
+              )}
+            />
+          </div>
+
+          {/* Text Improvement Model */}
+          <div
+            className={cn(
+              '-mt-3 mb-3',
+              !disableAnimations && 'motion-safe:animate-fade-in delay-600',
+            )}
+          >
+            <Controller
+              name="improvementModel"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="improvementModel">
+                    <span aria-hidden="true">Text Improvements</span>
+
+                    <span className="sr-only">
+                      Model used by the text improvement feature
+                    </span>
+                  </FieldLabel>
+
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                    disabled={
+                      !watchAiAssistantEnabled ||
+                      !models ||
+                      models.length === 0 ||
+                      (!isConnected && !connectionLoading)
+                    }
+                  >
+                    <SelectTrigger
+                      id="improvementModel"
+                      aria-invalid={fieldState.invalid}
+                      className="flex-1"
+                    >
+                      <SelectValue placeholder="Select a model">
+                        {field.value}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(models || []).map((model) => (
+                        <SelectItem key={model.name} value={model.name}>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium">{model.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatBytesToGB(model.size)}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
                   {(modelsError || fieldState.invalid) && (
                     <FieldError className="flex flex-row gap-1 items-center">

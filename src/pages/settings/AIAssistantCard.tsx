@@ -27,7 +27,14 @@ export function AIAssistantCard() {
 
         // Update Ollama configuration
         updateConfig({ key: 'ollama_url', value: values.serverUrl || null }),
-        updateConfig({ key: 'ollama_model', value: values.model || null }),
+        updateConfig({
+          key: 'completion_model',
+          value: values.completionModel || null,
+        }),
+        updateConfig({
+          key: 'improvement_model',
+          value: values.improvementModel || null,
+        }),
       ])
 
       toast.success('Settings saved')

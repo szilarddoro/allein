@@ -23,7 +23,7 @@ Text: {text}
 Improved Text:`
 
 export function useImproveWriting() {
-  const { ollamaProvider, ollamaModel } = useOllamaConfig()
+  const { ollamaProvider, improvementModel } = useOllamaConfig()
   const { aiAssistanceEnabled } = useAIConfig()
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<Error | null>(null)
@@ -51,9 +51,9 @@ export function useImproveWriting() {
         throw err
       }
 
-      if (!ollamaModel) {
+      if (!improvementModel) {
         const err = new Error(
-          'No Ollama model selected. Configure it in settings.',
+          'No improvement model selected. Configure it in settings.',
         )
         setError(err)
         throw err
@@ -68,7 +68,7 @@ export function useImproveWriting() {
 
       try {
         const { textStream } = streamText({
-          model: ollamaProvider(ollamaModel),
+          model: ollamaProvider(improvementModel),
           prompt: IMPROVE_WRITING_PROMPT.replace('{text}', text),
           temperature: 0.7,
           abortSignal: abortControllerRef.current.signal,
@@ -100,7 +100,7 @@ export function useImproveWriting() {
         throw error
       }
     },
-    [ollamaProvider, ollamaModel, aiAssistanceEnabled, cancel],
+    [ollamaProvider, improvementModel, aiAssistanceEnabled, cancel],
   )
 
   const reset = useCallback(() => {

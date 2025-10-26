@@ -13,6 +13,10 @@ export function useOllamaConfig() {
 
   const ollamaUrl = config?.find((c) => c.key === 'ollama_url')?.value || ''
   const ollamaModel = config?.find((c) => c.key === 'ollama_model')?.value || ''
+  const completionModel =
+    config?.find((c) => c.key === 'completion_model')?.value || ''
+  const improvementModel =
+    config?.find((c) => c.key === 'improvement_model')?.value || ''
   const ollamaProvider = useMemo(
     () =>
       createOllama({
@@ -24,6 +28,8 @@ export function useOllamaConfig() {
   return {
     ollamaUrl,
     ollamaModel,
+    completionModel,
+    improvementModel,
     ollamaProvider,
     configStatus,
     configLoading,

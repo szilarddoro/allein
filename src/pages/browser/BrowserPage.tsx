@@ -32,6 +32,7 @@ import {
   CircleAlert,
   Copy,
   Edit3,
+  File,
   FolderOpen,
   NotebookPen,
   Trash2,
@@ -130,9 +131,19 @@ export function BrowserPage() {
   if (sortedFiles.length === 0) {
     return (
       <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
-        <P className="text-sm text-muted-foreground px-2 text-center mt-2">
-          No files were found.
-        </P>
+        <div className="p-2 rounded-lg bg-muted text-muted-foreground">
+          <File className="size-5" />
+        </div>
+
+        <div className="flex flex-col gap-1 mt-3 mb-4">
+          <H1 className="text-base text-muted-foreground px-2 text-center font-medium !my-0">
+            No files are available
+          </H1>
+
+          <P className="!my-0 text-muted-foreground text-sm">
+            Click the button below to take your first note.
+          </P>
+        </div>
 
         <Button size="sm" onClick={handleCreateFile}>
           <NotebookPen className="size-4" /> New file

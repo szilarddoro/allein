@@ -20,6 +20,7 @@ import { BaseLayout } from '@/components/layout/BaseLayout'
 import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
 import { useModelWarmup } from '@/lib/ollama/useModelWarmup'
 import { Hotkey } from '@/components/Hotkey'
+import { useFileList } from '@/lib/files/useFileList'
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -28,6 +29,7 @@ export function AppLayout() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { data: progress, status: progressStatus } = useOnboardingProgress()
+  const { data: files, status: filesStatus } = useFileList()
 
   useEffect(() => {
     if (progress?.status !== 'skipped' && progress?.status !== 'completed') {
@@ -71,7 +73,7 @@ export function AppLayout() {
   // Warm up the model when AI assistance is enabled
   useModelWarmup()
 
-  if (progressStatus === 'pending') {
+  if (progressStatus === 'pending' || filesStatus !== 'success') {
     return null
   }
 
@@ -85,35 +87,37 @@ export function AppLayout() {
       >
         <TauriDragRegion />
 
-        <div className="flex items-center gap-2 relative z-20">
-          <Tooltip delayDuration={500}>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-              >
-                {sidebarOpen ? (
-                  <PanelLeftCloseIcon aria-hidden="true" />
-                ) : (
-                  <PanelLeftOpenIcon aria-hidden="true" />
-                )}
-              </Button>
-            </TooltipTrigger>
+        {files.length > 0 && (
+          <div className="flex items-center gap-2 relative z-20">
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                >
+                  {sidebarOpen ? (
+                    <PanelLeftCloseIcon aria-hidden="true" />
+                  ) : (
+                    <PanelLeftOpenIcon aria-hidden="true" />
+                  )}
+                </Button>
+              </TooltipTrigger>
 
-            <TooltipContent
-              align={
-                CURRENT_PLATFORM === 'macos' && isFullscreen
-                  ? 'start'
-                  : 'center'
-              }
-              side="bottom"
-            >
-              {sidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
-            </TooltipContent>
-          </Tooltip>
-        </div>
+              <TooltipContent
+                align={
+                  CURRENT_PLATFORM === 'macos' && isFullscreen
+                    ? 'start'
+                    : 'center'
+                }
+                side="bottom"
+              >
+                {sidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
 
         <div className="flex items-center gap-2 relative z-20">
           <Tooltip delayDuration={500}>
@@ -133,7 +137,7 @@ export function AppLayout() {
       </header>
 
       <main className="flex-auto overflow-hidden flex">
-        {sidebarOpen && <Sidebar onNewFile={createFile} />}
+        {sidebarOpen && files.length > 0 && <Sidebar onNewFile={createFile} />}
 
         <div className="flex-1 flex flex-col overflow-auto">
           <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />

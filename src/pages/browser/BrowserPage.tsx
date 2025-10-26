@@ -187,7 +187,14 @@ export function BrowserPage() {
       </AlertDialog>
 
       <div className="relative flex flex-col gap-6 pl-6 pr-4 pt-4 pb-16 max-w-7xl w-full mx-auto">
-        <H1 className="my-0 text-3xl">Browser</H1>
+        <div className="flex flex-row gap-1.5 items-center justify-between">
+          <H1 className="my-0 text-3xl">Browser</H1>
+          <Button size="sm" variant="outline" onClick={handleCreateFile}>
+            <NotebookPen className="size-4" />
+            <span aria-hidden="true">New file</span>
+            <span className="sr-only">Create a new file</span>
+          </Button>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedFiles.map((file) => (

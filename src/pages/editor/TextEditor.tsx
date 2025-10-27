@@ -64,6 +64,21 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
           !event.metaKey &&
           !event.altKey
         ) {
+          // Check if inline completion is active - if so, let Monaco handle Tab (to accept completion)
+          // Monaco's inline completion controller is internal API
+          const inlineCompletionsController = editor.getContribution(
+            'editor.contrib.inlineCompletionsController',
+          )
+
+          const hasInlineCompletion =
+            // @ts-expect-error - Internal Monaco APIs are not typed properly
+            inlineCompletionsController?.model?.value?._isActive._value === true
+
+          // If inline completion is showing, let Monaco handle Tab to accept it
+          if (hasInlineCompletion) {
+            return
+          }
+
           const model = editor.getModel()
           if (!model) return
 

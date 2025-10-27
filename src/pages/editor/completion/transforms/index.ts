@@ -189,9 +189,9 @@ export const removeModelQuirks: Transform = (text, context) => {
 
 /**
  * Default transform pipeline
+ * Note: takeFirstLine removed - multiline handling is done later in CompletionProvider
  */
 export const defaultTransforms: Transform[] = [
-  takeFirstLine,
   removeCodeBlockFormatting,
   removeOutputPrefix,
   removeModelQuirks,

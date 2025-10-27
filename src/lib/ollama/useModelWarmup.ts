@@ -24,12 +24,12 @@ async function warmupModel(
 
 export function useModelWarmup() {
   const { aiAssistanceEnabled } = useAIConfig()
-  const { ollamaUrl, ollamaModel } = useOllamaConfig()
+  const { ollamaUrl, completionModel } = useOllamaConfig()
 
   return useQuery({
-    queryKey: [OLLAMA_WARMUP_BASE_QUERY_KEY, ollamaUrl, ollamaModel],
-    queryFn: () => warmupModel(ollamaUrl!, ollamaModel!),
-    enabled: (aiAssistanceEnabled ?? false) && !!ollamaUrl && !!ollamaModel,
+    queryKey: [OLLAMA_WARMUP_BASE_QUERY_KEY, ollamaUrl, completionModel],
+    queryFn: () => warmupModel(ollamaUrl!, completionModel!),
+    enabled: (aiAssistanceEnabled ?? false) && !!ollamaUrl && !!completionModel,
     refetchInterval: 5 * 60 * 1000,
     retry: false,
     staleTime: Infinity, // Data never goes stale

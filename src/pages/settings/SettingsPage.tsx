@@ -13,7 +13,7 @@ export function SettingsPage() {
       <Button
         asChild
         variant="ghost"
-        className="self-start !px-1.5 py-1 h-auto"
+        className="self-start !px-1.5 py-1 h-auto -ml-1.5"
         size="sm"
       >
         <Link

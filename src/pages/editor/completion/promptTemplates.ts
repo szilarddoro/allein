@@ -1,7 +1,7 @@
 /**
  * Prompt templates for inline completion
- * Based on continuedev/continue's hybrid approach
- * Supports both FIM (code models) and natural language (general models)
+ * Based on continuedev/continue's exact approach
+ * Wraps markdown in comment syntax for FIM models
  * https://github.com/continuedev/continue
  * Licensed under Apache License 2.0
  */
@@ -63,18 +63,32 @@ function supportsFIM(modelName: string): boolean {
 }
 
 /**
+ * Wrap markdown content in comment syntax
+ * Makes FIM models treat it as code documentation
+ */
+function wrapInComments(text: string): string {
+  // Use HTML-style comments for markdown (works well with most FIM models)
+  return `<!--\n${text}\n-->`
+}
+
+/**
  * Build FIM prompt with model-specific tokens
+ * Following Continue.dev's exact approach: wrap markdown in comments
  */
 function buildFIMPrompt(
   prefix: string,
   suffix: string,
   modelName: string,
 ): PromptBuildResult {
+  // Wrap content in comments to trick model into documentation mode
+  const wrappedPrefix = wrapInComments(prefix)
+  const wrappedSuffix = suffix ? wrapInComments(suffix) : ''
+
   const fimTemplate = getFIMTemplate(modelName)
 
   const prompt = fimTemplate.template
-    .replace('{prefix}', prefix)
-    .replace('{suffix}', suffix)
+    .replace('{prefix}', wrappedPrefix)
+    .replace('{suffix}', wrappedSuffix)
 
   return {
     prompt,
@@ -130,7 +144,7 @@ interface FIMTemplate {
 
 /**
  * Get FIM template configuration for specific model
- * Based on Continue.dev's AutocompleteTemplate.ts
+ * Based on Continue.dev's exact stop tokens and parameters
  */
 function getFIMTemplate(modelName: string): FIMTemplate {
   const lowerName = modelName.toLowerCase()
@@ -139,9 +153,18 @@ function getFIMTemplate(modelName: string): FIMTemplate {
   if (lowerName.includes('codellama') || lowerName.includes('code-llama')) {
     return {
       template: '<PRE> {prefix} <SUF>{suffix} <MID>',
-      stopTokens: ['<EOT>', '\n\n', '<MID>', '<SUF>'],
-      temperature: 0.2,
-      maxTokens: 50,
+      stopTokens: [
+        '<EOT>',
+        '\n\n',
+        '<MID>',
+        '<SUF>',
+        '<PRE>',
+        '/src/',
+        '#- coding: utf-8',
+        '```',
+      ],
+      temperature: 0.01,
+      maxTokens: 4096,
     }
   }
 
@@ -149,19 +172,41 @@ function getFIMTemplate(modelName: string): FIMTemplate {
   if (lowerName.includes('deepseek')) {
     return {
       template: '<｜fim▁begin｜>{prefix}<｜fim▁hole｜>{suffix}<｜fim▁end｜>',
-      stopTokens: ['<｜end▁of▁sentence｜>', '<｜EOT｜>', '\n\n'],
-      temperature: 0.2,
-      maxTokens: 50,
+      stopTokens: [
+        '<｜end▁of▁sentence｜>',
+        '<｜EOT｜>',
+        '\n\n',
+        '<｜fim▁begin｜>',
+        '<｜fim▁hole｜>',
+        '<｜fim▁end｜>',
+        '/src/',
+        '```',
+      ],
+      temperature: 0.01,
+      maxTokens: 4096,
     }
   }
 
-  // Qwen Coder models
+  // Qwen Coder models (including qwen2.5-coder)
   if (lowerName.includes('qwen')) {
     return {
       template: '<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>',
-      stopTokens: ['<|endoftext|>', '<|im_end|>', '\n\n'],
-      temperature: 0.2,
-      maxTokens: 50,
+      stopTokens: [
+        '<|endoftext|>',
+        '<|fim_prefix|>',
+        '<|fim_middle|>',
+        '<|fim_suffix|>',
+        '<|fim_pad|>',
+        '<|repo_name|>',
+        '<|file_sep|>',
+        '<|im_start|>',
+        '<|im_end|>',
+        '/src/',
+        '#- coding: utf-8',
+        '```',
+      ],
+      temperature: 0.01,
+      maxTokens: 4096,
     }
   }
 
@@ -174,9 +219,13 @@ function getFIMTemplate(modelName: string): FIMTemplate {
         '<fim_prefix>',
         '<fim_suffix>',
         '<fim_middle>',
+        '<fim_pad>',
+        '<file_sep>',
+        '/src/',
+        '```',
       ],
-      temperature: 0.2,
-      maxTokens: 50,
+      temperature: 0.01,
+      maxTokens: 4096,
     }
   }
 
@@ -184,9 +233,18 @@ function getFIMTemplate(modelName: string): FIMTemplate {
   if (lowerName.includes('codegemma') || lowerName.includes('code-gemma')) {
     return {
       template: '<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>',
-      stopTokens: ['<|file_separator|>', '<|end_of_turn|>', '\n\n'],
-      temperature: 0.2,
-      maxTokens: 50,
+      stopTokens: [
+        '<|file_separator|>',
+        '<|end_of_turn|>',
+        '<|endoftext|>',
+        '\n\n',
+        '<|fim_prefix|>',
+        '<|fim_suffix|>',
+        '<|fim_middle|>',
+        '```',
+      ],
+      temperature: 0.01,
+      maxTokens: 4096,
     }
   }
 
@@ -199,9 +257,12 @@ function getFIMTemplate(modelName: string): FIMTemplate {
         '<|fim_prefix|>',
         '<|fim_suffix|>',
         '<|fim_middle|>',
+        '<|file_separator|>',
+        '/src/',
+        '```',
       ],
-      temperature: 0.2,
-      maxTokens: 50,
+      temperature: 0.01,
+      maxTokens: 4096,
     }
   }
 
@@ -209,13 +270,13 @@ function getFIMTemplate(modelName: string): FIMTemplate {
   if (lowerName.includes('codestral')) {
     return {
       template: '[SUFFIX]{suffix}[PREFIX]{prefix}',
-      stopTokens: ['[SUFFIX]', '[PREFIX]', '</s>'],
-      temperature: 0.2,
-      maxTokens: 50,
+      stopTokens: ['[SUFFIX]', '[PREFIX]', '</s>', '<|endoftext|>', '```'],
+      temperature: 0.01,
+      maxTokens: 4096,
     }
   }
 
-  // Default fallback - standard FIM tokens
+  // Default fallback - standard FIM tokens (Continue.dev style)
   return {
     template: '<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>',
     stopTokens: [
@@ -223,9 +284,14 @@ function getFIMTemplate(modelName: string): FIMTemplate {
       '<|fim_prefix|>',
       '<|fim_suffix|>',
       '<|fim_middle|>',
+      '<|fim_pad|>',
+      '<|file_sep|>',
       '\n\n',
+      '/src/',
+      '#- coding: utf-8',
+      '```',
     ],
-    temperature: 0.2,
-    maxTokens: 50,
+    temperature: 0.01,
+    maxTokens: 4096,
   }
 }

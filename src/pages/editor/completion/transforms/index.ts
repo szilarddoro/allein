@@ -24,6 +24,26 @@ export interface TransformContext {
 }
 
 /**
+ * Remove HTML comment markers
+ * (Used when we wrap markdown in comments for FIM models)
+ */
+export const removeCommentMarkers: Transform = (text) => {
+  if (!text) return null
+
+  let result = text
+
+  // Remove HTML comment markers
+  result = result.replace(/^<!--\s*/, '')
+  result = result.replace(/\s*-->$/, '')
+
+  // Remove leading/trailing comment lines
+  result = result.replace(/^<!--$/gm, '')
+  result = result.replace(/^-->$/gm, '')
+
+  return result.trim() || null
+}
+
+/**
  * Remove code block formatting
  */
 export const removeCodeBlockFormatting: Transform = (text) => {
@@ -192,6 +212,7 @@ export const removeModelQuirks: Transform = (text, context) => {
  */
 export const defaultTransforms: Transform[] = [
   takeFirstLine,
+  removeCommentMarkers, // Strip HTML comments added for FIM models
   removeCodeBlockFormatting,
   removeOutputPrefix,
   removeModelQuirks,

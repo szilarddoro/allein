@@ -16,7 +16,7 @@ import {
   buildCompletionContext,
   type CompletionContext,
 } from './contextBuilder'
-import { buildCompletionPrompt, type PromptStrategy } from './promptTemplates'
+import { buildCompletionPrompt } from './promptTemplates'
 import { applyTransforms, type TransformContext } from './transforms'
 import pDebounce from 'p-debounce'
 
@@ -25,7 +25,6 @@ interface CompletionProviderConfig {
   ollamaModel: string
   isAiAssistanceAvailable: boolean
   debounceDelay: number
-  promptStrategy?: PromptStrategy
   onLoadingChange?: (loading: boolean) => void
 }
 
@@ -46,10 +45,7 @@ export class CompletionProvider {
     | null = null
 
   constructor(config: CompletionProviderConfig) {
-    this.config = {
-      ...config,
-      promptStrategy: config.promptStrategy || 'auto',
-    }
+    this.config = config
     this.createDebouncedInlineCompletionsHandler()
   }
 
@@ -312,33 +308,44 @@ export class CompletionProvider {
       // Notify loading started
       this.config.onLoadingChange?.(true)
 
-      // Build prompt using selected strategy (FIM or natural language)
+      // Build prompt (auto-detects FIM vs natural language based on model)
       const promptResult = buildCompletionPrompt(
         context,
-        this.config.promptStrategy,
         this.config.ollamaModel,
       )
 
-      if (promptResult.preventCompletion) {
-        this.config.onLoadingChange?.(false)
-        return { items: [] }
+      // Build request body (include system prompt if provided)
+      const requestBody: {
+        model: string
+        prompt: string
+        stream: boolean
+        system?: string
+        options: {
+          temperature: number
+          num_predict: number
+          stop: string[]
+        }
+      } = {
+        model: this.config.ollamaModel,
+        prompt: promptResult.prompt,
+        stream: false,
+        options: {
+          temperature: promptResult.modelOptions.temperature || 0.01,
+          num_predict: promptResult.modelOptions.num_predict,
+          stop: promptResult.modelOptions.stop,
+        },
+      }
+
+      // Add system prompt for non-FIM models (Continue.dev pattern)
+      if (promptResult.systemPrompt) {
+        requestBody.system = promptResult.systemPrompt
       }
 
       const generateResponse = await fetch(
         `${this.config.ollamaUrl}/api/generate`,
         {
           method: 'POST',
-          body: JSON.stringify({
-            model: this.config.ollamaModel,
-            prompt: promptResult.prompt,
-            stream: false,
-            think: false,
-            options: {
-              temperature: promptResult.modelOptions.temperature || 0.01,
-              num_predict: promptResult.modelOptions.num_predict,
-              stop: promptResult.modelOptions.stop,
-            },
-          }),
+          body: JSON.stringify(requestBody),
           signal: this.currentRequest.signal,
         },
       )
@@ -384,7 +391,6 @@ export class CompletionProvider {
         textBeforeCursor,
         currentLine,
         textBeforeCursorOnCurrentLine,
-        promptResult.startedNewSentence,
         context,
       )
     } catch (error) {
@@ -414,9 +420,14 @@ export class CompletionProvider {
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
-    startedNewSentence: boolean,
     context: CompletionContext,
   ) {
+    // Detect if we're starting a new sentence (for capitalization)
+    const sentenceEndPattern = /[.!?]\s*$/
+    const startedNewSentence =
+      sentenceEndPattern.test(context.prefix.trim()) ||
+      context.prefix.trim() === ''
+
     // Apply transform pipeline
     const transformContext: TransformContext = {
       prefix: context.prefix,

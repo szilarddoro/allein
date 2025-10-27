@@ -24,8 +24,13 @@ export class CompletionCache {
   /**
    * Get a cached completion for the given prefix
    * Returns the completion text if found, undefined otherwise
+   *
+   * Implements Continue.dev-style prefix matching:
+   * 1. Exact match (fastest)
+   * 2. Prefix substring match (e.g., "hello w" matches cache for "hello")
+   * 3. Near-match with small prefix difference (within maxPrefixDiff chars)
    */
-  get(prefix: string): string | undefined {
+  get(prefix: string, maxPrefixDiff: number = 10): string | undefined {
     // Normalize prefix (trim and lowercase for matching)
     const normalizedPrefix = this.normalizePrefix(prefix)
 
@@ -38,7 +43,7 @@ export class CompletionCache {
       return entry.value
     }
 
-    // Try to find a cached key that matches as a prefix
+    // Strategy 1: Find cached prefix that the query starts with
     // If query is "the quick b" and we have "the quick" -> "brown fox",
     // we should return "rown fox" (because user typed "b" already)
     for (const [cachedKey, cachedEntry] of this.cache.entries()) {
@@ -60,12 +65,46 @@ export class CompletionCache {
         // Check if the completion starts with what the user typed extra
         if (completion.toLowerCase().startsWith(extraTyped)) {
           // Return the remaining part (what user hasn't typed yet)
-          return completion.slice(extraTyped.length)
+          return completion.slice(extraTyped.length).trim()
         }
       }
     }
 
+    // Strategy 2: Find cached entries that match query as prefix (Continue.dev approach)
+    // If query is "hello" and cache has "hello world" -> "from Claude",
+    // we can reuse it if within maxPrefixDiff
+    let bestMatch: { key: string; entry: CacheEntry } | null = null
+    let bestMatchDiff = Infinity
+
+    for (const [cachedKey, cachedEntry] of this.cache.entries()) {
+      if (cachedKey.startsWith(normalizedPrefix)) {
+        const prefixDiff = cachedKey.length - normalizedPrefix.length
+        if (prefixDiff <= maxPrefixDiff && prefixDiff < bestMatchDiff) {
+          bestMatch = { key: cachedKey, entry: cachedEntry }
+          bestMatchDiff = prefixDiff
+        }
+      }
+    }
+
+    if (bestMatch) {
+      // Update timestamp and sequence (LRU)
+      bestMatch.entry.timestamp = Date.now()
+      bestMatch.entry.sequence = ++this.sequenceCounter
+      return bestMatch.entry.value
+    }
+
     return undefined
+  }
+
+  /**
+   * Get completion with prefix match capability
+   * Alias for get() with explicit maxPrefixDiff parameter
+   */
+  getByPrefixMatch(
+    prefix: string,
+    maxPrefixDiff: number = 10,
+  ): string | undefined {
+    return this.get(prefix, maxPrefixDiff)
   }
 
   /**

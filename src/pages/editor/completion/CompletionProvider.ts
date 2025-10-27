@@ -11,9 +11,13 @@ import { shouldPrefilter } from './prefiltering'
 import { processSingleLineCompletion } from './processSingleLineCompletion'
 import { getCompletionCache } from './CompletionCache'
 import { shouldCompleteMultiline } from './multilineClassification'
-import { buildCompletionPrompt } from './buildCompletionPrompt'
 import { getCompletionMetrics } from './CompletionMetrics'
-import { extractPreviousAndCurrentSentence } from '@/pages/editor/completion/extractContent'
+import {
+  buildCompletionContext,
+  type CompletionContext,
+} from './contextBuilder'
+import { buildCompletionPrompt, type PromptStrategy } from './promptTemplates'
+import { applyTransforms, type TransformContext } from './transforms'
 import pDebounce from 'p-debounce'
 
 interface CompletionProviderConfig {
@@ -21,11 +25,9 @@ interface CompletionProviderConfig {
   ollamaModel: string
   isAiAssistanceAvailable: boolean
   debounceDelay: number
+  promptStrategy?: PromptStrategy
   onLoadingChange?: (loading: boolean) => void
 }
-
-const leadingUpperCaseMatchRegExp = /^([A-Z]{2,}|I\s)/g
-const textAndNumericMatchRegExp = /[a-zA-Z0-9]/g
 
 /**
  * Stateful inline completion provider
@@ -33,6 +35,7 @@ const textAndNumericMatchRegExp = /[a-zA-Z0-9]/g
  */
 export class CompletionProvider {
   private currentRequest: AbortController | null = null
+  private currentRequestId: string | null = null
   private config: CompletionProviderConfig
   private disposable: monaco.IDisposable | null = null
   private debouncedHandleProvideInlineCompletions:
@@ -43,7 +46,10 @@ export class CompletionProvider {
     | null = null
 
   constructor(config: CompletionProviderConfig) {
-    this.config = config
+    this.config = {
+      ...config,
+      promptStrategy: config.promptStrategy || 'auto',
+    }
     this.createDebouncedInlineCompletionsHandler()
   }
 
@@ -282,7 +288,7 @@ export class CompletionProvider {
   }
 
   /**
-   * Request completion from Ollama API
+   * Request completion from Ollama API using new architecture
    */
   private async requestCompletion(
     model: monaco.editor.ITextModel,
@@ -291,26 +297,30 @@ export class CompletionProvider {
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
   ) {
-    // Create new abort controller for this request
+    // Create new abort controller and request ID (UUID-based deduplication)
     this.currentRequest = new AbortController()
+    const requestId = crypto.randomUUID()
+    this.currentRequestId = requestId
 
     // Record start time for metrics
     const startTime = performance.now()
 
     try {
-      const { currentSentenceSegments, previousSentence } =
-        extractPreviousAndCurrentSentence(model, position)
+      // Build comprehensive context
+      const context = await buildCompletionContext(model, position)
 
       // Notify loading started
       this.config.onLoadingChange?.(true)
 
-      const { prompt, modelOptions, startedNewSentence, preventCompletion } =
-        buildCompletionPrompt({
-          currentSentenceSegments,
-          previousSentence,
-        })
+      // Build prompt using selected strategy (FIM or natural language)
+      const promptResult = buildCompletionPrompt(
+        context,
+        this.config.promptStrategy,
+        this.config.ollamaModel,
+      )
 
-      if (preventCompletion) {
+      if (promptResult.preventCompletion) {
+        this.config.onLoadingChange?.(false)
         return { items: [] }
       }
 
@@ -320,18 +330,24 @@ export class CompletionProvider {
           method: 'POST',
           body: JSON.stringify({
             model: this.config.ollamaModel,
-            prompt,
+            prompt: promptResult.prompt,
             stream: false,
             think: false,
             options: {
-              temperature: modelOptions.temperature || 0.01,
-              num_predict: modelOptions.num_predict,
-              stop: modelOptions.stop,
+              temperature: promptResult.modelOptions.temperature || 0.01,
+              num_predict: promptResult.modelOptions.num_predict,
+              stop: promptResult.modelOptions.stop,
             },
           }),
           signal: this.currentRequest.signal,
         },
       )
+
+      // Check if this request is still current before processing response
+      if (this.currentRequestId !== requestId) {
+        this.config.onLoadingChange?.(false)
+        return { items: [] } // Newer request started, discard this one
+      }
 
       if (!generateResponse.ok) {
         this.config.onLoadingChange?.(false)
@@ -342,6 +358,12 @@ export class CompletionProvider {
       }
 
       const { response } = await generateResponse.json()
+
+      // Check again if still current after async operation
+      if (this.currentRequestId !== requestId) {
+        this.config.onLoadingChange?.(false)
+        return { items: [] }
+      }
 
       // Notify loading finished
       this.config.onLoadingChange?.(false)
@@ -354,7 +376,7 @@ export class CompletionProvider {
         return { items: [] }
       }
 
-      // Parse the completion
+      // Parse the completion using new transform pipeline
       return this.processCompletion(
         response.trim(),
         model,
@@ -362,7 +384,8 @@ export class CompletionProvider {
         textBeforeCursor,
         currentLine,
         textBeforeCursorOnCurrentLine,
-        startedNewSentence,
+        promptResult.startedNewSentence,
+        context,
       )
     } catch (error) {
       // Notify loading finished on error
@@ -382,7 +405,7 @@ export class CompletionProvider {
   }
 
   /**
-   * Process completion response
+   * Process completion response using transform pipeline
    */
   private processCompletion(
     completion: string,
@@ -392,56 +415,24 @@ export class CompletionProvider {
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
     startedNewSentence: boolean,
+    context: CompletionContext,
   ) {
-    // Remove "Output:" prefix if model includes it
-    if (completion.toLowerCase().startsWith('output:')) {
-      completion = completion.substring(7).trim()
+    // Apply transform pipeline
+    const transformContext: TransformContext = {
+      prefix: context.prefix,
+      suffix: context.suffix,
+      modelName: this.config.ollamaModel,
+      startedNewSentence,
     }
 
-    // Remove "->" prefix if model includes it
-    if (completion.startsWith('->')) {
-      completion = completion.substring(2).trim()
-    }
+    const transformedCompletion = applyTransforms(completion, transformContext)
 
-    // Take only first line (in case model returns multiple lines)
-    completion = completion.split('\n')[0].trim()
-
-    // Remove markdown formatting
-    completion = completion
-      .replace(/\*\*/g, '')
-      .replace(/\*/g, '')
-      .replace(/`/g, '')
-      .replace(/~/g, '')
-      .replace(/^\.\.\./, '')
-      .replace(/\\"/, '"')
-      .trim()
-
-    // Remove surrounding quotes if present
-    if (
-      (completion.startsWith('"') && completion.endsWith('"')) ||
-      (completion.startsWith("'") && completion.endsWith("'"))
-    ) {
-      completion = completion.slice(1, -1).trim()
-    }
-
-    if (
-      !completion ||
-      completion.length === 0 ||
-      completion.match(textAndNumericMatchRegExp) == null
-    ) {
+    // If transforms rejected the completion, return empty
+    if (!transformedCompletion) {
       return { items: [] }
     }
 
-    // Completion should be uppercase/lowercase based on the sentence status
-    if (startedNewSentence) {
-      completion = completion.charAt(0).toUpperCase() + completion.substring(1)
-    } else {
-      // Abbreviations should not be converted to lowercase incorrectly
-      // (e.g., AI to aI, DLQ to dLQ, etc.)
-      completion = leadingUpperCaseMatchRegExp.test(completion)
-        ? completion
-        : completion.charAt(0).toLowerCase() + completion.substring(1)
-    }
+    completion = transformedCompletion
 
     // Get text after cursor for word-level diffing
     const textAfterCursor = model

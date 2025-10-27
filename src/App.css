@@ -141,7 +141,7 @@
 
   html,
   body {
-    @apply overflow-hidden bg-transparent text-foreground select-none selection:bg-selection selection:text-foreground;
+    @apply overflow-hidden bg-transparent text-foreground select-none selection:bg-selection selection:text-foreground cursor-default;
   }
 }
 

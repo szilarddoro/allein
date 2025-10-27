@@ -10,7 +10,7 @@ export const H1 = forwardRef<
   <h1
     ref={ref}
     className={cn(
-      'scroll-m-20 text-4xl [&_code]:text-4xl/tight font-bold my-4 first:mt-0 cursor-default',
+      'scroll-m-20 text-4xl [&_code]:text-4xl/tight font-bold my-4 first:mt-0',
       className,
     )}
     {...props}
@@ -26,7 +26,7 @@ export const H2 = forwardRef<
   <h2
     ref={ref}
     className={cn(
-      'scroll-m-20 text-3xl [&_code]:text-3xl/tight font-semibold transition-colors first:mt-0 my-4 cursor-default',
+      'scroll-m-20 text-3xl [&_code]:text-3xl/tight font-semibold transition-colors first:mt-0 my-4',
       className,
     )}
     {...props}
@@ -42,7 +42,7 @@ export const H3 = forwardRef<
   <h3
     ref={ref}
     className={cn(
-      'scroll-m-20 text-2xl [&_code]:text-2xl/tight font-semibold first:mt-0 my-2 cursor-default',
+      'scroll-m-20 text-2xl [&_code]:text-2xl/tight font-semibold first:mt-0 my-2',
       className,
     )}
     {...props}
@@ -58,7 +58,7 @@ export const H4 = forwardRef<
   <h4
     ref={ref}
     className={cn(
-      'scroll-m-20 text-xl font-semibold tracking-tight cursor-default',
+      'scroll-m-20 text-xl font-semibold tracking-tight',
       className,
     )}
     {...props}

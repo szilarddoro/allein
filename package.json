@@ -84,6 +84,7 @@
     "@types/react-dom": "^19.1.6",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/remove-markdown": "^0.3.4",
+    "@types/sbd": "^1.0.5",
     "@typescript-eslint/eslint-plugin": "^8.44.0",
     "@typescript-eslint/parser": "^8.44.0",
     "@vitejs/plugin-react": "^4.6.0",

@@ -1,7 +1,7 @@
 /**
  * Prompt templates for inline completion
  * Based on continuedev/continue's exact approach
- * Wraps markdown in comment syntax for FIM models
+ * Sends prefix/suffix RAW between FIM tokens (no wrapping)
  * https://github.com/continuedev/continue
  * Licensed under Apache License 2.0
  */
@@ -63,32 +63,20 @@ function supportsFIM(modelName: string): boolean {
 }
 
 /**
- * Wrap markdown content in comment syntax
- * Makes FIM models treat it as code documentation
- */
-function wrapInComments(text: string): string {
-  // Use HTML-style comments for markdown (works well with most FIM models)
-  return `<!--\n${text}\n-->`
-}
-
-/**
  * Build FIM prompt with model-specific tokens
- * Following Continue.dev's exact approach: wrap markdown in comments
+ * Following Continue.dev's exact approach: send prefix/suffix RAW
  */
 function buildFIMPrompt(
   prefix: string,
   suffix: string,
   modelName: string,
 ): PromptBuildResult {
-  // Wrap content in comments to trick model into documentation mode
-  const wrappedPrefix = wrapInComments(prefix)
-  const wrappedSuffix = suffix ? wrapInComments(suffix) : ''
-
   const fimTemplate = getFIMTemplate(modelName)
 
+  // Send prefix/suffix RAW between FIM tokens (Continue.dev approach)
   const prompt = fimTemplate.template
-    .replace('{prefix}', wrappedPrefix)
-    .replace('{suffix}', wrappedSuffix)
+    .replace('{prefix}', prefix)
+    .replace('{suffix}', suffix)
 
   return {
     prompt,

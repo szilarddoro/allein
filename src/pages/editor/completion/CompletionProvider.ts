@@ -303,7 +303,7 @@ export class CompletionProvider {
 
     try {
       // Build comprehensive context
-      const context = await buildCompletionContext(model, position)
+      const context = buildCompletionContext(model, position)
 
       // Notify loading started
       this.config.onLoadingChange?.(true)

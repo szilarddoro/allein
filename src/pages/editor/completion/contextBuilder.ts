@@ -31,10 +31,10 @@ const MAX_PREFIX_CHARS = 2000
 /**
  * Extract comprehensive context from Monaco editor model
  */
-export async function buildCompletionContext(
+export function buildCompletionContext(
   model: monaco.editor.ITextModel,
   position: monaco.Position,
-): Promise<CompletionContext> {
+): CompletionContext {
   const fullText = model.getValue()
   const cursorOffset = model.getOffsetAt(position)
 
@@ -63,20 +63,9 @@ export async function buildCompletionContext(
     position,
   )
 
-  // Get clipboard if recently copied (optional, can be disabled)
+  // Clipboard reading disabled by default to prevent UI interference
+  // Can be enabled via options.includeClipboard if needed
   let clipboardText: string | undefined
-  try {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      clipboardText = await navigator.clipboard.readText()
-      // Only use if clipboard is reasonably short and recent
-      if (clipboardText.length > 500) {
-        clipboardText = undefined
-      }
-    }
-  } catch {
-    // Clipboard access may be denied, ignore silently
-    clipboardText = undefined
-  }
 
   return {
     prefix,

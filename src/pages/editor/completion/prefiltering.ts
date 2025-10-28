@@ -15,6 +15,8 @@ export interface PrefilterContext {
   }
 }
 
+const listMarkerOrNumberListItemRegExp = /^(-|\*|\+|\d+\.)/
+
 /**
  * Checks if we should skip the completion request based on various criteria
  * @returns true if we should skip (prefilter), false if we should proceed
@@ -76,7 +78,10 @@ function currentLineIsTooShort(context: PrefilterContext): boolean {
     context.cursorPosition.column - 1,
   )
 
-  return textBeforeCursor.trim().length < 3
+  return (
+    !listMarkerOrNumberListItemRegExp.test(textBeforeCursor.trim()) &&
+    textBeforeCursor.trim().length < 3
+  )
 }
 
 /**

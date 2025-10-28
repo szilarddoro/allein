@@ -35,7 +35,7 @@ import { useDebounceValue } from 'usehooks-ts'
 import * as z from 'zod'
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 
-const RECOMMENDED_MODEL = 'gemma3:latest'
+const RECOMMENDED_MODEL = 'qwen2.5-coder:1.5b-base'
 
 const assistantSettingsFormValues = z
   .object({
@@ -314,9 +314,9 @@ export function AIAssistantConfigPanel({
                       <span className="sr-only">Toggle AI Assistant</span>
                     </FieldLabel>
 
-                    <FieldDescription className="max-w-2xl">
-                      When enabled, the AI assistant will provide inline writing
-                      suggestions.
+                    <FieldDescription>
+                      When enabled, the AI assistant provides inline suggestions
+                      and helps improve your selected text.
                     </FieldDescription>
 
                     {fieldState.invalid && (
@@ -465,10 +465,10 @@ export function AIAssistantConfigPanel({
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="completionModel">
-                    <span aria-hidden="true">Inline Completions</span>
+                    <span aria-hidden="true">Autocomplete</span>
 
                     <span className="sr-only">
-                      Model used by the inline completion feature
+                      Model used by the autocomplete feature
                     </span>
                   </FieldLabel>
 
@@ -558,10 +558,10 @@ export function AIAssistantConfigPanel({
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="improvementModel">
-                    <span aria-hidden="true">Text Improvements</span>
+                    <span aria-hidden="true">Writing Improvements</span>
 
                     <span className="sr-only">
-                      Model used by the text improvement feature
+                      Model used by the writing improvement feature
                     </span>
                   </FieldLabel>
 

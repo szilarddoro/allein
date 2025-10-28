@@ -203,14 +203,48 @@ describe('prefiltering', () => {
         expect(shouldPrefilter(context)).toBe(false)
       })
 
-      it('should prefilter for very start of list marker', () => {
-        const context: PrefilterContext = {
+      it('should not prefilter for very start of list markers', () => {
+        const context1: PrefilterContext = {
           filepath: 'notes.md',
           fileContents: 'Previous\n- ',
           currentLine: '- ',
           cursorPosition: { lineNumber: 2, column: 3 },
         }
-        expect(shouldPrefilter(context)).toBe(true)
+        expect(shouldPrefilter(context1)).toBe(false)
+
+        const context2: PrefilterContext = {
+          filepath: 'notes.md',
+          fileContents: 'Previous\n- ',
+          currentLine: '+ ',
+          cursorPosition: { lineNumber: 2, column: 3 },
+        }
+        expect(shouldPrefilter(context2)).toBe(false)
+
+        const context3: PrefilterContext = {
+          filepath: 'notes.md',
+          fileContents: 'Previous\n- ',
+          currentLine: '* ',
+          cursorPosition: { lineNumber: 2, column: 3 },
+        }
+        expect(shouldPrefilter(context3)).toBe(false)
+      })
+
+      it('should not prefilter for very start of numbered list marker', () => {
+        const context1: PrefilterContext = {
+          filepath: 'notes.md',
+          fileContents: 'Previous\n- ',
+          currentLine: '1. ',
+          cursorPosition: { lineNumber: 2, column: 3 },
+        }
+        expect(shouldPrefilter(context1)).toBe(false)
+
+        const context2: PrefilterContext = {
+          filepath: 'notes.md',
+          fileContents: 'Previous\n- ',
+          currentLine: '24. ',
+          cursorPosition: { lineNumber: 2, column: 4 },
+        }
+        expect(shouldPrefilter(context2)).toBe(false)
       })
 
       it('should not prefilter mid-sentence', () => {

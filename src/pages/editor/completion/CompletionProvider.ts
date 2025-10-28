@@ -11,10 +11,18 @@ import { shouldPrefilter } from './prefiltering'
 import { processSingleLineCompletion } from './processSingleLineCompletion'
 import { getCompletionCache } from './CompletionCache'
 import { shouldCompleteMultiline } from './multilineClassification'
-import { buildCompletionPrompt } from './buildCompletionPrompt'
 import { getCompletionMetrics } from './CompletionMetrics'
-import { extractPreviousAndCurrentSentence } from '@/pages/editor/completion/extractContent'
+import {
+  buildCompletionContext,
+  type CompletionContext,
+} from './contextBuilder'
+import { buildCompletionPrompt } from './promptTemplates'
+import { applyTransforms, type TransformContext } from './transforms'
 import pDebounce from 'p-debounce'
+
+export interface InlineCompletionResult {
+  items: monaco.languages.InlineCompletion[]
+}
 
 interface CompletionProviderConfig {
   ollamaUrl: string
@@ -22,24 +30,24 @@ interface CompletionProviderConfig {
   isAiAssistanceAvailable: boolean
   debounceDelay: number
   onLoadingChange?: (loading: boolean) => void
+  onSuggestionsChange?: (result: InlineCompletionResult) => void
 }
-
-const leadingUpperCaseMatchRegExp = /^([A-Z]{2,}|I\s)/g
-const textAndNumericMatchRegExp = /[a-zA-Z0-9]/g
 
 /**
  * Stateful inline completion provider
  * Manages completion requests, caching, and suggestion persistence
  */
 export class CompletionProvider {
+  private monacoInstance: typeof monaco | null = null
   private currentRequest: AbortController | null = null
+  private currentRequestId: string | null = null
   private config: CompletionProviderConfig
   private disposable: monaco.IDisposable | null = null
   private debouncedHandleProvideInlineCompletions:
     | ((
         model: monaco.editor.ITextModel,
         position: monaco.Position,
-      ) => Promise<{ items: monaco.languages.InlineCompletion[] }>)
+      ) => Promise<InlineCompletionResult>)
     | null = null
 
   constructor(config: CompletionProviderConfig) {
@@ -49,7 +57,25 @@ export class CompletionProvider {
 
   createDebouncedInlineCompletionsHandler() {
     this.debouncedHandleProvideInlineCompletions = pDebounce(
-      (model, position) => this.handleProvideInlineCompletions(model, position),
+      async (model, position) => {
+        const result = await this.handleProvideInlineCompletions(
+          model,
+          position,
+        )
+
+        const editor = this.monacoInstance?.editor.getEditors()[0]
+
+        if (editor) {
+          // @ts-expect-error - This is a workaround for the closure problem
+          editor.metadata = {
+            hasSuggestion: result.items.length > 0,
+          }
+        }
+
+        this.config.onSuggestionsChange?.(result)
+
+        return result
+      },
       this.config.debounceDelay,
     )
   }
@@ -66,12 +92,16 @@ export class CompletionProvider {
       return
     }
 
+    this.monacoInstance = monacoInstance
+
     this.disposable =
       monacoInstance.languages.registerInlineCompletionsProvider('markdown', {
         provideInlineCompletions: this.debouncedHandleProvideInlineCompletions,
         // @ts-expect-error Monaco expects this method at runtime but it's not in the TypeScript definitions
         freeInlineCompletions: () => {},
-        disposeInlineCompletions: () => {},
+        disposeInlineCompletions: () => {
+          this.config.onSuggestionsChange?.({ items: [] })
+        },
       })
   }
 
@@ -88,6 +118,8 @@ export class CompletionProvider {
       this.currentRequest.abort()
       this.currentRequest = null
     }
+
+    this.monacoInstance = null
   }
 
   /**
@@ -104,7 +136,7 @@ export class CompletionProvider {
   private async handleProvideInlineCompletions(
     model: monaco.editor.ITextModel,
     position: monaco.Position,
-  ) {
+  ): Promise<InlineCompletionResult> {
     // Get current line content
     const currentLine = model.getLineContent(position.lineNumber)
     const textBeforeCursor = model
@@ -127,7 +159,7 @@ export class CompletionProvider {
     position: monaco.Position,
     currentLine: string,
     textBeforeCursor: string,
-  ) {
+  ): Promise<InlineCompletionResult> {
     const textBeforeCursorOnCurrentLine = currentLine.substring(
       0,
       position.column - 1,
@@ -208,7 +240,7 @@ export class CompletionProvider {
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
-  ) {
+  ): Promise<InlineCompletionResult> {
     try {
       // Check if AI assistance is available
       if (!this.config.isAiAssistanceAvailable) {
@@ -254,7 +286,7 @@ export class CompletionProvider {
     cachedCompletion: string,
     position: monaco.Position,
     textBeforeCursorOnCurrentLine: string,
-  ) {
+  ): InlineCompletionResult {
     // Record cache hit metric (instantaneous, basically 0ms)
     getCompletionMetrics().recordRequest(0, { type: 'cached' })
 
@@ -282,7 +314,7 @@ export class CompletionProvider {
   }
 
   /**
-   * Request completion from Ollama API
+   * Request completion from Ollama API using new architecture
    */
   private async requestCompletion(
     model: monaco.editor.ITextModel,
@@ -290,48 +322,69 @@ export class CompletionProvider {
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
-  ) {
-    // Create new abort controller for this request
+  ): Promise<InlineCompletionResult> {
+    // Create new abort controller and request ID (UUID-based deduplication)
     this.currentRequest = new AbortController()
+    const requestId = crypto.randomUUID()
+    this.currentRequestId = requestId
 
     // Record start time for metrics
     const startTime = performance.now()
 
     try {
-      const { currentSentenceSegments, previousSentence } =
-        extractPreviousAndCurrentSentence(model, position)
+      // Build comprehensive context
+      const context = buildCompletionContext(model, position)
 
       // Notify loading started
       this.config.onLoadingChange?.(true)
 
-      const { prompt, modelOptions, startedNewSentence, preventCompletion } =
-        buildCompletionPrompt({
-          currentSentenceSegments,
-          previousSentence,
-        })
+      // Build prompt (auto-detects FIM vs natural language based on model)
+      const promptResult = buildCompletionPrompt(
+        context,
+        this.config.ollamaModel,
+      )
 
-      if (preventCompletion) {
-        return { items: [] }
+      // Build request body (include system prompt if provided)
+      const requestBody: {
+        model: string
+        prompt: string
+        stream: boolean
+        system?: string
+        options: {
+          temperature: number
+          num_predict: number
+          stop: string[]
+        }
+      } = {
+        model: this.config.ollamaModel,
+        prompt: promptResult.prompt,
+        stream: false,
+        options: {
+          temperature: promptResult.modelOptions.temperature || 0.01,
+          num_predict: promptResult.modelOptions.num_predict,
+          stop: promptResult.modelOptions.stop,
+        },
+      }
+
+      // Add system prompt for non-FIM models (Continue.dev pattern)
+      if (promptResult.systemPrompt) {
+        requestBody.system = promptResult.systemPrompt
       }
 
       const generateResponse = await fetch(
         `${this.config.ollamaUrl}/api/generate`,
         {
           method: 'POST',
-          body: JSON.stringify({
-            model: this.config.ollamaModel,
-            prompt,
-            stream: false,
-            think: false,
-            options: {
-              temperature: modelOptions.temperature || 0.01,
-              num_predict: modelOptions.num_predict,
-              stop: modelOptions.stop,
-            },
-          }),
+          body: JSON.stringify(requestBody),
           signal: this.currentRequest.signal,
         },
       )
+
+      // Check if this request is still current before processing response
+      if (this.currentRequestId !== requestId) {
+        this.config.onLoadingChange?.(false)
+        return { items: [] } // Newer request started, discard this one
+      }
 
       if (!generateResponse.ok) {
         this.config.onLoadingChange?.(false)
@@ -342,6 +395,12 @@ export class CompletionProvider {
       }
 
       const { response } = await generateResponse.json()
+
+      // Check again if still current after async operation
+      if (this.currentRequestId !== requestId) {
+        this.config.onLoadingChange?.(false)
+        return { items: [] }
+      }
 
       // Notify loading finished
       this.config.onLoadingChange?.(false)
@@ -354,7 +413,7 @@ export class CompletionProvider {
         return { items: [] }
       }
 
-      // Parse the completion
+      // Parse the completion using new transform pipeline
       return this.processCompletion(
         response.trim(),
         model,
@@ -362,7 +421,7 @@ export class CompletionProvider {
         textBeforeCursor,
         currentLine,
         textBeforeCursorOnCurrentLine,
-        startedNewSentence,
+        context,
       )
     } catch (error) {
       // Notify loading finished on error
@@ -382,7 +441,7 @@ export class CompletionProvider {
   }
 
   /**
-   * Process completion response
+   * Process completion response using transform pipeline
    */
   private processCompletion(
     completion: string,
@@ -391,57 +450,32 @@ export class CompletionProvider {
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
-    startedNewSentence: boolean,
-  ) {
-    // Remove "Output:" prefix if model includes it
-    if (completion.toLowerCase().startsWith('output:')) {
-      completion = completion.substring(7).trim()
+    context: CompletionContext,
+  ): InlineCompletionResult {
+    // Detect if we're starting a new sentence (for capitalization)
+    const sentenceEndPattern = /[.!?]\s*$/
+    const listItemStartPattern = /(-|\d+\.)\s*$/
+    const startedNewSentence =
+      sentenceEndPattern.test(context.prefix.trim()) ||
+      listItemStartPattern.test(context.prefix.trim()) ||
+      context.prefix.trim() === ''
+
+    // Apply transform pipeline
+    const transformContext: TransformContext = {
+      prefix: context.prefix,
+      suffix: context.suffix,
+      modelName: this.config.ollamaModel,
+      startedNewSentence,
     }
 
-    // Remove "->" prefix if model includes it
-    if (completion.startsWith('->')) {
-      completion = completion.substring(2).trim()
-    }
+    const transformedCompletion = applyTransforms(completion, transformContext)
 
-    // Take only first line (in case model returns multiple lines)
-    completion = completion.split('\n')[0].trim()
-
-    // Remove markdown formatting
-    completion = completion
-      .replace(/\*\*/g, '')
-      .replace(/\*/g, '')
-      .replace(/`/g, '')
-      .replace(/~/g, '')
-      .replace(/^\.\.\./, '')
-      .replace(/\\"/, '"')
-      .trim()
-
-    // Remove surrounding quotes if present
-    if (
-      (completion.startsWith('"') && completion.endsWith('"')) ||
-      (completion.startsWith("'") && completion.endsWith("'"))
-    ) {
-      completion = completion.slice(1, -1).trim()
-    }
-
-    if (
-      !completion ||
-      completion.length === 0 ||
-      completion.match(textAndNumericMatchRegExp) == null
-    ) {
+    // If transforms rejected the completion, return empty
+    if (!transformedCompletion) {
       return { items: [] }
     }
 
-    // Completion should be uppercase/lowercase based on the sentence status
-    if (startedNewSentence) {
-      completion = completion.charAt(0).toUpperCase() + completion.substring(1)
-    } else {
-      // Abbreviations should not be converted to lowercase incorrectly
-      // (e.g., AI to aI, DLQ to dLQ, etc.)
-      completion = leadingUpperCaseMatchRegExp.test(completion)
-        ? completion
-        : completion.charAt(0).toLowerCase() + completion.substring(1)
-    }
+    completion = transformedCompletion
 
     // Get text after cursor for word-level diffing
     const textAfterCursor = model

@@ -110,16 +110,18 @@ export function ImprovementDialog({
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col gap-4">
-          <div className="flex flex-row gap-4 flex-1 overflow-hidden">
-            <div className="flex flex-col gap-2 overflow-hidden flex-1/2">
+          <div className="grid grid-cols-2 gap-4 flex-1 overflow-hidden">
+            <div className="flex flex-col gap-2 overflow-hidden">
               <H3 className="text-sm font-medium m-0">Original Text</H3>
 
               <div className="flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
-                <div className="overflow-hidden">{originalText}</div>
+                <div className="overflow-hidden break-words text-muted-foreground">
+                  {originalText}
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 flex-1/2">
+            <div className="flex flex-col gap-2">
               <H3 className="text-sm font-medium m-0">Improved Text</H3>
 
               {!isAiAssistanceAvailable ? (
@@ -152,7 +154,9 @@ export function ImprovementDialog({
                   </Button>
 
                   <div className="flex-1 overflow-auto p-3 rounded-md border bg-muted/50 text-sm whitespace-pre-wrap font-mono">
-                    <div className="overflow-hidden">{improvedText}</div>
+                    <div className="overflow-hidden break-words">
+                      {improvedText}
+                    </div>
                   </div>
                 </div>
               ) : error ? (

@@ -164,7 +164,3 @@
 .monaco-editor .find-widget .monaco-sash {
   @apply !hidden;
 }
-
-.monaco-editor .monaco-hover:has(.inlineSuggestionsHints) {
-  @apply !hidden;
-}

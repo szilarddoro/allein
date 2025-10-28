@@ -454,8 +454,10 @@ export class CompletionProvider {
   ): InlineCompletionResult {
     // Detect if we're starting a new sentence (for capitalization)
     const sentenceEndPattern = /[.!?]\s*$/
+    const listItemStartPattern = /(-|\d+\.)\s*$/
     const startedNewSentence =
       sentenceEndPattern.test(context.prefix.trim()) ||
+      listItemStartPattern.test(context.prefix.trim()) ||
       context.prefix.trim() === ''
 
     // Apply transform pipeline

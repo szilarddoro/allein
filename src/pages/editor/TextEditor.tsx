@@ -326,7 +326,10 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                 suggestOnTriggerCharacters: false,
                 acceptSuggestionOnEnter: 'off',
                 wordBasedSuggestions: 'off',
-                inlineSuggest: { enabled: true, keepOnBlur: true },
+                inlineSuggest: {
+                  enabled: true,
+                  keepOnBlur: import.meta.env.DEV,
+                },
                 unicodeHighlight: {
                   ambiguousCharacters: false,
                   invisibleCharacters: false,

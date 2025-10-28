@@ -20,12 +20,17 @@ import { buildCompletionPrompt } from './promptTemplates'
 import { applyTransforms, type TransformContext } from './transforms'
 import pDebounce from 'p-debounce'
 
+export interface InlineCompletionResult {
+  items: monaco.languages.InlineCompletion[]
+}
+
 interface CompletionProviderConfig {
   ollamaUrl: string
   ollamaModel: string
   isAiAssistanceAvailable: boolean
   debounceDelay: number
   onLoadingChange?: (loading: boolean) => void
+  onSuggestionsChange?: (result: InlineCompletionResult) => void
 }
 
 /**
@@ -33,6 +38,7 @@ interface CompletionProviderConfig {
  * Manages completion requests, caching, and suggestion persistence
  */
 export class CompletionProvider {
+  private monacoInstance: typeof monaco | null = null
   private currentRequest: AbortController | null = null
   private currentRequestId: string | null = null
   private config: CompletionProviderConfig
@@ -41,7 +47,7 @@ export class CompletionProvider {
     | ((
         model: monaco.editor.ITextModel,
         position: monaco.Position,
-      ) => Promise<{ items: monaco.languages.InlineCompletion[] }>)
+      ) => Promise<InlineCompletionResult>)
     | null = null
 
   constructor(config: CompletionProviderConfig) {
@@ -51,7 +57,25 @@ export class CompletionProvider {
 
   createDebouncedInlineCompletionsHandler() {
     this.debouncedHandleProvideInlineCompletions = pDebounce(
-      (model, position) => this.handleProvideInlineCompletions(model, position),
+      async (model, position) => {
+        const result = await this.handleProvideInlineCompletions(
+          model,
+          position,
+        )
+
+        const editor = this.monacoInstance?.editor.getEditors()[0]
+
+        if (editor) {
+          // @ts-expect-error - This is a workaround for the closure problem
+          editor.metadata = {
+            hasSuggestion: result.items.length > 0,
+          }
+        }
+
+        this.config.onSuggestionsChange?.(result)
+
+        return result
+      },
       this.config.debounceDelay,
     )
   }
@@ -68,12 +92,16 @@ export class CompletionProvider {
       return
     }
 
+    this.monacoInstance = monacoInstance
+
     this.disposable =
       monacoInstance.languages.registerInlineCompletionsProvider('markdown', {
         provideInlineCompletions: this.debouncedHandleProvideInlineCompletions,
         // @ts-expect-error Monaco expects this method at runtime but it's not in the TypeScript definitions
         freeInlineCompletions: () => {},
-        disposeInlineCompletions: () => {},
+        disposeInlineCompletions: () => {
+          this.config.onSuggestionsChange?.({ items: [] })
+        },
       })
   }
 
@@ -90,6 +118,8 @@ export class CompletionProvider {
       this.currentRequest.abort()
       this.currentRequest = null
     }
+
+    this.monacoInstance = null
   }
 
   /**
@@ -106,7 +136,7 @@ export class CompletionProvider {
   private async handleProvideInlineCompletions(
     model: monaco.editor.ITextModel,
     position: monaco.Position,
-  ) {
+  ): Promise<InlineCompletionResult> {
     // Get current line content
     const currentLine = model.getLineContent(position.lineNumber)
     const textBeforeCursor = model
@@ -129,7 +159,7 @@ export class CompletionProvider {
     position: monaco.Position,
     currentLine: string,
     textBeforeCursor: string,
-  ) {
+  ): Promise<InlineCompletionResult> {
     const textBeforeCursorOnCurrentLine = currentLine.substring(
       0,
       position.column - 1,
@@ -210,7 +240,7 @@ export class CompletionProvider {
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
-  ) {
+  ): Promise<InlineCompletionResult> {
     try {
       // Check if AI assistance is available
       if (!this.config.isAiAssistanceAvailable) {
@@ -256,7 +286,7 @@ export class CompletionProvider {
     cachedCompletion: string,
     position: monaco.Position,
     textBeforeCursorOnCurrentLine: string,
-  ) {
+  ): InlineCompletionResult {
     // Record cache hit metric (instantaneous, basically 0ms)
     getCompletionMetrics().recordRequest(0, { type: 'cached' })
 
@@ -292,7 +322,7 @@ export class CompletionProvider {
     textBeforeCursor: string,
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
-  ) {
+  ): Promise<InlineCompletionResult> {
     // Create new abort controller and request ID (UUID-based deduplication)
     this.currentRequest = new AbortController()
     const requestId = crypto.randomUUID()
@@ -421,7 +451,7 @@ export class CompletionProvider {
     currentLine: string,
     textBeforeCursorOnCurrentLine: string,
     context: CompletionContext,
-  ) {
+  ): InlineCompletionResult {
     // Detect if we're starting a new sentence (for capitalization)
     const sentenceEndPattern = /[.!?]\s*$/
     const startedNewSentence =

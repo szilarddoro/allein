@@ -10,7 +10,7 @@ import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
 import { useMonaco } from '@monaco-editor/react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CompletionProvider } from './CompletionProvider'
 
 export interface UseInlineCompletionOptions {
@@ -25,6 +25,7 @@ export function useInlineCompletion({
   onLoadingChange,
 }: UseInlineCompletionOptions = {}) {
   const monacoInstance = useMonaco()
+  const [hasInlineCompletion, setHasInlineCompletion] = useState(false)
   const { completionModel, ollamaUrl } = useOllamaConfig()
   const { aiAssistanceEnabled } = useAIConfig()
   const { data: isConnected, status: connectionStatus } =
@@ -49,6 +50,8 @@ export function useInlineCompletion({
         isAiAssistanceAvailable: isAiAssistanceAvailable || false,
         debounceDelay,
         onLoadingChange,
+        onSuggestionsChange: (result) =>
+          setHasInlineCompletion(result.items.length > 0),
       })
       providerRef.current.register(monacoInstance)
     } else {
@@ -59,6 +62,8 @@ export function useInlineCompletion({
         isAiAssistanceAvailable: isAiAssistanceAvailable || false,
         debounceDelay,
         onLoadingChange,
+        onSuggestionsChange: (result) =>
+          setHasInlineCompletion(result.items.length > 0),
       })
     }
 
@@ -78,4 +83,6 @@ export function useInlineCompletion({
     ollamaUrl,
     onLoadingChange,
   ])
+
+  return { hasInlineCompletion }
 }

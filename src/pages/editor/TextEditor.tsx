@@ -57,6 +57,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
         onKeyDown?.(event)
 
         // Handle Tab key for list indentation (only when cursor is near the marker)
+        // Note: We might want to move this to useEditorKeyBindings instead.
         if (
           event.keyCode === _monaco.KeyCode.Tab &&
           !event.shiftKey &&
@@ -64,18 +65,9 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
           !event.metaKey &&
           !event.altKey
         ) {
-          // Check if inline completion is active - if so, let Monaco handle Tab (to accept completion)
-          // Monaco's inline completion controller is internal API
-          const inlineCompletionsController = editor.getContribution(
-            'editor.contrib.inlineCompletionsController',
-          )
-
-          const hasInlineCompletion =
-            // @ts-expect-error - Internal Monaco APIs are not typed properly
-            inlineCompletionsController?.model?.value?._isActive._value === true
-
           // If inline completion is showing, let Monaco handle Tab to accept it
-          if (hasInlineCompletion) {
+          // @ts-expect-error - This is a workaround for the closure problem
+          if (editor.metadata.hasSuggestion) {
             return
           }
 

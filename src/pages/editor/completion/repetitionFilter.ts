@@ -154,7 +154,7 @@ export function isRepetitive(
   } = {},
 ): boolean {
   const {
-    contextThreshold = 0.6,
+    contextThreshold = 0.9,
     selfThreshold = 0.5,
     checkPatterns = true,
   } = options

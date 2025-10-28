@@ -177,9 +177,6 @@ importers:
       '@types/react-syntax-highlighter':
         specifier: ^15.5.13
         version: 15.5.13
-      '@types/remove-markdown':
-        specifier: ^0.3.4
-        version: 0.3.4
       '@types/sbd':
         specifier: ^1.0.5
         version: 1.0.5
@@ -1662,9 +1659,6 @@ packages:
 
   '@types/react@19.1.13':
     resolution: {integrity: sha512-hHkbU/eoO3EG5/MZkuFSKmYqPbSVk5byPFa3e7y/8TybHiLMACgI8seVYlicwk7H5K/rI2px9xrQp/C+AUDTiQ==}
-
-  '@types/remove-markdown@0.3.4':
-    resolution: {integrity: sha512-i753EH/p02bw7bLlpfS/4CV1rdikbGiLabWyVsAvsFid3cA5RNU1frG7JycgY+NSnFwtoGlElvZVceCytecTDA==}
 
   '@types/sbd@1.0.5':
     resolution: {integrity: sha512-60PxBBWhg0C3yb5bTP+wwWYGTKMcuB0S6mTEa1sedMC79tYY0Ei7YjU4qsWzGn++lWscLQde16SnElJrf5/aTw==}
@@ -5923,8 +5917,6 @@ snapshots:
   '@types/react@19.1.13':
     dependencies:
       csstype: 3.1.3
-
-  '@types/remove-markdown@0.3.4': {}
 
   '@types/sbd@1.0.5': {}
 

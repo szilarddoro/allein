@@ -168,22 +168,3 @@
 .monaco-editor .monaco-hover:has(.inlineSuggestionsHints) {
   @apply !hidden;
 }
-
-/* Fix ghost text wrapping for inline completions */
-.monaco-editor .ghost-text-decoration,
-.monaco-editor .ghost-text-decoration-preview,
-.monaco-editor .inline-completion-text-to-replace,
-.monaco-editor .suggest-preview-text {
-  white-space: pre-wrap !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  max-width: 100% !important;
-}
-
-/* Constrain absolutely positioned inline completion widgets */
-.monaco-editor .contentWidgets .inline-completions-widget {
-  max-width: calc(100% - 60px) !important;
-  white-space: pre-wrap !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-}

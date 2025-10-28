@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 
 export function SettingsPage() {
   return (
-    <div className="pt-4 pl-6 pr-4 pb-32 flex-1 max-w-7xl mx-auto w-full flex flex-col gap-6">
+    <div className="pt-4 pl-6 pr-4 pb-32 flex-1 max-w-7xl 3xl:max-w-3/5 mx-auto w-full flex flex-col gap-6">
       <Button
         asChild
         variant="ghost"

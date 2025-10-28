@@ -186,10 +186,10 @@ export function BrowserPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="relative flex flex-col gap-6 pl-6 pr-4 pt-4 pb-16 max-w-7xl w-full mx-auto">
+      <div className="relative flex flex-col gap-6 pl-6 pr-6 pt-4 pb-16 max-w-7xl 3xl:max-w-3/5 w-full mx-auto">
         <div className="flex flex-row gap-1.5 items-center justify-between">
           <H1 className="my-0 text-3xl">Browser</H1>
-          <Button size="sm" variant="outline" onClick={handleCreateFile}>
+          <Button size="sm" variant="ghost" onClick={handleCreateFile}>
             <NotebookPen className="size-4" />
             <span aria-hidden="true">New file</span>
             <span className="sr-only">Create a new file</span>
@@ -236,6 +236,7 @@ export function BrowserPage() {
                             content={file.preview}
                             aria-hidden="true"
                           />
+
                           <span className="sr-only">
                             File content: {file.preview.substring(0, 255)}
                           </span>

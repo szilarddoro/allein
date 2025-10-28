@@ -152,7 +152,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                     PreTag="div"
                     className={cn(
                       'rounded-lg my-24 !bg-zinc-50 dark:!bg-zinc-800/30 border border-zinc-200 dark:border-zinc-800 !font-mono [&_code]:!bg-transparent',
-                      renderType === 'embedded' && 'text-sm',
+                      renderType === 'embedded' &&
+                        '[&_code]:!text-sm [&_code]:!whitespace-pre-wrap',
                     )}
                     customStyle={{
                       margin: 0,

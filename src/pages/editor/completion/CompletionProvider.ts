@@ -19,7 +19,6 @@ import {
 import { buildCompletionPrompt } from './promptTemplates'
 import { applyTransforms, type TransformContext } from './transforms'
 import pDebounce from 'p-debounce'
-import { wrapCompletion } from './wrapCompletion'
 
 export interface InlineCompletionResult {
   items: monaco.languages.InlineCompletion[]
@@ -542,15 +541,6 @@ export class CompletionProvider {
 
     if (needsLeadingSpace) {
       insertText = ' ' + insertText
-    }
-
-    // Wrap completion text to prevent cutoff at editor edge
-    // Only wrap if it's not already multiline
-    if (!insertText.includes('\n')) {
-      insertText = wrapCompletion(insertText, {
-        currentColumn: position.column,
-        wrapColumn: 80,
-      })
     }
 
     // Create completion item

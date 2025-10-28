@@ -118,7 +118,7 @@ Completion:`
     modelOptions: {
       temperature: 0.3,
       num_predict: 50,
-      stop: ['\n\n', 'Prefix:', 'Suffix:', '[BLANK]', 'Completion:'],
+      stop: ['\n', 'Prefix:', 'Suffix:', '[BLANK]', 'Completion:'],
     },
   }
 }
@@ -142,8 +142,8 @@ function getFIMTemplate(modelName: string): FIMTemplate {
     return {
       template: '<PRE> {prefix} <SUF>{suffix} <MID>',
       stopTokens: [
+        '\n',
         '<EOT>',
-        '\n\n',
         '<MID>',
         '<SUF>',
         '<PRE>',
@@ -161,9 +161,9 @@ function getFIMTemplate(modelName: string): FIMTemplate {
     return {
       template: '<｜fim▁begin｜>{prefix}<｜fim▁hole｜>{suffix}<｜fim▁end｜>',
       stopTokens: [
+        '\n',
         '<｜end▁of▁sentence｜>',
         '<｜EOT｜>',
-        '\n\n',
         '<｜fim▁begin｜>',
         '<｜fim▁hole｜>',
         '<｜fim▁end｜>',
@@ -180,6 +180,7 @@ function getFIMTemplate(modelName: string): FIMTemplate {
     return {
       template: '<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>',
       stopTokens: [
+        '\n',
         '<|endoftext|>',
         '<|fim_prefix|>',
         '<|fim_middle|>',
@@ -203,6 +204,7 @@ function getFIMTemplate(modelName: string): FIMTemplate {
     return {
       template: '<fim_prefix>{prefix}<fim_suffix>{suffix}<fim_middle>',
       stopTokens: [
+        '\n',
         '<|endoftext|>',
         '<fim_prefix>',
         '<fim_suffix>',
@@ -222,10 +224,10 @@ function getFIMTemplate(modelName: string): FIMTemplate {
     return {
       template: '<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>',
       stopTokens: [
+        '\n',
         '<|file_separator|>',
         '<|end_of_turn|>',
         '<|endoftext|>',
-        '\n\n',
         '<|fim_prefix|>',
         '<|fim_suffix|>',
         '<|fim_middle|>',
@@ -241,6 +243,7 @@ function getFIMTemplate(modelName: string): FIMTemplate {
     return {
       template: '<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>',
       stopTokens: [
+        '\n',
         '<|endoftext|>',
         '<|fim_prefix|>',
         '<|fim_suffix|>',
@@ -268,13 +271,13 @@ function getFIMTemplate(modelName: string): FIMTemplate {
   return {
     template: '<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>',
     stopTokens: [
+      '\n',
       '<|endoftext|>',
       '<|fim_prefix|>',
       '<|fim_suffix|>',
       '<|fim_middle|>',
       '<|fim_pad|>',
       '<|file_sep|>',
-      '\n\n',
       '/src/',
       '#- coding: utf-8',
       '```',

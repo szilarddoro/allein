@@ -293,6 +293,9 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                 tabCompletion: 'off',
                 codeLens: false,
                 contextmenu: false,
+                find: {
+                  addExtraSpaceOnTop: false,
+                },
                 suggest: {
                   selectionMode: 'never',
                   showKeywords: false,

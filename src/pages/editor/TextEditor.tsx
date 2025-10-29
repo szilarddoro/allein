@@ -3,7 +3,7 @@ import { useAIConfig } from '@/lib/ai/useAIConfig'
 import MonacoEditor, { Monaco } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { useTheme } from 'next-themes'
-import { forwardRef, useRef } from 'react'
+import { forwardRef, useEffect, useRef } from 'react'
 import { useInlineCompletion } from './completion/useInlineCompletion'
 import { defineCustomThemes } from './monaco-themes'
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
@@ -47,11 +47,27 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
       defineCustomThemes(monacoInstance)
     }
 
+    useEffect(() => {
+      function updateDimensions() {
+        if (editorRef.current == null) {
+          return
+        }
+
+        editorRef.current.layout()
+      }
+
+      window.addEventListener('resize', updateDimensions, { passive: true })
+
+      return () => window.removeEventListener('resize', updateDimensions)
+    }, [])
+
     function handleEditorDidMount(
       editor: monaco.editor.IStandaloneCodeEditor,
       _monaco: Monaco,
     ) {
       editorRef.current = editor
+
+      editor.layout()
 
       editor.onKeyDown((event: monaco.IKeyboardEvent) => {
         onKeyDown?.(event)
@@ -247,7 +263,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
         <Card className="flex flex-col flex-1 min-h-0 p-0 overflow-hidden relative transition-colors duration-300">
           <div className="flex-1 min-h-0">
             <MonacoEditor
-              key={theme}
               theme={
                 theme === 'dark' ||
                 (theme === 'system' && systemTheme === 'dark')
@@ -343,7 +358,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                 lineHeight: 1.6,
                 padding: { top: 12, bottom: 32 },
                 placeholder,
-                automaticLayout: true,
               }}
             />
           </div>

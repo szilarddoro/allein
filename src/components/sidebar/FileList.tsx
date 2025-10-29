@@ -10,23 +10,16 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu'
 import { Link } from '@/components/ui/link'
 import { P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
+import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
 import { useFileList } from '@/lib/files/useFileList'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { Copy, Edit3, FolderOpen, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -35,6 +28,7 @@ export function FileList() {
   const [currentFilePath] = useCurrentFilePath()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { showContextMenu } = useFileContextMenu()
   const { mutateAsync: deleteFile, isPending: isDeletingFile } = useDeleteFile()
   const [fileToDelete, setFileToDelete] = useState<{
     path: string
@@ -153,71 +147,44 @@ export function FileList() {
           )
           .map((file) => (
             <li key={file.path} className="w-full">
-              <ContextMenu>
-                <ContextMenuTrigger asChild>
-                  <Button asChild variant="ghost" size="sm" className="w-full">
-                    <Link
-                      to={{
-                        pathname: '/editor',
-                        search: `?file=${file.path}`,
-                      }}
-                      aria-current={currentFilePath === file.path}
-                      className={cn(
-                        'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
-                        currentFilePath === file.path
-                          ? 'bg-zinc-200/60 hover:bg-zinc-200/90 dark:bg-zinc-700/60 dark:hover:bg-zinc-700/90'
-                          : 'hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40',
-                      )}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="flex-1 text-sm truncate"
-                      >
-                        {getDisplayName(file.name)}
-                      </span>
+              <Button asChild variant="ghost" size="sm" className="w-full">
+                <Link
+                  to={{
+                    pathname: '/editor',
+                    search: `?file=${file.path}`,
+                  }}
+                  aria-current={currentFilePath === file.path}
+                  className={cn(
+                    'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
+                    currentFilePath === file.path
+                      ? 'bg-zinc-200/60 hover:bg-zinc-200/90 dark:bg-zinc-700/60 dark:hover:bg-zinc-700/90'
+                      : 'hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40',
+                  )}
+                  onContextMenu={(e) =>
+                    showContextMenu(e, {
+                      filePath: file.path,
+                      fileName: file.name,
+                      onOpen: () =>
+                        navigate({
+                          pathname: '/editor',
+                          search: `?file=${file.path}`,
+                        }),
+                      onCopyPath: () => handleCopyFilePath(file.path),
+                      onOpenInFolder: () => handleOpenInFolder(file.path),
+                      onDelete: () => handleDeleteFile(file.path, file.name),
+                      isDeletingFile,
+                    })
+                  }
+                >
+                  <span aria-hidden="true" className="flex-1 text-sm truncate">
+                    {getDisplayName(file.name)}
+                  </span>
 
-                      <span className="sr-only">
-                        Open file {getDisplayName(file.name)}
-                      </span>
-                    </Link>
-                  </Button>
-                </ContextMenuTrigger>
-
-                <ContextMenuContent className="w-48" loop>
-                  <ContextMenuItem
-                    onClick={() =>
-                      navigate({
-                        pathname: '/editor',
-                        search: `?file=${file.path}`,
-                      })
-                    }
-                  >
-                    <Edit3 className="size-4 mr-2 text-current" />
-                    Open
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    onClick={() => handleCopyFilePath(file.path)}
-                  >
-                    <Copy className="size-4 mr-2 text-current" />
-                    Copy path
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    onClick={() => handleOpenInFolder(file.path)}
-                  >
-                    <FolderOpen className="size-4 mr-2 text-current" />
-                    Open in folder
-                  </ContextMenuItem>
-                  <ContextMenuSeparator />
-                  <ContextMenuItem
-                    onClick={() => handleDeleteFile(file.path, file.name)}
-                    disabled={isDeletingFile}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="size-4 mr-2 text-current" />
-                    Delete
-                  </ContextMenuItem>
-                </ContextMenuContent>
-              </ContextMenu>
+                  <span className="sr-only">
+                    Open file {getDisplayName(file.name)}
+                  </span>
+                </Link>
+              </Button>
             </li>
           ))}
       </ul>

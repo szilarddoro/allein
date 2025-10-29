@@ -1,11 +1,5 @@
 import { Button } from '@/components/ui/button'
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu'
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -16,9 +10,10 @@ import { useFileList } from '@/lib/files/useFileList'
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import { validateFileName } from '@/lib/files/validation'
 import { useToast } from '@/lib/useToast'
+import { useFileNameContextMenu } from '@/pages/editor/useFileNameContextMenu'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { Copy, FolderOpen, TriangleAlert } from 'lucide-react'
+import { TriangleAlert } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -38,6 +33,7 @@ export function FileNameEditor({
   const { toast } = useToast()
   const { data: files } = useFileList()
   const { mutateAsync: renameFile } = useRenameFile()
+  const { showContextMenu } = useFileNameContextMenu()
   const [fileName, setFileName] = useState('')
   const [fileNameValidationErrorType, setFileNameValidationErrorType] =
     useState<'invalid' | 'duplicate' | 'none'>('none')
@@ -192,35 +188,25 @@ export function FileNameEditor({
         </>
       ) : (
         <Tooltip delayDuration={500}>
-          <ContextMenu>
-            <TooltipTrigger
-              asChild
-              className="cursor-pointer hover:text-foreground transition-colors focus:outline-none focus:ring-[3px] focus:ring-ring/50 rounded"
+          <TooltipTrigger
+            asChild
+            className="cursor-pointer hover:text-foreground transition-colors focus:outline-none focus:ring-[3px] focus:ring-ring/50 rounded"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleFileNameClick}
+              onContextMenu={(e) =>
+                showContextMenu(e, {
+                  onCopyPath: handleCopyFilePath,
+                  onOpenInFolder: handleOpenInFolder,
+                })
+              }
+              className="text-left px-1.5 py-0.5 h-auto font-normal rounded-md"
             >
-              <ContextMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleFileNameClick}
-                  onContextMenu={(e) => e.stopPropagation()}
-                  className="text-left px-1.5 py-0.5 h-auto font-normal rounded-md"
-                >
-                  {fileName}
-                </Button>
-              </ContextMenuTrigger>
-            </TooltipTrigger>
-
-            <ContextMenuContent className="w-48" loop>
-              <ContextMenuItem onClick={handleCopyFilePath}>
-                <Copy className="size-4 mr-2 text-current" />
-                Copy path
-              </ContextMenuItem>
-              <ContextMenuItem onClick={handleOpenInFolder}>
-                <FolderOpen className="size-4 mr-2 text-current" />
-                Open in folder
-              </ContextMenuItem>
-            </ContextMenuContent>
-          </ContextMenu>
+              {fileName}
+            </Button>
+          </TooltipTrigger>
 
           <TooltipContent align="center" side="bottom">
             Click to edit file name

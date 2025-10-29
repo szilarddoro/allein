@@ -46,6 +46,17 @@ export function AppLayout() {
     }
   }, [navigate, progress])
 
+  useEffect(() => {
+    function handleContextMenu(ev: MouseEvent) {
+      ev.preventDefault()
+    }
+    document.addEventListener('contextmenu', handleContextMenu)
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu)
+    }
+  }, [])
+
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {

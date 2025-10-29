@@ -11,32 +11,18 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu'
 import { Link } from '@/components/ui/link'
 import { H1, H3, P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
+import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
 import { useFileListWithPreview } from '@/lib/files/useFileListWithPreview'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import MarkdownPreview from '@/pages/editor/MarkdownPreview'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import {
-  CircleAlert,
-  Copy,
-  Edit3,
-  File,
-  FolderOpen,
-  NotebookPen,
-  Trash2,
-} from 'lucide-react'
+import { CircleAlert, File, NotebookPen } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -50,6 +36,7 @@ export function BrowserPage() {
 
   const { toast } = useToast()
   const navigate = useNavigate()
+  const { showContextMenu } = useFileContextMenu()
   const [fileToDelete, setFileToDelete] = useState<{
     path: string
     name: string
@@ -198,90 +185,66 @@ export function BrowserPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedFiles.map((file) => (
-            <ContextMenu key={file.name}>
-              <ContextMenuTrigger asChild>
-                <Link
-                  to={{ pathname: '/editor', search: `?file=${file.path}` }}
-                  className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
-                >
-                  <Card
-                    className={cn(
-                      'aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative',
-                      'before:absolute before:top-0 before:left-0 before:size-full before:z-20 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
-                      'after:absolute after:bottom-0 after:left-0 after:w-full after:h-22 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent',
-                    )}
-                  >
-                    <CardHeader
-                      className={cn(
-                        'px-0',
-                        file.preview.length > 0 && 'sr-only',
-                      )}
-                    >
-                      <H3 className="text-xs text-muted-foreground font-normal mb-0 truncate">
-                        <span aria-hidden="true">
-                          {getDisplayName(file.name)}
-                        </span>
-
-                        <span className="sr-only">
-                          Open file: &quot;{getDisplayName(file.name)}&quot;
-                        </span>
-                      </H3>
-                    </CardHeader>
-
-                    <CardContent className="px-0 pt-0.5 pb-0 overflow-hidden">
-                      {file.preview ? (
-                        <>
-                          <MarkdownPreview
-                            renderType="embedded"
-                            content={file.preview}
-                            aria-hidden="true"
-                          />
-
-                          <span className="sr-only">
-                            File content: {file.preview.substring(0, 255)}
-                          </span>
-                        </>
-                      ) : (
-                        <P className="my-0 text-xs text-muted-foreground sr-only">
-                          File is empty
-                        </P>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Link>
-              </ContextMenuTrigger>
-
-              <ContextMenuContent className="w-48" loop>
-                <ContextMenuItem
-                  onClick={() =>
+            <Link
+              key={file.name}
+              to={{ pathname: '/editor', search: `?file=${file.path}` }}
+              className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
+              onContextMenu={(e) =>
+                showContextMenu(e, {
+                  filePath: file.path,
+                  fileName: file.name,
+                  onOpen: () =>
                     navigate({
                       pathname: '/editor',
                       search: `?file=${file.path}`,
-                    })
-                  }
+                    }),
+                  onCopyPath: () => handleCopyFilePath(file.path),
+                  onOpenInFolder: () => handleOpenInFolder(file.path),
+                  onDelete: () => handleDeleteFile(file.path, file.name),
+                  isDeletingFile,
+                })
+              }
+            >
+              <Card
+                className={cn(
+                  'aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative',
+                  'before:absolute before:top-0 before:left-0 before:size-full before:z-20 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
+                  'after:absolute after:bottom-0 after:left-0 after:w-full after:h-22 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent',
+                )}
+              >
+                <CardHeader
+                  className={cn('px-0', file.preview.length > 0 && 'sr-only')}
                 >
-                  <Edit3 className="size-4 mr-2 text-current" />
-                  Open
-                </ContextMenuItem>
-                <ContextMenuItem onClick={() => handleCopyFilePath(file.path)}>
-                  <Copy className="size-4 mr-2 text-current" />
-                  Copy path
-                </ContextMenuItem>
-                <ContextMenuItem onClick={() => handleOpenInFolder(file.path)}>
-                  <FolderOpen className="size-4 mr-2 text-current" />
-                  Open in folder
-                </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem
-                  onClick={() => handleDeleteFile(file.path, file.name)}
-                  disabled={isDeletingFile}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="size-4 mr-2 text-current" />
-                  Delete
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenu>
+                  <H3 className="text-xs text-muted-foreground font-normal mb-0 truncate">
+                    <span aria-hidden="true">{getDisplayName(file.name)}</span>
+
+                    <span className="sr-only">
+                      Open file: &quot;{getDisplayName(file.name)}&quot;
+                    </span>
+                  </H3>
+                </CardHeader>
+
+                <CardContent className="px-0 pt-0.5 pb-0 overflow-hidden">
+                  {file.preview ? (
+                    <>
+                      <MarkdownPreview
+                        renderType="embedded"
+                        content={file.preview}
+                        aria-hidden="true"
+                      />
+
+                      <span className="sr-only">
+                        File content: {file.preview.substring(0, 255)}
+                      </span>
+                    </>
+                  ) : (
+                    <P className="my-0 text-xs text-muted-foreground sr-only">
+                      File is empty
+                    </P>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>

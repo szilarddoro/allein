@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
@@ -18,6 +18,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
 import { useWindowState } from '@/hooks/useWindowState'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
@@ -28,6 +33,11 @@ import { useModelWarmup } from '@/lib/ollama/useModelWarmup'
 import { Hotkey } from '@/components/Hotkey'
 import { useFileList } from '@/lib/files/useFileList'
 import { useLocationHistory } from '@/hooks/useLocationHistory'
+import { ImperativePanelGroupHandle } from 'react-resizable-panels'
+import { useMediaQuery } from 'usehooks-ts'
+
+const SIDEBAR_DEFAULT_SIZE = 20
+const CONTENT_DEFAULT_SIZE = 80
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -37,8 +47,11 @@ export function AppLayout() {
   const { toast } = useToast()
   const { data: progress, status: progressStatus } = useOnboardingProgress()
   const { data: files, status: filesStatus } = useFileList()
-
   const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()
+  const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null)
+  const isLargeScreen = useMediaQuery('(min-width: 1920px)')
+
+  useModelWarmup()
 
   useEffect(() => {
     if (progress?.status !== 'skipped' && progress?.status !== 'completed') {
@@ -90,8 +103,16 @@ export function AppLayout() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [navigate, createFile, toast])
 
-  // Warm up the model when AI assistance is enabled
-  useModelWarmup()
+  function handleResetResizablePanels() {
+    if (panelGroupRef.current == null) {
+      return
+    }
+
+    panelGroupRef.current.setLayout([
+      SIDEBAR_DEFAULT_SIZE,
+      CONTENT_DEFAULT_SIZE,
+    ])
+  }
 
   if (progressStatus === 'pending' || filesStatus !== 'success') {
     return null
@@ -179,11 +200,33 @@ export function AppLayout() {
       </header>
 
       <main className="flex-auto overflow-hidden flex">
-        {sidebarOpen && files.length > 0 && <Sidebar onNewFile={createFile} />}
+        {sidebarOpen && files.length > 0 ? (
+          <ResizablePanelGroup
+            ref={panelGroupRef}
+            direction="horizontal"
+            autoSaveId="main-layout"
+          >
+            <ResizablePanel
+              defaultSize={SIDEBAR_DEFAULT_SIZE}
+              minSize={isLargeScreen ? 8 : 15}
+              maxSize={isLargeScreen ? 18 : 20}
+            >
+              <Sidebar onNewFile={createFile} />
+            </ResizablePanel>
 
-        <div className="flex-1 flex flex-col overflow-auto">
-          <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
-        </div>
+            <ResizableHandle onDoubleClick={handleResetResizablePanels} />
+
+            <ResizablePanel defaultSize={CONTENT_DEFAULT_SIZE} minSize={50}>
+              <div className="flex-1 flex flex-col overflow-auto h-full">
+                <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : (
+          <div className="flex-1 flex flex-col overflow-auto">
+            <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
+          </div>
+        )}
       </main>
     </BaseLayout>
   )

@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
-import { Cog, PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Cog,
+  PanelLeftCloseIcon,
+  PanelLeftOpenIcon,
+} from 'lucide-react'
 import { CURRENT_PLATFORM } from '@/lib/constants'
 import { Sidebar } from '@/components/sidebar/Sidebar'
 import { useCreateFile } from '@/lib/files/useCreateFile'
@@ -21,6 +27,7 @@ import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
 import { useModelWarmup } from '@/lib/ollama/useModelWarmup'
 import { Hotkey } from '@/components/Hotkey'
 import { useFileList } from '@/lib/files/useFileList'
+import { useLocationHistory } from '@/hooks/useLocationHistory'
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -30,6 +37,8 @@ export function AppLayout() {
   const { toast } = useToast()
   const { data: progress, status: progressStatus } = useOnboardingProgress()
   const { data: files, status: filesStatus } = useFileList()
+
+  const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()
 
   useEffect(() => {
     if (progress?.status !== 'skipped' && progress?.status !== 'completed') {
@@ -133,6 +142,28 @@ export function AppLayout() {
               Open Settings <Hotkey modifiers={['meta']} keyCode="," />
             </TooltipContent>
           </Tooltip>
+        </div>
+
+        <div className="z-20">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={goBack}
+            disabled={!canGoBack}
+            aria-label="Go Back"
+          >
+            <ChevronLeft className="size-4.5" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={goForward}
+            disabled={!canGoForward}
+            aria-label="Go Forward"
+          >
+            <ChevronRight className="size-4.5" />
+          </Button>
         </div>
       </header>
 

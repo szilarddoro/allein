@@ -63,9 +63,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
 
       {/* Files List */}
       <div className="flex-1 overflow-y-auto pt-4 pb-12 pl-2.5 flex flex-col gap-2">
-        <H2 className="text-sm font-medium text-muted-foreground px-2 mb-0 sticky">
-          Files
-        </H2>
+        <H2 className="sr-only">Files</H2>
 
         <FileList />
       </div>

@@ -39,6 +39,7 @@ function ResizableHandle({
         'group relative w-px bg-border motion-safe:transition-all opacity-0 focus-visible:ring-ring flex items-center justify-center focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:outline-hidden data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full [&[data-panel-group-direction=vertical]>div]:rotate-90',
         'data-[resize-handle-active=keyboard]:opacity-100 data-[resize-handle-state=drag]:opacity-100 data-[resize-handle-state=hover]:opacity-100',
         'data-[resize-handle-active=keyboard]:bg-zinc-400 data-[resize-handle-active=keyboard]:dark:bg-zinc-600 data-[resize-handle-state=drag]:bg-zinc-400 data-[resize-handle-state=drag]:dark:bg-zinc-600',
+        'after:absolute after:w-2 after:top-0 after:right-0 after:h-full',
         className,
       )}
       {...props}

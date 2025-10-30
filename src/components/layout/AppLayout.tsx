@@ -36,9 +36,6 @@ import { useLocationHistory } from '@/hooks/useLocationHistory'
 import { ImperativePanelGroupHandle } from 'react-resizable-panels'
 import { useMediaQuery } from 'usehooks-ts'
 
-const SIDEBAR_DEFAULT_SIZE = 20
-const CONTENT_DEFAULT_SIZE = 80
-
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const { mutateAsync: createFile } = useCreateFile()
@@ -104,15 +101,16 @@ export function AppLayout() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [navigate, createFile, toast])
 
-  function handleResetResizablePanels() {
-    if (panelGroupRef.current == null) {
-      return
+  function getSidebarDefaultSize() {
+    if (isExtraLargeScreen) {
+      return 9
     }
 
-    panelGroupRef.current.setLayout([
-      SIDEBAR_DEFAULT_SIZE,
-      CONTENT_DEFAULT_SIZE,
-    ])
+    if (isLargeScreen) {
+      return 11
+    }
+
+    return 17
   }
 
   function getSidebarMinSize() {
@@ -137,6 +135,17 @@ export function AppLayout() {
     }
 
     return 20
+  }
+
+  function handleResetResizablePanels() {
+    if (panelGroupRef.current == null) {
+      return
+    }
+
+    panelGroupRef.current.setLayout([
+      getSidebarDefaultSize(),
+      100 - getSidebarDefaultSize(),
+    ])
   }
 
   if (progressStatus === 'pending' || filesStatus !== 'success') {
@@ -232,7 +241,7 @@ export function AppLayout() {
             autoSaveId="main-layout"
           >
             <ResizablePanel
-              defaultSize={SIDEBAR_DEFAULT_SIZE}
+              defaultSize={getSidebarDefaultSize()}
               minSize={getSidebarMinSize()}
               maxSize={getSidebarMaxSize()}
             >
@@ -241,7 +250,10 @@ export function AppLayout() {
 
             <ResizableHandle onDoubleClick={handleResetResizablePanels} />
 
-            <ResizablePanel defaultSize={CONTENT_DEFAULT_SIZE} minSize={50}>
+            <ResizablePanel
+              defaultSize={100 - getSidebarDefaultSize()}
+              minSize={50}
+            >
               <div className="flex-1 flex flex-col overflow-auto h-full">
                 <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
               </div>

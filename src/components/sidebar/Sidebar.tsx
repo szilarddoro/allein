@@ -31,8 +31,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
 
   return (
     <div className="w-full h-full flex flex-col">
-      {/* Header */}
-      <div className="flex flex-col gap-2 py-4 pl-2.5">
+      <div className="flex flex-col gap-2 py-4 pl-2.5 pr-[3px]">
         <Button variant="ghost" size="sm" asChild>
           <Link
             to="/"
@@ -61,8 +60,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
         <Separator />
       </div>
 
-      {/* Files List */}
-      <div className="flex-1 overflow-y-auto pt-4 pb-12 pl-2.5 flex flex-col gap-2">
+      <div className="flex-1 overflow-y-auto pt-4 pb-12 pl-2.5 flex flex-col gap-2 pr-[3px]">
         <H2 className="sr-only">Files</H2>
 
         <FileList />

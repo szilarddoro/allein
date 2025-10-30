@@ -18,13 +18,14 @@ import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
 import { useFileListWithPreview } from '@/lib/files/useFileListWithPreview'
+import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import MarkdownPreview from '@/pages/editor/MarkdownPreview'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { CircleAlert, File, NotebookPen } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useOutletContext } from 'react-router'
 
 export function BrowserPage() {
   const { data: files, status, refetch: reloadFiles } = useFileListWithPreview()
@@ -33,6 +34,7 @@ export function BrowserPage() {
   const sortedFiles = (files || []).sort(
     (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime(),
   )
+  const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
 
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -173,7 +175,12 @@ export function BrowserPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="relative flex flex-col gap-6 pl-6 pr-6 pt-4 pb-16 max-w-7xl 3xl:max-w-3/5 w-full mx-auto">
+      <div
+        className={cn(
+          'relative flex flex-col gap-6 pr-4 pt-4 pb-16 max-w-7xl 3xl:max-w-3/5 w-full mx-auto',
+          !sidebarOpen && 'pl-4',
+        )}
+      >
         <div className="flex flex-row gap-1.5 items-center justify-between">
           <H1 className="my-0 text-3xl">Browser</H1>
           <Button size="sm" variant="ghost" onClick={handleCreateFile}>

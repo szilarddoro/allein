@@ -310,9 +310,8 @@ export function EditorPage() {
             minSize={25}
             collapsedSize={0}
             collapsible
-            onCollapse={() => {
-              setShowPreview(false)
-            }}
+            onCollapse={() => setShowPreview(false)}
+            onExpand={() => setShowPreview(true)}
             ref={previewPanelRef}
           >
             <div className="flex flex-col h-full pb-4 min-h-0">

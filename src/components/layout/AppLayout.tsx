@@ -33,7 +33,10 @@ import { useModelWarmup } from '@/lib/ollama/useModelWarmup'
 import { Hotkey } from '@/components/Hotkey'
 import { useFileList } from '@/lib/files/useFileList'
 import { useLocationHistory } from '@/hooks/useLocationHistory'
-import { ImperativePanelGroupHandle } from 'react-resizable-panels'
+import {
+  ImperativePanelGroupHandle,
+  ImperativePanelHandle,
+} from 'react-resizable-panels'
 import { useMediaQuery } from 'usehooks-ts'
 
 export function AppLayout() {
@@ -46,10 +49,19 @@ export function AppLayout() {
   const { data: files, status: filesStatus } = useFileList()
   const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null)
+  const sidebarPanelRef = useRef<ImperativePanelHandle | null>(null)
   const isLargeScreen = useMediaQuery('(min-width: 1920px)')
   const isExtraLargeScreen = useMediaQuery('(min-width: 2560px)')
 
   useModelWarmup()
+
+  useEffect(() => {
+    if (!sidebarOpen) {
+      sidebarPanelRef.current?.collapse()
+    } else {
+      sidebarPanelRef.current?.expand()
+    }
+  }, [sidebarOpen])
 
   useEffect(() => {
     if (progress?.status !== 'skipped' && progress?.status !== 'completed') {
@@ -235,39 +247,38 @@ export function AppLayout() {
       </header>
 
       <main className="flex-auto overflow-hidden flex">
-        {sidebarOpen && files.length > 0 ? (
-          <ResizablePanelGroup
-            ref={panelGroupRef}
-            direction="horizontal"
-            autoSaveId="main-layout"
+        <ResizablePanelGroup
+          ref={panelGroupRef}
+          direction="horizontal"
+          autoSaveId="main-layout"
+        >
+          <ResizablePanel
+            defaultSize={getSidebarDefaultSize()}
+            minSize={getSidebarMinSize()}
+            maxSize={getSidebarMaxSize()}
+            collapsedSize={0}
+            collapsible
+            onCollapse={() => setSidebarOpen(false)}
+            onExpand={() => setSidebarOpen(true)}
+            ref={sidebarPanelRef}
           >
-            <ResizablePanel
-              defaultSize={getSidebarDefaultSize()}
-              minSize={getSidebarMinSize()}
-              maxSize={getSidebarMaxSize()}
-            >
-              <Sidebar onNewFile={createFile} />
-            </ResizablePanel>
+            <Sidebar onNewFile={createFile} />
+          </ResizablePanel>
 
-            <ResizableHandle
-              onDoubleClick={handleResetResizablePanels}
-              className="px-4"
-            />
+          <ResizableHandle
+            onDoubleClick={handleResetResizablePanels}
+            className={cn('px-4', !sidebarOpen && 'hidden')}
+          />
 
-            <ResizablePanel
-              defaultSize={100 - getSidebarDefaultSize()}
-              minSize={50}
-            >
-              <div className="flex-1 flex flex-col overflow-auto h-full">
-                <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        ) : (
-          <div className="flex-1 flex flex-col overflow-auto">
-            <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
-          </div>
-        )}
+          <ResizablePanel
+            defaultSize={100 - getSidebarDefaultSize()}
+            minSize={50}
+          >
+            <div className="flex-1 flex flex-col overflow-auto h-full">
+              <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </main>
     </BaseLayout>
   )

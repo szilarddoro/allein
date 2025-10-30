@@ -19,6 +19,15 @@ import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
 import { useAutoSave } from './useAutoSave'
 import { useEditorKeyBindings } from './useEditorKeyBindings'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
+import {
+  ImperativePanelGroupHandle,
+  ImperativePanelHandle,
+} from 'react-resizable-panels'
 
 export function EditorPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -35,6 +44,8 @@ export function EditorPage() {
   const [selectedText, setSelectedText] = useState('')
   const [inlineCompletionLoading, setInlineCompletionLoading] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
+  const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null)
+  const previewPanelRef = useRef<ImperativePanelHandle | null>(null)
 
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const {
@@ -45,7 +56,7 @@ export function EditorPage() {
 
   const { saveContent } = useAutoSave()
   const { handleEditorReady } = useEditorKeyBindings({
-    onTogglePreview: () => setShowPreview((prev) => !prev),
+    onTogglePreview: () => setShowPreview((show) => !show),
     onOpenCommandPopover: () => {
       const editor = monacoEditorRef.current
       if (!editor) return
@@ -72,6 +83,14 @@ export function EditorPage() {
       setShowImprovementDialog(true)
     },
   })
+
+  useEffect(() => {
+    if (!showPreview) {
+      previewPanelRef.current?.collapse()
+    } else {
+      previewPanelRef.current?.expand()
+    }
+  }, [showPreview])
 
   // Sync content when current file changes
   useEffect(() => {
@@ -190,6 +209,14 @@ export function EditorPage() {
     }
   })
 
+  function handleResetResizablePanels() {
+    if (panelGroupRef.current == null) {
+      return
+    }
+
+    panelGroupRef.current.setLayout([50, 50])
+  }
+
   // Show loading state when file is being loaded
   if (currentFileStatus === 'pending') {
     return (
@@ -238,7 +265,7 @@ export function EditorPage() {
     <div
       className={cn(
         'h-full flex flex-col gap-1 overflow-hidden',
-        sidebarOpen && 'pl-6 pr-4',
+        sidebarOpen && 'pr-4',
       )}
     >
       <EditorHeader
@@ -249,29 +276,50 @@ export function EditorPage() {
       />
 
       <div className="w-full flex flex-1 min-h-0 relative">
-        <div
-          ref={editorRef}
-          className={cn(
-            'flex flex-col flex-1 min-w-0 pb-4',
-            showPreview && 'w-1/2 pr-4',
-            !sidebarOpen && 'pl-4 pr-4',
-          )}
+        <ResizablePanelGroup
+          ref={panelGroupRef}
+          direction="horizontal"
+          autoSaveId="editor-preview-layout"
         >
-          <TextEditor
-            value={markdownContent}
-            onChange={handleEditorChange}
-            onKeyDown={handleKeyDown}
-            onEditorReady={handleEditorReadyWithRef}
-            placeholder="Start writing..."
-            onInlineCompletionLoadingChange={setInlineCompletionLoading}
-          />
-        </div>
+          <ResizablePanel defaultSize={50} minSize={25}>
+            <div
+              ref={editorRef}
+              className={cn(
+                'flex flex-col h-full pb-4',
+                !sidebarOpen && 'pl-4',
+              )}
+            >
+              <TextEditor
+                value={markdownContent}
+                onChange={handleEditorChange}
+                onKeyDown={handleKeyDown}
+                onEditorReady={handleEditorReadyWithRef}
+                placeholder="Start writing..."
+                onInlineCompletionLoadingChange={setInlineCompletionLoading}
+              />
+            </div>
+          </ResizablePanel>
 
-        {showPreview && (
-          <div className="w-1/2 flex flex-col min-w-0 pb-4 min-h-0">
-            <MarkdownPreview content={markdownContent} />
-          </div>
-        )}
+          <ResizableHandle
+            onDoubleClick={handleResetResizablePanels}
+            className={cn('px-2.5', !showPreview && 'hidden')}
+          />
+
+          <ResizablePanel
+            defaultSize={50}
+            minSize={25}
+            collapsedSize={0}
+            collapsible
+            onCollapse={() => {
+              setShowPreview(false)
+            }}
+            ref={previewPanelRef}
+          >
+            <div className="flex flex-col h-full pb-4 min-h-0">
+              <MarkdownPreview content={markdownContent} />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
 
         <FloatingActionToolbar
           previewButtonRef={previewButtonRef}

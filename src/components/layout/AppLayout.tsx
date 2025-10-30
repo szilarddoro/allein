@@ -249,7 +249,10 @@ export function AppLayout() {
               <Sidebar onNewFile={createFile} />
             </ResizablePanel>
 
-            <ResizableHandle onDoubleClick={handleResetResizablePanels} />
+            <ResizableHandle
+              onDoubleClick={handleResetResizablePanels}
+              className="px-4"
+            />
 
             <ResizablePanel
               defaultSize={100 - getSidebarDefaultSize()}

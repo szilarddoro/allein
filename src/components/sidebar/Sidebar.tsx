@@ -32,7 +32,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
   return (
     <div className="w-full h-full flex flex-col">
       {/* Header */}
-      <div className="flex flex-col gap-2 py-4 px-2.5">
+      <div className="flex flex-col gap-2 py-4 pl-2.5">
         <Button variant="ghost" size="sm" asChild>
           <Link
             to="/"

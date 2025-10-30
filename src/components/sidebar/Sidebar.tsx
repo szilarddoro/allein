@@ -51,7 +51,7 @@ export function Sidebar({ onNewFile }: SidebarProps) {
           size="sm"
         >
           <NotebookPen className="size-4" />
-          <span aria-hidden="true">New file</span>
+          <span aria-hidden="true">New File</span>
           <span className="sr-only">Create a new file</span>
         </Button>
       </div>

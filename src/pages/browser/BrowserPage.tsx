@@ -185,7 +185,7 @@ export function BrowserPage() {
           <H1 className="my-0 text-3xl">Browser</H1>
           <Button size="sm" variant="ghost" onClick={handleCreateFile}>
             <NotebookPen className="size-4" />
-            <span aria-hidden="true">New file</span>
+            <span aria-hidden="true">New File</span>
             <span className="sr-only">Create a new file</span>
           </Button>
         </div>

@@ -7,7 +7,6 @@ import { forwardRef, useEffect, useRef } from 'react'
 import { useInlineCompletion } from './completion/useInlineCompletion'
 import { defineCustomThemes } from './monaco-themes'
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
-import { useMediaQuery } from 'usehooks-ts'
 
 export interface TextEditorProps {
   value?: string
@@ -33,8 +32,6 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
     const { theme, systemTheme } = useTheme()
     const { aiAssistanceEnabled } = useAIConfig()
-    const isLargeScreen = useMediaQuery('(min-width: 1920px)')
-    const isExtraLargeScreen = useMediaQuery('(min-width: 2560px)')
 
     // Enable inline completion for the Monaco Editor
     useInlineCompletion({
@@ -287,12 +284,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                 links: false,
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,
-                wordWrap: 'bounded',
-                wordWrapColumn: isExtraLargeScreen
-                  ? 250
-                  : isLargeScreen
-                    ? 200
-                    : 120,
+                wordWrap: 'on',
                 lineNumbers: 'off',
                 stickyScroll: { enabled: false },
                 glyphMargin: false,

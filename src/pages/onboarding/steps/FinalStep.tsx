@@ -8,7 +8,7 @@ export interface FinalStepProps {
 
 export function FinalStep({ onNext }: FinalStepProps) {
   return (
-    <div className="max-w-6xl w-full mx-auto flex flex-col gap-6 justify-center items-center flex-1 pt-4 pb-16 px-4">
+    <div className="max-w-6xl w-full mx-auto flex flex-col gap-4 justify-center items-center flex-1 pt-4 pb-16 px-4">
       <div className="flex flex-col items-center justify-center motion-safe:animate-fade-in">
         <img
           draggable={false}
@@ -20,17 +20,17 @@ export function FinalStep({ onNext }: FinalStepProps) {
         />
 
         <H1 className="my-0 text-3xl font-bold mb-1 text-center flex flex-row gap-2 items-center">
-          Setup Complete
+          You&apos;re all set!
         </H1>
 
         <P className="my-0 text-muted-foreground text-center max-w-md">
-          The app is ready. Start writing and stay organized effortlessly.
+          Start writing and stay organized.
         </P>
       </div>
 
       <div className="motion-safe:animate-fade-in delay-200">
         <Button onClick={onNext} size="sm">
-          Start writing
+          Begin
         </Button>
       </div>
     </div>

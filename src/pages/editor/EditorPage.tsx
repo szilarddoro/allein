@@ -262,12 +262,7 @@ export function EditorPage() {
   }
 
   return (
-    <div
-      className={cn(
-        'h-full flex flex-col gap-1 overflow-hidden',
-        sidebarOpen && 'pr-4',
-      )}
-    >
+    <div className="h-full flex flex-col gap-1 overflow-hidden pr-4">
       <EditorHeader
         currentFile={currentFile || null}
         sidebarOpen={sidebarOpen}

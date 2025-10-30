@@ -57,12 +57,12 @@ export function Sidebar({ onNewFile }: SidebarProps) {
         </Button>
       </div>
 
-      <div className="px-2.5">
+      <div className="pl-2.5">
         <Separator />
       </div>
 
       {/* Files List */}
-      <div className="flex-1 overflow-y-auto pt-4 pb-12 px-2.5 flex flex-col gap-2">
+      <div className="flex-1 overflow-y-auto pt-4 pb-12 pl-2.5 flex flex-col gap-2">
         <H2 className="text-sm font-medium text-muted-foreground px-2 mb-0 sticky">
           Files
         </H2>

@@ -50,6 +50,7 @@ export function AppLayout() {
   const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null)
   const isLargeScreen = useMediaQuery('(min-width: 1920px)')
+  const isExtraLargeScreen = useMediaQuery('(min-width: 2560px)')
 
   useModelWarmup()
 
@@ -112,6 +113,30 @@ export function AppLayout() {
       SIDEBAR_DEFAULT_SIZE,
       CONTENT_DEFAULT_SIZE,
     ])
+  }
+
+  function getSidebarMinSize() {
+    if (isExtraLargeScreen) {
+      return 8
+    }
+
+    if (isLargeScreen) {
+      return 10
+    }
+
+    return 15
+  }
+
+  function getSidebarMaxSize() {
+    if (isExtraLargeScreen) {
+      return 11
+    }
+
+    if (isLargeScreen) {
+      return 13
+    }
+
+    return 20
   }
 
   if (progressStatus === 'pending' || filesStatus !== 'success') {
@@ -208,8 +233,8 @@ export function AppLayout() {
           >
             <ResizablePanel
               defaultSize={SIDEBAR_DEFAULT_SIZE}
-              minSize={isLargeScreen ? 8 : 15}
-              maxSize={isLargeScreen ? 18 : 20}
+              minSize={getSidebarMinSize()}
+              maxSize={getSidebarMaxSize()}
             >
               <Sidebar onNewFile={createFile} />
             </ResizablePanel>

@@ -50,7 +50,7 @@ const assistantSettingsFormValues = z
       if (!data.serverUrl || data.serverUrl.length === 0) {
         ctx.addIssue({
           code: 'custom',
-          message: 'Server URL is required when AI assistant is enabled',
+          message: 'Server URL is required when the AI assistant is enabled',
           path: ['serverUrl'],
         })
       } else {
@@ -69,7 +69,8 @@ const assistantSettingsFormValues = z
       if (!data.completionModel || data.completionModel.length === 0) {
         ctx.addIssue({
           code: 'custom',
-          message: 'Completion model is required when AI assistant is enabled',
+          message:
+            'Completion model is required when the AI assistant is enabled',
           path: ['completionModel'],
         })
       }
@@ -77,7 +78,8 @@ const assistantSettingsFormValues = z
       if (!data.improvementModel || data.improvementModel.length === 0) {
         ctx.addIssue({
           code: 'custom',
-          message: 'Improvement model is required when AI assistant is enabled',
+          message:
+            'Improvement model is required when the AI assistant is enabled',
           path: ['improvementModel'],
         })
       }
@@ -281,10 +283,6 @@ export function AIAssistantConfigPanel({
     formReset(values, { keepDirty: false })
   }
 
-  if (configLoading) {
-    return null
-  }
-
   return (
     <form
       onSubmit={form.handleSubmit(handleSubmit)}
@@ -336,21 +334,24 @@ export function AIAssistantConfigPanel({
             />
           </div>
 
-          {watchAiAssistantEnabled && !isConnected && !connectionLoading && (
-            <Alert
-              variant="info"
-              className={cn(
-                'w-full -mt-3',
-                !disableAnimations && 'motion-safe:animate-fade-in delay-200',
-              )}
-            >
-              <Info className="size-4 text-blue-600 dark:text-blue-400" />
-              <AlertDescription>
-                Make sure Ollama is running on your computer to use the AI
-                assistant.
-              </AlertDescription>
-            </Alert>
-          )}
+          {watchAiAssistantEnabled &&
+            !isConnected &&
+            !connectionLoading &&
+            !configLoading && (
+              <Alert
+                variant="info"
+                className={cn(
+                  'w-full -mt-3',
+                  !disableAnimations && 'motion-safe:animate-fade-in delay-200',
+                )}
+              >
+                <Info className="size-4 text-blue-600 dark:text-blue-400" />
+                <AlertDescription>
+                  Make sure Ollama is running on your computer to use the AI
+                  assistant.
+                </AlertDescription>
+              </Alert>
+            )}
 
           <div
             className={cn(
@@ -395,28 +396,24 @@ export function AIAssistantConfigPanel({
                   ) : (
                     <FieldDescription
                       className={cn(
-                        'flex flex-row gap-1 items-center',
+                        'flex flex-row gap-1 items-center h-5',
                         !watchAiAssistantEnabled &&
                           'opacity-80 dark:opacity-50',
                         isConnected ? 'text-success' : 'text-destructive',
                       )}
                     >
-                      {connectionLoading && (
-                        <DelayedActivityIndicator delay={750}>
+                      {connectionLoading || configLoading ? (
+                        <DelayedActivityIndicator delay={500}>
                           Checking connection...
                         </DelayedActivityIndicator>
-                      )}
-
-                      {!connectionLoading && isConnected && (
-                        <>
-                          <CheckCircle2 className="size-4" /> Connected
-                        </>
-                      )}
-
-                      {!connectionLoading && !isConnected && (
+                      ) : !isConnected ? (
                         <>
                           <CircleAlert className="size-4" /> Can&apos;t connect
                           to {debouncedOllamaUrl}.
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="size-4" /> Connected
                         </>
                       )}
                     </FieldDescription>
@@ -507,13 +504,14 @@ export function AIAssistantConfigPanel({
 
                   {!fieldState.invalid && !modelsError && (
                     <FieldDescription>
-                      {modelsLoading && (
-                        <DelayedActivityIndicator delay={750}>
+                      {modelsLoading ? (
+                        <DelayedActivityIndicator
+                          delay={750}
+                          disableMountWhileDelayed
+                        >
                           Loading models...
                         </DelayedActivityIndicator>
-                      )}
-
-                      {!modelsLoading && models && models.length === 0 && (
+                      ) : models && models.length === 0 ? (
                         <span className="flex flex-wrap items-center gap-1 text-sm">
                           No models found. Run{' '}
                           <Button
@@ -530,11 +528,11 @@ export function AIAssistantConfigPanel({
                           </Button>{' '}
                           in your terminal.
                         </span>
-                      )}
+                      ) : null}
                     </FieldDescription>
                   )}
 
-                  {(modelsError || fieldState.invalid) && (
+                  {(fieldState.invalid || modelsError) && (
                     <FieldError className="flex flex-row gap-1 items-center">
                       <CircleAlert className="size-4" />
                       {fieldState.error?.message || 'Failed to load models.'}

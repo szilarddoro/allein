@@ -28,6 +28,7 @@ import {
   oneLight,
 } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import remarkGfm from 'remark-gfm'
+import { useMarkdownPreviewContextMenu } from './useMarkdownPreviewContextMenu'
 
 interface MarkdownPreviewProps {
   content: string
@@ -47,6 +48,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
   const { theme, systemTheme } = useTheme()
   const currentTheme = theme === 'system' ? systemTheme : theme
   const isDark = currentTheme === 'dark'
+  const { showContextMenu } = useMarkdownPreviewContextMenu()
 
   return (
     <div {...props} className={cn('flex flex-col h-full', className)}>
@@ -57,6 +59,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         )}
       >
         <div
+          onContextMenu={showContextMenu}
           className={cn(
             'prose prose-sm max-w-none prose-headings:text-zinc-900 prose-p:text-zinc-700 prose-strong:text-zinc-900 prose-blockquote:border-l-4 prose-blockquote:border-zinc-300 prose-blockquote:text-zinc-600 [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_li_ul]:ml-4 [&_li_ol]:ml-4 select-auto cursor-auto',
             renderType === 'embedded' && 'overflow-hidden w-full',

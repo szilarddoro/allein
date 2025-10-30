@@ -1,9 +1,5 @@
+import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { P } from '@/components/ui/typography'
 import { formatMarkdown } from '@/lib/editor/formatMarkdown'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
@@ -11,7 +7,8 @@ import { useReadFile } from '@/lib/files/useReadFile'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
-import { CircleAlert, Eye, EyeOff, RefreshCw, WandSparkles } from 'lucide-react'
+import { FloatingActionToolbar } from '@/pages/editor/FloatingActionToolbar'
+import { CircleAlert, RefreshCw } from 'lucide-react'
 import * as monaco from 'monaco-editor'
 import React, { useEffect, useRef, useState } from 'react'
 import { useOutletContext, useSearchParams } from 'react-router'
@@ -22,8 +19,6 @@ import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
 import { useAutoSave } from './useAutoSave'
 import { useEditorKeyBindings } from './useEditorKeyBindings'
-import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
-import { Hotkey } from '@/components/Hotkey'
 
 export function EditorPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -278,61 +273,13 @@ export function EditorPage() {
           </div>
         )}
 
-        <div className="absolute bottom-7 right-3 group">
-          <div
-            className={cn(
-              'flex flex-row gap-1',
-              'bg-secondary border-1 border-input/60 dark:border-0 rounded-lg p-1 motion-safe:transition-opacity opacity-0',
-              'group-hover:opacity-100 group-focus:opacity-100 focus-within:opacity-100',
-            )}
-          >
-            <Tooltip delayDuration={500}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleFormatDocument}
-                >
-                  <WandSparkles className="size-4" />
-                </Button>
-              </TooltipTrigger>
-
-              <TooltipContent align="center" side="top" sideOffset={10}>
-                Format document{' '}
-                <Hotkey modifiers={['meta', 'shift']} keyCode="F" />
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip delayDuration={500}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowPreview((show) => !show)}
-                  ref={previewButtonRef}
-                >
-                  {showPreview ? (
-                    <EyeOff className="size-4" />
-                  ) : (
-                    <Eye className="size-4" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-
-              <TooltipContent align="center" side="top" sideOffset={10}>
-                <span className="sr-only">
-                  {showPreview
-                    ? 'Preview visible. Click to hide.'
-                    : 'Preview hidden. Click to show.'}
-                </span>
-                <span aria-hidden="true">
-                  {showPreview ? 'Hide preview' : 'Show preview'}
-                </span>{' '}
-                <Hotkey modifiers={['meta']} keyCode="P" />
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
+        <FloatingActionToolbar
+          previewButtonRef={previewButtonRef}
+          showPreview={showPreview}
+          className="absolute bottom-7 right-3"
+          onFormatDocument={handleFormatDocument}
+          onTogglePreview={() => setShowPreview((show) => !show)}
+        />
       </div>
 
       <ImprovementDialog

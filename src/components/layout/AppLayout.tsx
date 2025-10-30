@@ -61,6 +61,7 @@ export function AppLayout() {
     function handleContextMenu(ev: MouseEvent) {
       ev.preventDefault()
     }
+
     document.addEventListener('contextmenu', handleContextMenu)
 
     return () => {

@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge'
 import {
   Field,
   FieldContent,
@@ -8,8 +9,8 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import {
-  Controller,
   Control,
+  Controller,
   FieldError as ReactHookFormFieldError,
 } from 'react-hook-form'
 import { AssistantSettingsFormValues } from './useAIAssistantForm'
@@ -17,11 +18,13 @@ import { AssistantSettingsFormValues } from './useAIAssistantForm'
 export interface AIAssistantToggleProps {
   control: Control<AssistantSettingsFormValues>
   disableAnimations?: boolean
+  connected?: boolean
 }
 
 export function AIAssistantToggle({
   control,
   disableAnimations,
+  connected,
 }: AIAssistantToggleProps) {
   return (
     <div
@@ -41,6 +44,16 @@ export function AIAssistantToggle({
               >
                 <span aria-hidden="true">AI Assistant</span>
                 <span className="sr-only">Toggle AI Assistant</span>
+
+                <Badge
+                  variant={connected ? 'success' : 'destructive'}
+                  className={cn(
+                    'motion-safe:transition-all',
+                    !field.value && 'opacity-40 grayscale',
+                  )}
+                >
+                  {connected ? 'Connected' : 'Not Connected'}
+                </Badge>
               </FieldLabel>
 
               <FieldDescription>

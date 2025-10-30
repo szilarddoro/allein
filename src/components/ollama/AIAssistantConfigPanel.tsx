@@ -12,10 +12,9 @@ import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { useOllamaModels } from '@/lib/ollama/useOllamaModels'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
-import { RefreshCcw } from 'lucide-react'
-import { ReactNode } from 'react'
+import { AlertCircle, ChevronDown, ChevronUp, RefreshCcw } from 'lucide-react'
+import { ReactNode, useState } from 'react'
 import { AIAssistantToggle } from './AIAssistantToggle'
-import { ConnectionStatusAlert } from './ConnectionStatusAlert'
 import {
   handleCopyOllamaPullCommand,
   handleReconnect,
@@ -28,6 +27,12 @@ import {
   useAIAssistantForm,
   useModelValidation,
 } from './useAIAssistantForm'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export interface AIAssistantConfigPanelProps {
   onSubmit: (values: AssistantSettingsFormValues) => void
@@ -68,6 +73,7 @@ export function AIAssistantConfigPanel({
 }: AIAssistantConfigPanelProps) {
   const { completionModel, improvementModel, configLoading } = useOllamaConfig()
   const { toast } = useToast()
+  const [advancedOptionsOpen, setAdvancedOptionsOpen] = useState(false)
 
   const {
     form,
@@ -75,6 +81,7 @@ export function AIAssistantConfigPanel({
     debouncedOllamaUrl,
     setDebouncedOllamaUrl,
     targetOllamaUrl,
+    isFormDirty,
   } = useAIAssistantForm({
     onDirtyChange,
   })
@@ -94,6 +101,12 @@ export function AIAssistantConfigPanel({
     refetch: refetchModels,
   } = useOllamaModels(targetOllamaUrl, configLoading)
 
+  const isUnableToConnect =
+    watchAiAssistantEnabled &&
+    !isConnected &&
+    !connectionLoading &&
+    !configLoading
+
   // Handle model validation effects
   useModelValidation({
     form,
@@ -110,6 +123,7 @@ export function AIAssistantConfigPanel({
   function handleSubmit(values: AssistantSettingsFormValues) {
     onSubmit?.(values)
     form.reset(values, { keepDirty: false })
+    setAdvancedOptionsOpen(false)
   }
 
   return (
@@ -122,30 +136,22 @@ export function AIAssistantConfigPanel({
           <AIAssistantToggle
             control={form.control}
             disableAnimations={disableAnimations}
+            connected={!isUnableToConnect}
           />
 
-          {watchAiAssistantEnabled &&
-            !isConnected &&
-            !connectionLoading &&
-            !configLoading && (
-              <ConnectionStatusAlert disableAnimations={disableAnimations} />
-            )}
+          {isUnableToConnect && !isFormDirty && (
+            <Alert variant="warning">
+              <AlertCircle className="size-4" />
 
-          <ServerUrlField
-            control={form.control}
-            disabled={!watchAiAssistantEnabled}
-            isConnected={isConnected}
-            connectionLoading={connectionLoading}
-            configLoading={configLoading}
-            debouncedOllamaUrl={debouncedOllamaUrl}
-            onReconnect={() =>
-              handleReconnect(reconnect, targetOllamaUrl, toast)
-            }
-            onUrlChange={(value) => setDebouncedOllamaUrl(value)}
-            disableAnimations={disableAnimations}
-          />
+              <AlertDescription>
+                <span>
+                  Ollama is not running. Please start Ollama or verify the
+                  server URL in advanced options.
+                </span>
+              </AlertDescription>
+            </Alert>
+          )}
 
-          {/* Models Section Header */}
           <Field
             orientation="horizontal"
             className={cn(
@@ -164,14 +170,13 @@ export function AIAssistantConfigPanel({
               variant="ghost"
               size="icon"
               onClick={() => handleRefreshModels(refetchModels, toast)}
-              disabled={modelsError != null}
+              disabled={modelsError != null || !watchAiAssistantEnabled}
             >
               <RefreshCcw />
               <span className="sr-only">Refresh models</span>
             </Button>
           </Field>
 
-          {/* Inline Completion Model */}
           <ModelSelectorField
             control={form.control}
             name="completionModel"
@@ -190,7 +195,6 @@ export function AIAssistantConfigPanel({
             disableAnimations={disableAnimations}
           />
 
-          {/* Text Improvement Model */}
           <ModelSelectorField
             control={form.control}
             name="improvementModel"
@@ -207,8 +211,45 @@ export function AIAssistantConfigPanel({
             modelsError={modelsError}
             onCopyCommand={() => handleCopyOllamaPullCommand(toast)}
             disableAnimations={disableAnimations}
-            className="mb-3"
           />
+
+          <Collapsible
+            id="advanced-options"
+            className="-mt-3 mb-1"
+            open={advancedOptionsOpen}
+            onOpenChange={setAdvancedOptionsOpen}
+          >
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                type="button"
+                className="text-blue-500 text-sm hover:underline flex flex-row gap-1 items-center rounded-xs !px-0.5 py-0 h-auto hover:bg-transparent hover:text-blue-500 dark:hover:bg-transparent"
+              >
+                Advanced Options{' '}
+                {advancedOptionsOpen ? (
+                  <ChevronUp className="size-4" />
+                ) : (
+                  <ChevronDown className="size-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+
+            <CollapsibleContent className="p-3 rounded-md bg-secondary dark:bg-secondary/40 mt-3 border border-input/50">
+              <ServerUrlField
+                control={form.control}
+                disabled={!watchAiAssistantEnabled}
+                isConnected={isConnected}
+                connectionLoading={connectionLoading}
+                configLoading={configLoading}
+                debouncedOllamaUrl={debouncedOllamaUrl}
+                onReconnect={() =>
+                  handleReconnect(reconnect, targetOllamaUrl, toast)
+                }
+                onUrlChange={(value) => setDebouncedOllamaUrl(value)}
+                disableAnimations
+              />
+            </CollapsibleContent>
+          </Collapsible>
         </FieldGroup>
       </FieldSet>
 

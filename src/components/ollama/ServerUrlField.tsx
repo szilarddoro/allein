@@ -51,7 +51,7 @@ export function ServerUrlField({
         control={control}
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor="serverUrl">Server URL</FieldLabel>
+            <FieldLabel htmlFor="serverUrl">Custom Ollama URL</FieldLabel>
 
             <div className="flex flex-row gap-2 w-full">
               <Input
@@ -73,6 +73,7 @@ export function ServerUrlField({
                 variant="ghost"
                 size="icon"
                 onClick={onReconnect}
+                disabled={disabled}
               >
                 <RefreshCcw />
                 <span className="sr-only">Reconnect</span>
@@ -98,7 +99,7 @@ export function ServerUrlField({
                 ) : !isConnected ? (
                   <>
                     <CircleAlert className="size-4" /> Can&apos;t connect to{' '}
-                    {debouncedOllamaUrl}.
+                    {debouncedOllamaUrl}. Is Ollama running?
                   </>
                 ) : (
                   <>

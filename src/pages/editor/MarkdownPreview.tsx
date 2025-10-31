@@ -72,7 +72,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 <H1
                   className={cn(
                     renderType === 'embedded' &&
-                      'break-words text-xl [&_code]:text-xl',
+                      'break-words text-xl [&_code]:text-xl my-2',
                   )}
                 >
                   {children}
@@ -81,8 +81,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               h2: ({ children }) => (
                 <H2
                   className={cn(
-                    renderType === 'embedded' &&
-                      'break-words text-lg [&_code]:text-lg',
+                    renderType === 'embedded'
+                      ? 'break-words text-lg [&_code]:text-lg my-2'
+                      : 'my-4',
                   )}
                 >
                   {children}
@@ -91,8 +92,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               h3: ({ children }) => (
                 <H3
                   className={cn(
-                    renderType === 'embedded' &&
-                      'break-words text-base [&_code]:text-base',
+                    renderType === 'embedded'
+                      ? 'break-words text-base [&_code]:text-base'
+                      : 'my-3',
                   )}
                 >
                   {children}
@@ -101,8 +103,9 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               h4: ({ children }) => (
                 <H4
                   className={cn(
-                    renderType === 'embedded' &&
-                      'break-words text-sm [&_code]:text-sm',
+                    renderType === 'embedded'
+                      ? 'break-words text-sm [&_code]:text-sm'
+                      : 'my-1',
                   )}
                 >
                   {children}

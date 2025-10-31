@@ -5,7 +5,7 @@ import * as monaco from 'monaco-editor'
 import { useTheme } from 'next-themes'
 import { forwardRef, useEffect, useRef } from 'react'
 import { useInlineCompletion } from './completion/useInlineCompletion'
-import { defineCustomThemes } from './monaco-themes'
+import { defineCustomThemes } from './monacoThemes'
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 
 export interface TextEditorProps {

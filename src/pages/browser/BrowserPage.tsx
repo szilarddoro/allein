@@ -177,7 +177,7 @@ export function BrowserPage() {
 
       <div
         className={cn(
-          'relative flex flex-col gap-6 pr-4 pt-4 pb-16 max-w-7xl 3xl:max-w-4/5 4xl:max-w-3/5 w-full mx-auto',
+          'relative flex flex-col gap-6 pr-4 pt-4 pb-16 max-w-7xl 3xl:max-w-4/5 4xl:max-w-3/5 w-full mx-auto pl-1',
           !sidebarOpen && 'pl-4',
         )}
       >

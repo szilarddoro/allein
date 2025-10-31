@@ -103,7 +103,7 @@ export function EditorPage() {
     if (!showPreview) {
       previewPanelRef.current?.collapse()
     } else {
-      previewPanelRef.current?.expand()
+      previewPanelRef.current?.expand(50)
     }
   }, [showPreview])
 

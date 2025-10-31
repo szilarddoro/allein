@@ -294,7 +294,7 @@ export function AppLayout() {
 
           <ResizableHandle
             onDoubleClick={handleResetResizablePanels}
-            className={cn('px-4', !sidebarOpen && 'hidden')}
+            className={cn('px-4 ml-1', !sidebarOpen && 'hidden')}
           />
 
           <ResizablePanel

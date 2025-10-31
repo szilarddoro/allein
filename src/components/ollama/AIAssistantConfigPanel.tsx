@@ -215,9 +215,12 @@ export function AIAssistantConfigPanel({
 
           <Collapsible
             id="advanced-options"
-            className="-mt-3 mb-1"
             open={advancedOptionsOpen}
             onOpenChange={setAdvancedOptionsOpen}
+            className={cn(
+              '-mt-3 mb-1',
+              !disableAnimations && 'motion-safe:animate-fade-in delay-[650ms]',
+            )}
           >
             <CollapsibleTrigger asChild>
               <Button
@@ -234,7 +237,13 @@ export function AIAssistantConfigPanel({
               </Button>
             </CollapsibleTrigger>
 
-            <CollapsibleContent className="p-3 rounded-md bg-secondary dark:bg-secondary/40 mt-3 border border-input/50">
+            <CollapsibleContent
+              className={cn(
+                'p-3 rounded-md bg-secondary dark:bg-secondary/40 mt-3 border border-input/50',
+                placement === 'onboarding' &&
+                  'bg-card/90 dark:bg-input/30 border-input',
+              )}
+            >
               <ServerUrlField
                 control={form.control}
                 disabled={!watchAiAssistantEnabled}

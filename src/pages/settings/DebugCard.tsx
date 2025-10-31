@@ -61,13 +61,14 @@ export function DebugCard() {
   async function handleResetOnboarding() {
     try {
       await Promise.all([
+        updateConfig({ key: 'ollama_url', value: 'http://localhost:11434' }),
+        updateConfig({ key: 'completion_model', value: '' }),
+        updateConfig({ key: 'improvement_model', value: '' }),
+        updateConfig({ key: 'ai_assistance_enabled', value: 'true' }),
         updateOnboardingProgress({
           currentStep: 0,
           status: 'not_started',
         }),
-        updateConfig({ key: 'ollama_url', value: null }),
-        updateConfig({ key: 'ollama_model', value: null }),
-        updateConfig({ key: 'ai_assistance_enabled', value: 'true' }),
       ])
 
       navigate('/onboarding')

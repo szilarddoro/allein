@@ -1,6 +1,4 @@
-import Database from '@tauri-apps/plugin-sql'
-
-const DATABASE_FILE = 'database.db'
+import { invoke } from '@tauri-apps/api/core'
 
 export type ConfigKey =
   | 'ollama_url'
@@ -16,24 +14,62 @@ export interface ConfigModel {
   updated_at: string
 }
 
-let database: Database | null = null
+export type OnboardingStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'completed'
+  | 'skipped'
 
-export async function getDatabase() {
-  if (database) {
-    return database
-  }
+export interface OnboardingModel {
+  id: number
+  status: OnboardingStatus
+  current_step: number
+  created_at: string
+  updated_at: string
+}
 
-  database = await Database.load(`sqlite:${DATABASE_FILE}`)
-  return database
+// Config operations
+export async function getAllConfig(): Promise<ConfigModel[]> {
+  const configs = await invoke<
+    Array<{
+      id: number
+      key: string
+      value: string | null
+      created_at: string
+      updated_at: string
+    }>
+  >('get_all_config')
+  return configs.map((config) => ({
+    key: config.key as ConfigKey,
+    value: config.value,
+    created_at: config.created_at,
+    updated_at: config.updated_at,
+  }))
 }
 
 export async function updateConfig({
   key,
   value,
 }: Pick<ConfigModel, 'key' | 'value'>) {
-  const database = await getDatabase()
-  return database.execute(
-    `INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = CURRENT_TIMESTAMP`,
-    [key, value, value],
-  )
+  await invoke('set_config', { key, value })
+}
+
+export async function getConfig(key: ConfigKey): Promise<string | null> {
+  return invoke<string | null>('get_config', { key })
+}
+
+export async function deleteConfig(key: ConfigKey): Promise<void> {
+  await invoke('delete_config', { key })
+}
+
+// Onboarding operations
+export async function getOnboardingStatus(): Promise<OnboardingModel> {
+  return invoke<OnboardingModel>('get_onboarding_status')
+}
+
+export async function updateOnboardingStatus(
+  status: OnboardingStatus,
+  currentStep: number,
+): Promise<void> {
+  await invoke('update_onboarding_status', { status, currentStep })
 }

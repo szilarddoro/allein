@@ -15,7 +15,7 @@ export interface OnboardingLayoutContext {
 }
 
 export function OnboardingLayout() {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setCurrentStep] = useState<number | null>(null)
   const { data: progress, status: progressStatus } = useOnboardingProgress()
   const { mutateAsync: updateOnboardingProgress } =
     useUpdateOnboardingProgress()
@@ -36,7 +36,7 @@ export function OnboardingLayout() {
   }, [navigate, progress])
 
   function handleGoBack() {
-    if (currentStep === 0) {
+    if (currentStep == null || currentStep === 0) {
       return
     }
 
@@ -45,10 +45,14 @@ export function OnboardingLayout() {
       status: currentStep === 0 ? 'not_started' : 'in_progress',
     })
 
-    setCurrentStep((step) => step - 1)
+    setCurrentStep((step) => (step ? step - 1 : step))
   }
 
-  if (progressStatus === 'pending' || progress?.status === 'completed') {
+  if (
+    progressStatus === 'pending' ||
+    progress?.status === 'completed' ||
+    currentStep == null
+  ) {
     return null
   }
 

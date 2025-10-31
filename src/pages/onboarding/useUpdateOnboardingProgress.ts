@@ -1,9 +1,6 @@
-import { getDatabase } from '@/lib/db/database'
+import { OnboardingStatus, updateOnboardingStatus } from '@/lib/db/database'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  ONBOARDING_PROGRESS_QUERY_KEY,
-  OnboardingStatus,
-} from './useOnboardingProgress'
+import { ONBOARDING_PROGRESS_QUERY_KEY } from './useOnboardingProgress'
 
 export function useUpdateOnboardingProgress() {
   const queryClient = useQueryClient()
@@ -16,16 +13,7 @@ export function useUpdateOnboardingProgress() {
       status: OnboardingStatus
       currentStep: number
     }) => {
-      const database = await getDatabase()
-      return database.execute(
-        `INSERT INTO onboarding (id, status, current_step, created_at, updated_at)
-         VALUES (1, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-         ON CONFLICT(id) DO UPDATE SET
-           status = excluded.status,
-           current_step = excluded.current_step,
-           updated_at = CURRENT_TIMESTAMP`,
-        [status, currentStep],
-      )
+      return updateOnboardingStatus(status, currentStep)
     },
     onSuccess: async () => {
       try {

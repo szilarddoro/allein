@@ -1,7 +1,7 @@
 import { FILES_QUERY_KEY } from '@/lib/files/useFileList'
 import { FILES_WITH_PREVIEW_QUERY_KEY } from '@/lib/files/useFileListWithPreview'
 import { READ_FILE_BASE_QUERY_KEY } from '@/lib/files/useReadFile'
-import { OLLAMA_WARMUP_BASE_QUERY_KEY } from '@/lib/ollama/useModelWarmup'
+import { OLLAMA_WARMUP_BASE_QUERY_KEY } from '@/lib/ollama/useWarmupCompletionModel'
 import { OLLAMA_MODEL_BASE_QUERY_KEY } from '@/lib/ollama/useOllamaModels'
 import { useQueryClient } from '@tanstack/react-query'
 import { listen } from '@tauri-apps/api/event'

@@ -4,11 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 
 export const OLLAMA_WARMUP_BASE_QUERY_KEY = 'ollama-warmup'
 
-/**
- * Warms up the Ollama model by sending a minimal generation request
- * This loads the model into memory and keeps it ready for subsequent requests
- */
-async function warmupModel(
+async function warmupCompletionModel(
   ollamaUrl: string,
   modelName: string,
 ): Promise<boolean> {
@@ -22,13 +18,13 @@ async function warmupModel(
   return response.ok
 }
 
-export function useModelWarmup() {
+export function useWarmupCompletionModel() {
   const { aiAssistanceEnabled } = useAIConfig()
   const { ollamaUrl, completionModel } = useOllamaConfig()
 
   return useQuery({
     queryKey: [OLLAMA_WARMUP_BASE_QUERY_KEY, ollamaUrl, completionModel],
-    queryFn: () => warmupModel(ollamaUrl!, completionModel!),
+    queryFn: () => warmupCompletionModel(ollamaUrl!, completionModel!),
     enabled: (aiAssistanceEnabled ?? false) && !!ollamaUrl && !!completionModel,
     refetchInterval: 5 * 60 * 1000,
     retry: false,

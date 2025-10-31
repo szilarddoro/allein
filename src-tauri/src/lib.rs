@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use tauri_plugin_sql::{Migration, MigrationKind};
+use unicode_normalization::UnicodeNormalization;
+
+mod database;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileInfo {
@@ -26,6 +28,15 @@ pub struct FileInfoWithPreview {
     pub preview: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileSearchResult {
+    pub name: String,
+    pub path: String,
+    pub match_type: String,
+    pub snippet: Option<String>,
+    pub line_number: Option<usize>,
+}
+
 fn get_docs_dir() -> Result<PathBuf, String> {
     let home = dirs::home_dir().ok_or("Could not find home directory")?;
     let docs_dir = home.join("allein").join("docs");
@@ -34,6 +45,15 @@ fn get_docs_dir() -> Result<PathBuf, String> {
     fs::create_dir_all(&docs_dir).map_err(|e| format!("Failed to create docs directory: {}", e))?;
 
     Ok(docs_dir)
+}
+
+/// Strip diacritics from a string and convert to lowercase for search matching.
+/// Examples: "héllo" -> "hello", "café" -> "cafe", "naïve" -> "naive"
+fn normalize_for_search(s: &str) -> String {
+    s.nfd()
+        .filter(|c| !unicode_normalization::char::is_combining_mark(*c))
+        .collect::<String>()
+        .to_lowercase()
 }
 
 #[tauri::command]
@@ -186,74 +206,153 @@ async fn rename_file(old_path: String, new_name: String) -> Result<String, Strin
     Ok(new_path.to_string_lossy().to_string())
 }
 
+#[tauri::command]
+async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
+    // Require minimum query length of 3 characters to prevent excessive results
+    if query.len() < 3 {
+        return Ok(Vec::new());
+    }
+
+    let docs_dir = get_docs_dir()?;
+    let mut results = Vec::new();
+    let query_normalized = normalize_for_search(&query);
+
+    let entries =
+        fs::read_dir(&docs_dir).map_err(|e| format!("Failed to read docs directory: {}", e))?;
+
+    for entry in entries {
+        // Stop if we've reached the result limit
+        if results.len() >= 50 {
+            break;
+        }
+
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+
+        if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
+            let file_name = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("")
+                .to_string();
+
+            // Check if filename matches (diacritic-insensitive)
+            if normalize_for_search(&file_name).contains(&query_normalized) {
+                // Check limit before pushing
+                if results.len() < 50 {
+                    results.push(FileSearchResult {
+                        name: file_name.clone(),
+                        path: path.to_string_lossy().to_string(),
+                        match_type: "filename".to_string(),
+                        snippet: None,
+                        line_number: None,
+                    });
+                }
+            }
+
+            // Search file contents (limit to 5 matches per file)
+            if let Ok(content) = fs::read_to_string(&path) {
+                let mut file_match_count = 0;
+                for (line_num, line) in content.lines().enumerate() {
+                    // Stop if we've found 5 matches in this file
+                    if file_match_count >= 5 {
+                        break;
+                    }
+
+                    // Stop if we've reached the global result limit
+                    if results.len() >= 50 {
+                        break;
+                    }
+
+                    // Check if line matches (diacritic-insensitive)
+                    let line_normalized = normalize_for_search(line);
+                    if line_normalized.contains(&query_normalized) {
+                        // Extract snippet with context from original line
+                        let snippet = if line.len() > 100 {
+                            // Find the position of the match in normalized text
+                            if let Some(match_pos) = line_normalized.find(&query_normalized) {
+                                let start = match_pos.saturating_sub(50);
+                                let end = (match_pos + query_normalized.len() + 50).min(line.len());
+                                let snippet_text = &line[start..end];
+                                format!(
+                                    "{}{}{}",
+                                    if start > 0 { "..." } else { "" },
+                                    snippet_text,
+                                    if end < line.len() { "..." } else { "" }
+                                )
+                            } else {
+                                line.chars().take(100).collect::<String>() + "..."
+                            }
+                        } else {
+                            line.to_string()
+                        };
+
+                        results.push(FileSearchResult {
+                            name: file_name.clone(),
+                            path: path.to_string_lossy().to_string(),
+                            match_type: "content".to_string(),
+                            snippet: Some(snippet),
+                            line_number: Some(line_num + 1),
+                        });
+
+                        file_match_count += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    // Sort results: filename matches first, then content matches
+    results.sort_by(|a, b| {
+        if a.match_type == "filename" && b.match_type != "filename" {
+            std::cmp::Ordering::Less
+        } else if a.match_type != "filename" && b.match_type == "filename" {
+            std::cmp::Ordering::Greater
+        } else {
+            a.name.cmp(&b.name)
+        }
+    });
+
+    Ok(results)
+}
+
+// Config commands
+#[tauri::command]
+async fn get_config(key: String) -> Result<Option<String>, String> {
+    database::get_config(&key)
+}
+
+#[tauri::command]
+async fn get_all_config() -> Result<Vec<database::Config>, String> {
+    database::get_all_config()
+}
+
+#[tauri::command]
+async fn set_config(key: String, value: String) -> Result<(), String> {
+    database::set_config(&key, &value)
+}
+
+#[tauri::command]
+async fn delete_config(key: String) -> Result<(), String> {
+    database::delete_config(&key)
+}
+
+// Onboarding commands
+#[tauri::command]
+async fn get_onboarding_status() -> Result<database::OnboardingStatus, String> {
+    database::get_onboarding_status()
+}
+
+#[tauri::command]
+async fn update_onboarding_status(status: String, current_step: i64) -> Result<(), String> {
+    database::update_onboarding_status(&status, current_step)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![
-        Migration {
-            version: 1,
-            description: "create_config_table",
-            kind: MigrationKind::Up,
-            sql: "CREATE TABLE IF NOT EXISTS config (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                key TEXT UNIQUE NOT NULL,
-                value TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            );",
-        },
-        Migration {
-            version: 2,
-            description: "create_context_sections_table",
-            kind: MigrationKind::Up,
-            sql: "CREATE TABLE IF NOT EXISTS context_sections (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                document_title TEXT NOT NULL,
-                content TEXT NOT NULL,
-                line_number INTEGER NOT NULL,
-                timestamp INTEGER NOT NULL,
-                created_at INTEGER DEFAULT (unixepoch())
-            );
-            CREATE INDEX IF NOT EXISTS idx_document_title ON context_sections(document_title);
-            CREATE INDEX IF NOT EXISTS idx_timestamp ON context_sections(timestamp);",
-        },
-        Migration {
-            version: 3,
-            description: "create_onboarding_table",
-            kind: MigrationKind::Up,
-            sql: "CREATE TABLE IF NOT EXISTS onboarding (
-                id INTEGER PRIMARY KEY CHECK (id = 1),
-                status TEXT NOT NULL CHECK (status IN ('not_started', 'in_progress', 'completed', 'skipped')) DEFAULT 'not_started',
-                current_step INTEGER DEFAULT 0,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            );
-            INSERT OR IGNORE INTO onboarding (id, status, current_step) VALUES (1, 'not_started', 0);",
-        },
-        Migration {
-            version: 4,
-            description: "migrate_model_config_to_separate_models",
-            kind: MigrationKind::Up,
-            sql: "
-            -- Copy existing ollama_model to both new fields
-            INSERT OR IGNORE INTO config (key, value, created_at, updated_at)
-            SELECT 'completion_model', value, created_at, updated_at
-            FROM config WHERE key = 'ollama_model';
-
-            INSERT OR IGNORE INTO config (key, value, created_at, updated_at)
-            SELECT 'improvement_model', value, created_at, updated_at
-            FROM config WHERE key = 'ollama_model';
-            ",
-        },
-    ];
-
     tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(
-            tauri_plugin_sql::Builder::new()
-                .add_migrations("sqlite:database.db", migrations)
-                .build(),
-        )
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
@@ -263,7 +362,14 @@ pub fn run() {
             write_file,
             create_file,
             delete_file,
-            rename_file
+            rename_file,
+            search_files,
+            get_config,
+            get_all_config,
+            set_config,
+            delete_config,
+            get_onboarding_status,
+            update_onboarding_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

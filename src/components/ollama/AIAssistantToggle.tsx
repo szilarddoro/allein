@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge'
 import {
   Field,
   FieldContent,
@@ -45,20 +44,36 @@ export function AIAssistantToggle({
                 <span aria-hidden="true">AI Assistant</span>
                 <span className="sr-only">Toggle AI Assistant</span>
 
-                <Badge
-                  variant={connected ? 'success' : 'destructive'}
+                <div
                   className={cn(
-                    'motion-safe:transition-all',
-                    !field.value && 'opacity-40 grayscale',
+                    'relative motion-safe:transition-all',
+                    !field.value && 'opacity-70 grayscale',
                   )}
                 >
-                  {connected ? 'Connected' : 'Not Connected'}
-                </Badge>
+                  <span className="sr-only">
+                    {connected ? 'Connected' : 'Not Connected'}
+                  </span>
+                  <div
+                    className={cn(
+                      'size-2 rounded-full relative top-0 left-0 z-10',
+                      connected ? 'bg-green-500' : 'bg-red-500',
+                    )}
+                  />
+
+                  {connected && (
+                    <div
+                      className={cn(
+                        'size-2 rounded-full absolute top-0 left-0 bg-green-400 dark:bg-green-600',
+                        field.value && 'motion-safe:animate-ping',
+                      )}
+                    />
+                  )}
+                </div>
               </FieldLabel>
 
               <FieldDescription>
-                When enabled, the AI assistant provides inline suggestions and
-                helps improve your selected text.
+                When enabled, the AI assistant provides autocomplete, writing
+                improvements, and intelligent search.
               </FieldDescription>
 
               {fieldState.invalid && (

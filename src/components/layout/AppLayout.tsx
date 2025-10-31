@@ -1,46 +1,49 @@
-import { useEffect, useRef, useState } from 'react'
-import { Outlet, useNavigate } from 'react-router'
+import { Hotkey } from '@/components/Hotkey'
+import { TauriDragRegion } from '@/components/TauriDragRegion'
+import { BaseLayout } from '@/components/layout/BaseLayout'
+import { SearchDialog } from '@/components/search/SearchDialog'
+import { Sidebar } from '@/components/sidebar/Sidebar'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { useLocationHistory } from '@/hooks/useLocationHistory'
+import { useWindowState } from '@/hooks/useWindowState'
+import { useAIFeatures } from '@/lib/ai/useAIFeatures'
+import { CURRENT_PLATFORM } from '@/lib/constants'
+import { useCreateFile } from '@/lib/files/useCreateFile'
+import { useFileList } from '@/lib/files/useFileList'
+import { AppLayoutContextProps } from '@/lib/types'
+import { useToast } from '@/lib/useToast'
+import { cn } from '@/lib/utils'
+import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
 import {
   ChevronLeft,
   ChevronRight,
   Cog,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
+  Search,
 } from 'lucide-react'
-import { CURRENT_PLATFORM } from '@/lib/constants'
-import { Sidebar } from '@/components/sidebar/Sidebar'
-import { useCreateFile } from '@/lib/files/useCreateFile'
-import { cn } from '@/lib/utils'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from '@/components/ui/resizable'
-import { useWindowState } from '@/hooks/useWindowState'
-import { AppLayoutContextProps } from '@/lib/types'
-import { useToast } from '@/lib/useToast'
-import { TauriDragRegion } from '@/components/TauriDragRegion'
-import { BaseLayout } from '@/components/layout/BaseLayout'
-import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
-import { useModelWarmup } from '@/lib/ollama/useModelWarmup'
-import { Hotkey } from '@/components/Hotkey'
-import { useFileList } from '@/lib/files/useFileList'
-import { useLocationHistory } from '@/hooks/useLocationHistory'
+import { useEffect, useRef, useState } from 'react'
 import {
   ImperativePanelGroupHandle,
   ImperativePanelHandle,
 } from 'react-resizable-panels'
+import { Outlet, useNavigate } from 'react-router'
 import { useMediaQuery } from 'usehooks-ts'
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [searchOpen, setSearchOpen] = useState(false)
   const { mutateAsync: createFile } = useCreateFile()
   const { isFullscreen } = useWindowState()
   const navigate = useNavigate()
@@ -53,7 +56,9 @@ export function AppLayout() {
   const isLargeScreen = useMediaQuery('(min-width: 1920px)')
   const isExtraLargeScreen = useMediaQuery('(min-width: 2560px)')
 
-  useModelWarmup()
+  const fileLength = files?.length ?? 0
+
+  useAIFeatures()
 
   useEffect(() => {
     if (!sidebarOpen) {
@@ -90,6 +95,12 @@ export function AppLayout() {
         navigate('/settings')
       }
 
+      // CMD+K (Mac) or CTRL+K (Windows/Linux) to open search
+      if (fileLength > 0 && e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+
       // CMD+N (Mac) or CTRL+N (Windows/Linux) to create new file
       if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
@@ -112,7 +123,7 @@ export function AppLayout() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [navigate, createFile, toast])
+  }, [navigate, createFile, toast, fileLength, setSearchOpen])
 
   function getSidebarDefaultSize() {
     if (isExtraLargeScreen) {
@@ -169,45 +180,45 @@ export function AppLayout() {
     <BaseLayout>
       <header
         className={cn(
-          'relative pl-4 pr-2 py-2 flex justify-start items-center gap-0.5',
+          'relative pl-4 pr-2 py-2 flex justify-between items-center gap-0.5',
           CURRENT_PLATFORM === 'macos' ? (isFullscreen ? 'pl-2' : 'pl-22') : '',
         )}
       >
         <TauriDragRegion />
 
-        {files.length > 0 && (
-          <div className="flex items-center gap-2 relative z-20">
-            <Tooltip delayDuration={500}>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                >
-                  {sidebarOpen ? (
-                    <PanelLeftCloseIcon aria-hidden="true" />
-                  ) : (
-                    <PanelLeftOpenIcon aria-hidden="true" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-
-              <TooltipContent
-                align={
-                  CURRENT_PLATFORM === 'macos' && isFullscreen
-                    ? 'start'
-                    : 'center'
-                }
-                side="bottom"
-              >
-                {sidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        )}
-
         <div className="flex items-center gap-2 relative z-20">
+          {files.length > 0 && (
+            <div className="flex items-center gap-2 relative z-20">
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                  >
+                    {sidebarOpen ? (
+                      <PanelLeftCloseIcon aria-hidden="true" />
+                    ) : (
+                      <PanelLeftOpenIcon aria-hidden="true" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+
+                <TooltipContent
+                  align={
+                    CURRENT_PLATFORM === 'macos' && isFullscreen
+                      ? 'start'
+                      : 'center'
+                  }
+                  side="bottom"
+                >
+                  {sidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
+
           <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" asChild>
@@ -221,9 +232,7 @@ export function AppLayout() {
               Open Settings <Hotkey modifiers={['meta']} keyCode="," />
             </TooltipContent>
           </Tooltip>
-        </div>
 
-        <div className="z-20">
           <Button
             variant="ghost"
             size="icon"
@@ -244,7 +253,29 @@ export function AppLayout() {
             <ChevronRight className="size-4.5" />
           </Button>
         </div>
+
+        {files.length > 0 && (
+          <div className="z-20">
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchOpen(true)}
+                >
+                  <Search className="size-4" />
+                </Button>
+              </TooltipTrigger>
+
+              <TooltipContent align="center" side="bottom">
+                Search Files <Hotkey modifiers={['meta']} keyCode="k" />
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </header>
+
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 
       <main className="flex-auto overflow-hidden flex">
         <ResizablePanelGroup
@@ -275,7 +306,11 @@ export function AppLayout() {
             minSize={50}
           >
             <div className="flex-1 flex flex-col overflow-auto h-full">
-              <Outlet context={{ sidebarOpen } as AppLayoutContextProps} />
+              <Outlet
+                context={
+                  { sidebarOpen, setSearchOpen } satisfies AppLayoutContextProps
+                }
+              />
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>

@@ -19,6 +19,7 @@ import MarkdownPreview from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
 import { useAutoSave } from './useAutoSave'
 import { useEditorKeyBindings } from './useEditorKeyBindings'
+import { useHighlightLine } from './useHighlightLine'
 import {
   ResizableHandle,
   ResizablePanel,
@@ -30,7 +31,8 @@ import {
 } from 'react-resizable-panels'
 
 export function EditorPage() {
-  const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
+  const { sidebarOpen, setSearchOpen } =
+    useOutletContext<AppLayoutContextProps>()
   const { toast } = useToast()
   const editorRef = useRef<HTMLDivElement>(null)
   const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
@@ -38,6 +40,7 @@ export function EditorPage() {
   )
   const previewButtonRef = useRef<HTMLButtonElement>(null)
   const shouldFocusEditorRef = useRef(false)
+  const [editorReady, setEditorReady] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [markdownContent, setMarkdownContent] = useState('')
   const [showImprovementDialog, setShowImprovementDialog] = useState(false)
@@ -48,6 +51,12 @@ export function EditorPage() {
   const previewPanelRef = useRef<ImperativePanelHandle | null>(null)
 
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
+
+  useEffect(() => {
+    monacoEditorRef.current = null
+    setEditorReady(false)
+  }, [currentFilePath])
+
   const {
     data: currentFile,
     status: currentFileStatus,
@@ -55,6 +64,7 @@ export function EditorPage() {
   } = useReadFile(currentFilePath)
 
   const { saveContent } = useAutoSave()
+
   const { handleEditorReady } = useEditorKeyBindings({
     onTogglePreview: () => setShowPreview((show) => !show),
     onOpenCommandPopover: () => {
@@ -82,6 +92,11 @@ export function EditorPage() {
       setSelectedText(text)
       setShowImprovementDialog(true)
     },
+  })
+
+  useHighlightLine({
+    editorRef: monacoEditorRef,
+    editorReady,
   })
 
   useEffect(() => {
@@ -148,6 +163,7 @@ export function EditorPage() {
   ) => {
     monacoEditorRef.current = editor
     handleEditorReady(editor)
+    setEditorReady(true)
 
     // Focus editor if focus was requested
     if (shouldFocusEditorRef.current) {
@@ -196,6 +212,15 @@ export function EditorPage() {
     ) {
       event.preventDefault()
       toast.success('The file is being saved automatically.')
+    }
+
+    // Allow CMD/Ctrl+K to escape and trigger global search
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      event.keyCode === monaco.KeyCode.KeyK
+    ) {
+      event.preventDefault()
+      setSearchOpen(true)
     }
 
     if (event.ctrlKey && event.keyCode === monaco.KeyCode.Escape) {
@@ -285,6 +310,7 @@ export function EditorPage() {
               )}
             >
               <TextEditor
+                key={currentFilePath}
                 value={markdownContent}
                 onChange={handleEditorChange}
                 onKeyDown={handleKeyDown}

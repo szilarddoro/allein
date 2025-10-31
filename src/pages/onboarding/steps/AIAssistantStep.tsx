@@ -29,7 +29,7 @@ export function AIAssistantStep({ onNext, onSkip }: AIAssistantStepProps) {
         </H1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         <img
           draggable={false}
           src={inlineCompletionPreview}

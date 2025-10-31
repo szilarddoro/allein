@@ -35,21 +35,21 @@ export function OnboardingPage() {
   async function handleSaveAIConfig(values: AssistantSettingsFormValues) {
     try {
       await Promise.all([
-        // Update AI assistance enabled state
         updateConfig({
           key: 'ai_assistance_enabled',
           value: values.aiAssistantEnabled ? 'true' : 'false',
         }),
-
-        // Update Ollama configuration
-        updateConfig({ key: 'ollama_url', value: values.serverUrl || null }),
+        updateConfig({
+          key: 'ollama_url',
+          value: values.serverUrl || '',
+        }),
         updateConfig({
           key: 'completion_model',
-          value: values.completionModel || null,
+          value: values.completionModel || '',
         }),
         updateConfig({
           key: 'improvement_model',
-          value: values.improvementModel || null,
+          value: values.improvementModel || '',
         }),
       ])
 

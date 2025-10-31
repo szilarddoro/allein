@@ -166,3 +166,30 @@
 .monaco-editor .find-widget .monaco-sash {
   @apply !hidden;
 }
+
+.monaco-editor .highlighted-search-line {
+  @apply !bg-blue-100/50 dark:!bg-blue-500/20;
+  animation: highlight-fade 3s ease-out forwards;
+}
+
+@keyframes highlight-fade {
+  0% {
+    background-color: oklch(0.9 0.1 250 / 0.5);
+  }
+  100% {
+    background-color: oklch(0.9 0.1 250 / 0);
+  }
+}
+
+.dark .monaco-editor .highlighted-search-line {
+  animation: highlight-fade-dark 3s ease-out forwards;
+}
+
+@keyframes highlight-fade-dark {
+  0% {
+    background-color: oklch(0.488 0.243 264.376 / 0.3);
+  }
+  100% {
+    background-color: oklch(0.488 0.243 264.376 / 0);
+  }
+}

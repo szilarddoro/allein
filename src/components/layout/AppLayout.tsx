@@ -188,48 +188,48 @@ export function AppLayout() {
 
         <div className="flex items-center gap-2 relative z-20">
           {files.length > 0 && (
-            <div className="flex items-center gap-2 relative z-20">
-              <Tooltip delayDuration={500}>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                  >
-                    {sidebarOpen ? (
-                      <PanelLeftCloseIcon aria-hidden="true" />
-                    ) : (
-                      <PanelLeftOpenIcon aria-hidden="true" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-
-                <TooltipContent
-                  align={
-                    CURRENT_PLATFORM === 'macos' && isFullscreen
-                      ? 'start'
-                      : 'center'
-                  }
-                  side="bottom"
+            <Tooltip delayDuration={500}>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
                 >
-                  {sidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
-                </TooltipContent>
-              </Tooltip>
-            </div>
+                  {sidebarOpen ? (
+                    <PanelLeftCloseIcon aria-hidden="true" />
+                  ) : (
+                    <PanelLeftOpenIcon aria-hidden="true" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+
+              <TooltipContent
+                align={
+                  CURRENT_PLATFORM === 'macos' && isFullscreen
+                    ? 'start'
+                    : 'center'
+                }
+                side="bottom"
+              >
+                {sidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
+              </TooltipContent>
+            </Tooltip>
           )}
 
           <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" asChild>
-                <Link to="/settings" className="cursor-default">
-                  <Cog className="size-4" />
-                </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearchOpen(true)}
+              >
+                <Search className="size-4" />
               </Button>
             </TooltipTrigger>
 
             <TooltipContent align="center" side="bottom">
-              Open Settings <Hotkey modifiers={['meta']} keyCode="," />
+              Search Files <Hotkey modifiers={['meta']} keyCode="k" />
             </TooltipContent>
           </Tooltip>
 
@@ -254,25 +254,21 @@ export function AppLayout() {
           </Button>
         </div>
 
-        {files.length > 0 && (
-          <div className="z-20">
-            <Tooltip delayDuration={500}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSearchOpen(true)}
-                >
-                  <Search className="size-4" />
-                </Button>
-              </TooltipTrigger>
+        <div className="z-20">
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" asChild>
+                <Link to="/settings" className="cursor-default">
+                  <Cog className="size-4" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
 
-              <TooltipContent align="center" side="bottom">
-                Search Files <Hotkey modifiers={['meta']} keyCode="k" />
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        )}
+            <TooltipContent align="center" side="bottom">
+              Open Settings <Hotkey modifiers={['meta']} keyCode="," />
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </header>
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />

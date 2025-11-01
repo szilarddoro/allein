@@ -95,7 +95,7 @@ export function AppLayout() {
         { viewTransition: true },
       )
     } catch {
-      toast.error('Failed to create file')
+      toast.error('Failed to create file.')
     }
   }, [createFile, navigate, toast])
 
@@ -122,26 +122,18 @@ export function AppLayout() {
 
       if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
-        try {
-          await createNewFile()
-        } catch {
-          toast.error('Failed to create file.')
-        }
+        await createNewFile()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [createNewFile, fileLength, navigate, pathname, toast])
+  }, [createNewFile, fileLength, navigate, pathname])
 
   // Events are dispatched by the global Tauri menu item
   useEffect(() => {
     const handleCreateNewFile = async () => {
-      try {
-        await createNewFile()
-      } catch {
-        toast.error('Failed to create file.')
-      }
+      await createNewFile()
     }
 
     window.addEventListener(NEW_FILE_MENU_EVENT, handleCreateNewFile)

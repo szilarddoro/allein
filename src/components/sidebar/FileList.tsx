@@ -147,6 +147,7 @@ export function FileList() {
             <li key={file.path} className="w-full">
               <Button asChild variant="ghost" size="sm" className="w-full">
                 <Link
+                  viewTransition
                   to={{
                     pathname: '/editor',
                     search: `?file=${file.path}`,

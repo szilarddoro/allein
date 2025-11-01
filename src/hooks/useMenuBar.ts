@@ -26,6 +26,7 @@ export function useMenuBar() {
 
         const aboutSubmenu = await Submenu.new({
           text: 'About',
+          id: 'about',
           items: [
             await MenuItem.new({
               text: 'About Allein',
@@ -34,8 +35,9 @@ export function useMenuBar() {
             await MenuItem.new({
               text: 'Settings',
               accelerator: 'CmdOrCtrl+,',
+              enabled: !pathname.startsWith('/onboarding'),
               action() {
-                navigate('/settings')
+                navigate('/settings', { viewTransition: true })
               },
             }),
             separator,
@@ -57,6 +59,7 @@ export function useMenuBar() {
 
         const fileSubmenu = await Submenu.new({
           text: 'File',
+          id: 'file',
           items: [
             await MenuItem.new({
               text: 'New File',
@@ -68,14 +71,16 @@ export function useMenuBar() {
               accelerator: 'CmdOrCtrl+W',
               enabled: pathname.startsWith('/editor'),
               action() {
-                navigate('/')
+                navigate('/', { viewTransition: true })
               },
             }),
           ],
         })
 
         const editSubmenu = await Submenu.new({
+          id: 'edit',
           text: 'Edit',
+          enabled: pathname.startsWith('/editor'),
           items: [
             // TODO: Implement Undo/Redo via Monaco's APIs
             await MenuItem.new({
@@ -100,6 +105,7 @@ export function useMenuBar() {
         })
 
         const windowSubmenu = await Submenu.new({
+          id: 'window',
           text: 'Window',
           items: [
             await PredefinedMenuItem.new({
@@ -115,6 +121,7 @@ export function useMenuBar() {
         })
 
         const helpSubmenu = await Submenu.new({
+          id: 'help',
           text: 'Help',
           items: [
             await MenuItem.new({

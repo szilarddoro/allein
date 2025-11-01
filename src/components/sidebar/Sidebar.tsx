@@ -48,6 +48,7 @@ export function Sidebar({ onNewFile, showIndexingProgress }: SidebarProps) {
             to="/"
             className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40"
             aria-current={pathname === '/'}
+            viewTransition
           >
             <Home className="size-4" />
             <span aria-hidden="true">Home</span>

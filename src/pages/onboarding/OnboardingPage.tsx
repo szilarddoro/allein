@@ -5,14 +5,13 @@ import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useToast } from '@/lib/useToast'
 import { AIAssistantStep } from '@/pages/onboarding/steps/AIAssistantStep'
 import { FinalStep } from '@/pages/onboarding/steps/FinalStep'
-import { useNavigate, useOutletContext } from 'react-router'
+import { useOutletContext } from 'react-router'
 import { WelcomeStep } from './steps/WelcomeStep'
 import { useUpdateOnboardingProgress } from './useUpdateOnboardingProgress'
 
 export function OnboardingPage() {
   const { currentStep, setCurrentStep } =
     useOutletContext<OnboardingLayoutContext>()
-  const navigate = useNavigate()
   const { toast } = useToast()
 
   const { mutateAsync: updateProgress } = useUpdateOnboardingProgress()
@@ -22,9 +21,8 @@ export function OnboardingPage() {
     onSuccess: refetchConfig,
   })
 
-  function handleSkip() {
-    updateProgress({ status: 'skipped', currentStep: 0 })
-    navigate('/')
+  async function handleSkip() {
+    await updateProgress({ status: 'skipped', currentStep: 0 })
   }
 
   function handleNext() {
@@ -61,10 +59,7 @@ export function OnboardingPage() {
 
   async function handleFinish() {
     try {
-      await updateProgress({
-        status: 'completed',
-        currentStep: 0,
-      })
+      await updateProgress({ status: 'completed', currentStep: 0 })
     } catch {
       toast.error('Failed to complete onboarding')
     }

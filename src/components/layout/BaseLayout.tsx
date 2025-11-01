@@ -8,6 +8,7 @@ export interface BaseLayoutProps extends PropsWithChildren {
 
 export function BaseLayout({ className, children }: BaseLayoutProps) {
   useInvalidateQueriesOnWindowFocus()
+
   useMenuBar()
 
   return (

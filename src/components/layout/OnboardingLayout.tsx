@@ -31,7 +31,7 @@ export function OnboardingLayout() {
 
   useEffect(() => {
     if (progress?.status === 'completed' || progress?.status === 'skipped') {
-      navigate('/')
+      navigate('/', { viewTransition: true })
     }
   }, [navigate, progress])
 
@@ -50,6 +50,7 @@ export function OnboardingLayout() {
 
   if (
     progressStatus === 'pending' ||
+    progress?.status === 'skipped' ||
     progress?.status === 'completed' ||
     currentStep == null
   ) {

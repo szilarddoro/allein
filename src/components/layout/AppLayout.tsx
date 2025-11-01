@@ -259,7 +259,7 @@ export function AppLayout() {
           <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" asChild>
-                <Link to="/settings" className="cursor-default">
+                <Link to="/settings" className="cursor-default" viewTransition>
                   <Cog className="size-4" />
                 </Link>
               </Button>

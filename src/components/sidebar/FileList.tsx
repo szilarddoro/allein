@@ -68,8 +68,6 @@ export function FileList() {
       if (currentFilePath === fileToDelete.path) {
         navigate('/')
       }
-
-      toast.success(`Deleted ${getDisplayName(fileToDelete.name)}`)
     } catch {
       toast.error('Failed to delete file')
     } finally {

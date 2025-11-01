@@ -1,4 +1,5 @@
 import { useInvalidateQueriesOnWindowFocus } from '@/hooks/useInvalidateQueriesOnWindowFocus'
+import { useMenuBar } from '@/hooks/useMenuBar'
 import { cn } from '@/lib/utils'
 import { PropsWithChildren } from 'react'
 export interface BaseLayoutProps extends PropsWithChildren {
@@ -7,6 +8,7 @@ export interface BaseLayoutProps extends PropsWithChildren {
 
 export function BaseLayout({ className, children }: BaseLayoutProps) {
   useInvalidateQueriesOnWindowFocus()
+  useMenuBar()
 
   return (
     <div

@@ -84,7 +84,6 @@ export function BrowserPage() {
 
     try {
       await deleteFile(fileToDelete.path)
-      toast.success(`Deleted ${getDisplayName(fileToDelete.name)}`)
     } catch {
       toast.error('Failed to delete file')
     } finally {

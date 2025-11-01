@@ -38,7 +38,7 @@ import {
   ImperativePanelGroupHandle,
   ImperativePanelHandle,
 } from 'react-resizable-panels'
-import { Outlet, useNavigate } from 'react-router'
+import { Outlet, useLocation, useNavigate } from 'react-router'
 import { useMediaQuery } from 'usehooks-ts'
 
 export function AppLayout() {
@@ -47,6 +47,7 @@ export function AppLayout() {
   const { mutateAsync: createFile } = useCreateFile()
   const { isFullscreen } = useWindowState()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const { toast } = useToast()
   const { data: progress, status: progressStatus } = useOnboardingProgress()
   const { data: files, status: filesStatus } = useFileList()
@@ -89,19 +90,24 @@ export function AppLayout() {
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
-      // CMD+, (Mac) or CTRL+, (Windows/Linux) to open settings
       if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         navigate('/settings')
       }
 
-      // CMD+K (Mac) or CTRL+K (Windows/Linux) to open search
+      if (e.key === 'w' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+
+        if (pathname.startsWith('/editor')) {
+          navigate('/')
+        }
+      }
+
       if (fileLength > 0 && e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setSearchOpen(true)
       }
 
-      // CMD+N (Mac) or CTRL+N (Windows/Linux) to create new file
       if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         try {
@@ -114,16 +120,11 @@ export function AppLayout() {
           toast.error('Failed to create file')
         }
       }
-
-      // Prevent CMD+W (Mac) or CTRL+W (Windows/Linux) from closing the window
-      if (e.key === 'w' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [navigate, createFile, toast, fileLength, setSearchOpen])
+  }, [pathname, navigate, createFile, toast, fileLength, setSearchOpen])
 
   function getSidebarDefaultSize() {
     if (isExtraLargeScreen) {

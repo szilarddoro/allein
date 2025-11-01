@@ -18,7 +18,7 @@ import {
 import { useLocationHistory } from '@/hooks/useLocationHistory'
 import { useWindowState } from '@/hooks/useWindowState'
 import { useAIFeatures } from '@/lib/ai/useAIFeatures'
-import { CURRENT_PLATFORM } from '@/lib/constants'
+import { CURRENT_PLATFORM, NEW_FILE_MENU_EVENT } from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useFileList } from '@/lib/files/useFileList'
 import { AppLayoutContextProps } from '@/lib/types'
@@ -33,7 +33,7 @@ import {
   PanelLeftOpenIcon,
   Search,
 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ImperativePanelGroupHandle,
   ImperativePanelHandle,
@@ -81,11 +81,20 @@ export function AppLayout() {
     }
 
     document.addEventListener('contextmenu', handleContextMenu)
-
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu)
-    }
+    return () => document.removeEventListener('contextmenu', handleContextMenu)
   }, [])
+
+  const createNewFile = useCallback(async () => {
+    try {
+      const { path } = await createFile()
+      navigate({
+        pathname: '/editor',
+        search: `?file=${path}&focus=true`,
+      })
+    } catch {
+      toast.error('Failed to create file')
+    }
+  }, [createFile, navigate, toast])
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -111,20 +120,31 @@ export function AppLayout() {
       if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         try {
-          const { path } = await createFile()
-          navigate({
-            pathname: '/editor',
-            search: `?file=${path}&focus=true`,
-          })
+          await createNewFile()
         } catch {
-          toast.error('Failed to create file')
+          toast.error('Failed to create file.')
         }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [pathname, navigate, createFile, toast, fileLength, setSearchOpen])
+  }, [createNewFile, fileLength, navigate, pathname, toast])
+
+  // Events are dispatched by the global Tauri menu item
+  useEffect(() => {
+    const handleCreateNewFile = async () => {
+      try {
+        await createNewFile()
+      } catch {
+        toast.error('Failed to create file.')
+      }
+    }
+
+    window.addEventListener(NEW_FILE_MENU_EVENT, handleCreateNewFile)
+    return () =>
+      window.removeEventListener(NEW_FILE_MENU_EVENT, handleCreateNewFile)
+  }, [createNewFile, toast])
 
   function getSidebarDefaultSize() {
     if (isExtraLargeScreen) {

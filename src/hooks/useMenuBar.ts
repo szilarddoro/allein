@@ -8,6 +8,7 @@ import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { toast } from 'sonner'
+import { NEW_FILE_MENU_EVENT } from '@/lib/constants'
 
 // TODO: Use `useMenuBar` in the AppLayout. Pass file creation handlers here, or expose global event listeners for
 // the key command handler.
@@ -64,6 +65,10 @@ export function useMenuBar() {
             await MenuItem.new({
               text: 'New File',
               accelerator: 'CmdOrCtrl+N',
+              action() {
+                const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
+                window.dispatchEvent(newFileEvent)
+              },
             }),
             separator,
             await MenuItem.new({

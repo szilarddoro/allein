@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use unicode_normalization::UnicodeNormalization;
+use tauri::menu::{MenuBuilder, SubmenuBuilder};
 
 mod database;
 
@@ -371,6 +372,19 @@ pub fn run() {
             get_onboarding_status,
             update_onboarding_status,
         ])
+        .setup(|app| {
+            let about_menu = SubmenuBuilder::new(app, "About")
+                .text("about", "About Allein")
+                .build()?;
+
+            let menu = MenuBuilder::new(app)
+                .items(&[&about_menu])
+                .build()?;
+
+            app.set_menu(menu.clone())?;
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

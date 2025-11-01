@@ -289,7 +289,7 @@ export function AIAssistantConfigPanel({
               !disableAnimations && 'motion-safe:animate-fade-in delay-[750ms]',
             )}
           >
-            <Button variant="ghost" size="sm" onClick={onSkip}>
+            <Button type="button" variant="ghost" size="sm" onClick={onSkip}>
               <span aria-hidden="true">{skipLabel.label}</span>
               <span className="sr-only">
                 {skipLabel.srLabel || skipLabel.label}

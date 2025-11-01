@@ -87,10 +87,13 @@ export function AppLayout() {
   const createNewFile = useCallback(async () => {
     try {
       const { path } = await createFile()
-      navigate({
-        pathname: '/editor',
-        search: `?file=${path}&focus=true`,
-      })
+      navigate(
+        {
+          pathname: '/editor',
+          search: `?file=${path}&focus=true`,
+        },
+        { viewTransition: true },
+      )
     } catch {
       toast.error('Failed to create file')
     }

@@ -8,10 +8,16 @@ import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { toast } from 'sonner'
-import { NEW_FILE_MENU_EVENT } from '@/lib/constants'
+import {
+  NEW_FILE_MENU_EVENT,
+  REDO_MENU_EVENT,
+  UNDO_MENU_EVENT,
+} from '@/lib/constants'
 
-// TODO: Use `useMenuBar` in the AppLayout. Pass file creation handlers here, or expose global event listeners for
-// the key command handler.
+const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
+const undoEvent = new CustomEvent(UNDO_MENU_EVENT)
+const redoEvent = new CustomEvent(REDO_MENU_EVENT)
+
 export function useMenuBar() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -66,7 +72,6 @@ export function useMenuBar() {
               text: 'New File',
               accelerator: 'CmdOrCtrl+N',
               action() {
-                const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
                 window.dispatchEvent(newFileEvent)
               },
             }),
@@ -91,10 +96,16 @@ export function useMenuBar() {
             await MenuItem.new({
               text: 'Undo',
               accelerator: 'CmdOrCtrl+Z',
+              action() {
+                window.dispatchEvent(undoEvent)
+              },
             }),
             await MenuItem.new({
               text: 'Redo',
               accelerator: 'CmdOrCtrl+Shift+Z',
+              action() {
+                window.dispatchEvent(redoEvent)
+              },
             }),
             separator,
             await PredefinedMenuItem.new({

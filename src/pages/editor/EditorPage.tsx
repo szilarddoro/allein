@@ -1,5 +1,10 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import { Button } from '@/components/ui/button'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
 import { P } from '@/components/ui/typography'
 import { formatMarkdown } from '@/lib/editor/formatMarkdown'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
@@ -11,6 +16,10 @@ import { FloatingActionToolbar } from '@/pages/editor/FloatingActionToolbar'
 import { CircleAlert, RefreshCw } from 'lucide-react'
 import * as monaco from 'monaco-editor'
 import React, { useEffect, useRef, useState } from 'react'
+import {
+  ImperativePanelGroupHandle,
+  ImperativePanelHandle,
+} from 'react-resizable-panels'
 import { useOutletContext, useSearchParams } from 'react-router'
 import { useOnClickOutside } from 'usehooks-ts'
 import { EditorHeader } from './EditorHeader'
@@ -20,15 +29,6 @@ import { TextEditor } from './TextEditor'
 import { useAutoSave } from './useAutoSave'
 import { useEditorKeyBindings } from './useEditorKeyBindings'
 import { useHighlightLine } from './useHighlightLine'
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from '@/components/ui/resizable'
-import {
-  ImperativePanelGroupHandle,
-  ImperativePanelHandle,
-} from 'react-resizable-panels'
 
 export function EditorPage() {
   const { sidebarOpen, setSearchOpen } =

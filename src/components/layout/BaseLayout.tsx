@@ -1,24 +1,50 @@
+import { AboutDetails } from '@/components/settings/AboutDetails'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { useInvalidateQueriesOnWindowFocus } from '@/hooks/useInvalidateQueriesOnWindowFocus'
 import { useMenuBar } from '@/hooks/useMenuBar'
 import { cn } from '@/lib/utils'
-import { PropsWithChildren } from 'react'
+import { PropsWithChildren, useState } from 'react'
 export interface BaseLayoutProps extends PropsWithChildren {
   className?: string
 }
 
 export function BaseLayout({ className, children }: BaseLayoutProps) {
-  useInvalidateQueriesOnWindowFocus()
+  const [aboutDialogOpen, setAboutDialogOpen] = useState(false)
 
-  useMenuBar()
+  useInvalidateQueriesOnWindowFocus()
+  useMenuBar({ onOpenAbout: setAboutDialogOpen })
 
   return (
-    <div
-      className={cn(
-        'relative h-screen flex flex-col bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-900/70 overflow-hidden',
-        className,
-      )}
-    >
-      {children}
-    </div>
+    <>
+      <Dialog open={aboutDialogOpen} onOpenChange={setAboutDialogOpen}>
+        <DialogContent showCloseButton>
+          <DialogHeader>
+            <DialogTitle>About Allein</DialogTitle>
+            <DialogDescription className="sr-only">
+              You can find information about the version number and the license.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div>
+            <AboutDetails />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div
+        className={cn(
+          'relative h-screen flex flex-col bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-900/70 overflow-hidden',
+          className,
+        )}
+      >
+        {children}
+      </div>
+    </>
   )
 }

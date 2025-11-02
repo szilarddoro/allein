@@ -18,7 +18,11 @@ const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
 const undoEvent = new CustomEvent(UNDO_MENU_EVENT)
 const redoEvent = new CustomEvent(REDO_MENU_EVENT)
 
-export function useMenuBar() {
+export interface UseMenuBarProps {
+  onOpenAbout?: (open: boolean) => void
+}
+
+export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
@@ -37,6 +41,9 @@ export function useMenuBar() {
           items: [
             await MenuItem.new({
               text: 'About Allein',
+              action() {
+                onOpenAbout?.(true)
+              },
             }),
             separator,
             await MenuItem.new({
@@ -92,7 +99,6 @@ export function useMenuBar() {
           text: 'Edit',
           enabled: pathname.startsWith('/editor'),
           items: [
-            // TODO: Implement Undo/Redo via Monaco's APIs
             await MenuItem.new({
               text: 'Undo',
               accelerator: 'CmdOrCtrl+Z',
@@ -170,5 +176,5 @@ export function useMenuBar() {
     }
 
     setupAppMenuBar()
-  }, [navigate, pathname])
+  }, [navigate, pathname, onOpenAbout])
 }

@@ -170,7 +170,7 @@ export function AIAssistantConfigPanel({
               variant="ghost"
               size="icon"
               onClick={() => handleRefreshModels(refetchModels, toast)}
-              disabled={modelsError != null || !watchAiAssistantEnabled}
+              disabled={!watchAiAssistantEnabled}
             >
               <RefreshCcw />
               <span className="sr-only">Refresh models</span>

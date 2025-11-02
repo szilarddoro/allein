@@ -50,6 +50,7 @@ export function OnboardingLayout() {
 
   if (
     progressStatus === 'pending' ||
+    progress?.status === 'skipped' ||
     progress?.status === 'completed' ||
     currentStep == null
   ) {

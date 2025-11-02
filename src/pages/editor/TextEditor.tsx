@@ -7,6 +7,7 @@ import { forwardRef, useEffect, useRef } from 'react'
 import { useInlineCompletion } from './completion/useInlineCompletion'
 import { defineCustomThemes } from './monacoThemes'
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
+import { REDO_MENU_EVENT, UNDO_MENU_EVENT } from '@/lib/constants'
 
 export interface TextEditorProps {
   value?: string
@@ -48,17 +49,50 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
     }
 
     useEffect(() => {
-      function updateDimensions() {
-        if (editorRef.current == null) {
+      const updateDimensions = () => {
+        const editor = editorRef.current
+
+        if (editor == null) {
           return
         }
 
-        editorRef.current.layout()
+        editor.layout()
       }
 
       window.addEventListener('resize', updateDimensions, { passive: true })
-
       return () => window.removeEventListener('resize', updateDimensions)
+    }, [])
+
+    useEffect(() => {
+      function handleUndo() {
+        const editor = editorRef.current
+        const model = editor?.getModel()
+
+        if (model == null) {
+          return
+        }
+
+        model.undo()
+      }
+
+      function handleRedo() {
+        const editor = editorRef.current
+        const model = editor?.getModel()
+
+        if (model == null) {
+          return
+        }
+
+        model?.redo()
+      }
+
+      window.addEventListener(UNDO_MENU_EVENT, handleUndo)
+      window.addEventListener(REDO_MENU_EVENT, handleRedo)
+
+      return () => {
+        window.removeEventListener(UNDO_MENU_EVENT, handleUndo)
+        window.removeEventListener(REDO_MENU_EVENT, handleRedo)
+      }
     }, [])
 
     function handleEditorDidMount(

@@ -68,8 +68,6 @@ export function FileList() {
       if (currentFilePath === fileToDelete.path) {
         navigate('/')
       }
-
-      toast.success(`Deleted ${getDisplayName(fileToDelete.name)}`)
     } catch {
       toast.error('Failed to delete file')
     } finally {
@@ -149,6 +147,7 @@ export function FileList() {
             <li key={file.path} className="w-full">
               <Button asChild variant="ghost" size="sm" className="w-full">
                 <Link
+                  viewTransition
                   to={{
                     pathname: '/editor',
                     search: `?file=${file.path}`,

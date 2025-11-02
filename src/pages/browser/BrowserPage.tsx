@@ -84,7 +84,6 @@ export function BrowserPage() {
 
     try {
       await deleteFile(fileToDelete.path)
-      toast.success(`Deleted ${getDisplayName(fileToDelete.name)}`)
     } catch {
       toast.error('Failed to delete file')
     } finally {
@@ -190,9 +189,10 @@ export function BrowserPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {sortedFiles.map((file) => (
             <Link
+              viewTransition
               key={file.name}
               to={{ pathname: '/editor', search: `?file=${file.path}` }}
               className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
@@ -216,7 +216,7 @@ export function BrowserPage() {
                 className={cn(
                   'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative',
                   'before:absolute before:top-0 before:left-0 before:size-full before:z-20 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
-                  'after:absolute after:bottom-0 after:left-0 after:w-full after:h-22 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent',
+                  'after:absolute after:bottom-0 after:left-0 after:w-full after:h-16 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent motion-safe:animate-opacity-in duration-250',
                 )}
               >
                 <CardHeader

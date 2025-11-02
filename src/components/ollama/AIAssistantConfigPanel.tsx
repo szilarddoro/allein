@@ -170,7 +170,7 @@ export function AIAssistantConfigPanel({
               variant="ghost"
               size="icon"
               onClick={() => handleRefreshModels(refetchModels, toast)}
-              disabled={modelsError != null || !watchAiAssistantEnabled}
+              disabled={!watchAiAssistantEnabled}
             >
               <RefreshCcw />
               <span className="sr-only">Refresh models</span>
@@ -289,7 +289,7 @@ export function AIAssistantConfigPanel({
               !disableAnimations && 'motion-safe:animate-fade-in delay-[750ms]',
             )}
           >
-            <Button variant="ghost" size="sm" onClick={onSkip}>
+            <Button type="button" variant="ghost" size="sm" onClick={onSkip}>
               <span aria-hidden="true">{skipLabel.label}</span>
               <span className="sr-only">
                 {skipLabel.srLabel || skipLabel.label}

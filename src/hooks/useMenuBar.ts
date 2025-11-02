@@ -47,7 +47,7 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
             }),
             separator,
             await MenuItem.new({
-              text: 'Settings',
+              text: 'Settings...',
               accelerator: 'CmdOrCtrl+,',
               enabled: !pathname.startsWith('/onboarding'),
               action() {
@@ -74,6 +74,7 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
         const fileSubmenu = await Submenu.new({
           text: 'File',
           id: 'file',
+          enabled: !pathname.startsWith('/onboarding'),
           items: [
             await MenuItem.new({
               text: 'New File',

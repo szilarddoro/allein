@@ -44,22 +44,22 @@ export function WelcomeStep({ onNext, onSkip }: WelcomeStepProps) {
         </H1>
 
         <P className="my-0 text-muted-foreground text-center max-w-md">
-          A lightweight, AI-powered note-taking app designed to help ideas flow.
+          The lightweight, AI-powered note taking app.
         </P>
       </div>
 
       <ul className="flex flex-col gap-2">
         <FeatureListItem className="delay-[150ms]">
-          <Zap className="size-4" /> Smart inline suggestions
+          <Zap className="size-4" /> Context-aware autocompletion
         </FeatureListItem>
         <FeatureListItem className="delay-[350ms]">
-          <Wand2 className="size-4" /> One-click text improvements
+          <Wand2 className="size-4" /> Writing improvements
         </FeatureListItem>
         <FeatureListItem className="delay-[550ms]">
-          <Database className="size-4" /> Local-first - works offline
+          <Database className="size-4" /> Private LLMs - Works offline
         </FeatureListItem>
         <FeatureListItem className="delay-[750ms]">
-          <UserRound className="size-4" /> No account needed
+          <UserRound className="size-4" /> No registration needed
         </FeatureListItem>
       </ul>
 

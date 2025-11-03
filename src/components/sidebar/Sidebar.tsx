@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator'
 import { H2 } from '@/components/ui/typography'
 import { FileContent } from '@/lib/files/types'
 import { useToast } from '@/lib/useToast'
-import { Home, NotebookPen } from 'lucide-react'
+import { FilePlus, Files } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 
 interface SidebarProps {
@@ -49,9 +49,9 @@ export function Sidebar({ onNewFile, showIndexingProgress }: SidebarProps) {
             className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40"
             aria-current={pathname === '/'}
           >
-            <Home className="size-4" />
-            <span aria-hidden="true">Home</span>
-            <span className="sr-only">Go to home</span>
+            <Files className="size-4" />
+            <span aria-hidden="true">All Files</span>
+            <span className="sr-only">Go to the file list</span>
           </Link>
         </Button>
 
@@ -61,7 +61,7 @@ export function Sidebar({ onNewFile, showIndexingProgress }: SidebarProps) {
           variant="ghost"
           size="sm"
         >
-          <NotebookPen className="size-4" />
+          <FilePlus className="size-4" />
           <span aria-hidden="true">New File</span>
           <span className="sr-only">Create a new file</span>
         </Button>

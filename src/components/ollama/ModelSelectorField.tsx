@@ -1,21 +1,30 @@
+import * as React from 'react'
+import { Check, ChevronsUpDown, CircleAlert } from 'lucide-react'
+import { Controller, Control } from 'react-hook-form'
+
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldLabel,
 } from '@/components/ui/field'
+import { Button } from '@/components/ui/button'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import { formatBytesToGB } from '@/lib/formatBytes'
 import { cn } from '@/lib/utils'
-import { CircleAlert } from 'lucide-react'
-import { Controller, Control } from 'react-hook-form'
 import { AssistantSettingsFormValues } from './useAIAssistantForm'
 import { NoModelsMessage } from './NoModelsMessage'
 
@@ -46,6 +55,8 @@ export function ModelSelectorField({
   disableAnimations,
   className,
 }: ModelSelectorFieldProps) {
+  const [open, setOpen] = React.useState(false)
+
   return (
     <div
       className={cn(
@@ -69,33 +80,61 @@ export function ModelSelectorField({
               <span className="sr-only">{ariaLabel}</span>
             </FieldLabel>
 
-            <Select
-              value={field.value}
-              onValueChange={(value) => field.onChange(value)}
-              disabled={disabled}
-            >
-              <SelectTrigger
-                id={name}
-                aria-invalid={fieldState.invalid}
-                className="flex-1"
-              >
-                <SelectValue placeholder="Select a model">
-                  {field.value}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {(models || []).map((model) => (
-                  <SelectItem key={model.name} value={model.name}>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-medium">{model.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatBytesToGB(model.size)}
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  aria-invalid={fieldState.invalid}
+                  disabled={disabled}
+                  className="w-full justify-between"
+                  id={name}
+                >
+                  <span className="truncate">
+                    {field.value || 'Select a model...'}
+                  </span>
+                  <ChevronsUpDown className="ml-2 size-4 flex-shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search models..." />
+                  <CommandList>
+                    <CommandEmpty>No models found.</CommandEmpty>
+                    <CommandGroup>
+                      {(models || []).map((model) => (
+                        <CommandItem
+                          key={model.name}
+                          value={model.name}
+                          onSelect={(currentValue) => {
+                            field.onChange(
+                              currentValue === field.value ? '' : currentValue,
+                            )
+                            setOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              'mr-2 size-4',
+                              field.value === model.name
+                                ? 'opacity-100'
+                                : 'opacity-0',
+                            )}
+                          />
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium">{model.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatBytesToGB(model.size)}
+                            </span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
 
             {!fieldState.invalid && !modelsError && (
               <FieldDescription>

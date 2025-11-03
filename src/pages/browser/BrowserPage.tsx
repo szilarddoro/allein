@@ -23,7 +23,7 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import MarkdownPreview from '@/pages/editor/MarkdownPreview'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { CircleAlert, File, NotebookPen } from 'lucide-react'
+import { CircleAlert, File, NotebookPen, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router'
 
@@ -180,13 +180,22 @@ export function BrowserPage() {
           !sidebarOpen && 'pl-4',
         )}
       >
-        <div className="flex flex-row gap-1.5 items-center justify-between">
-          <H1 className="my-0 text-3xl">Browser</H1>
-          <Button size="sm" variant="ghost" onClick={handleCreateFile}>
-            <NotebookPen className="size-4" />
-            <span aria-hidden="true">New File</span>
+        <div className="flex flex-row gap-3 items-center justify-start">
+          <Button
+            size="icon"
+            variant="default"
+            onClick={handleCreateFile}
+            className={cn(
+              'rounded-full text-foreground cursor-pointer',
+              'bg-zinc-200/50 border-zinc-200 hover:bg-zinc-200',
+              'dark:bg-zinc-700 dark:border-zinc-600 hover:dark:bg-zinc-600',
+            )}
+          >
+            <Plus className="size-5" />
             <span className="sr-only">Create a new file</span>
           </Button>
+          <span className="inline-block h-full bg-border w-px" />
+          <H1 className="my-0 text-2xl">All Files</H1>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

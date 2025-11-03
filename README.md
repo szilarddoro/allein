@@ -75,7 +75,7 @@ Allein integrates with [Ollama](https://ollama.ai) to bring AI writing assistanc
    ollama serve
    ```
 
-3. **Download a model** (we recommend `gemma3:12b` for best results)
+3. **Download a model** (we recommend `qwen2.5-coder:1.5b-base` for best results)
 
    ```bash
    ollama pull qwen2.5-coder:1.5b-base

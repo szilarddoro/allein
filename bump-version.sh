@@ -77,7 +77,14 @@ git add package.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.c
 
 # Create commit
 echo "Creating commit..."
-git commit -m "chore: bump version to $NEW_VERSION"
+git commit -m "$(cat <<EOF
+chore: bump version to $NEW_VERSION
+
+🤖 Generated with Claude Code
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
 
 # Create tag
 echo "Creating tag v$NEW_VERSION..."

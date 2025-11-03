@@ -17,7 +17,7 @@ export function SettingsPage() {
         !sidebarOpen && 'pl-4',
       )}
     >
-      <H1 className="my-0 text-3xl">Settings</H1>
+      <H1 className="my-0 text-2xl">Settings</H1>
 
       <section>
         <AIAssistantCard />

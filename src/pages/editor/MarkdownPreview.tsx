@@ -67,6 +67,8 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
+            disallowedElements={['pre']}
+            unwrapDisallowed
             components={{
               h1: ({ children }) => (
                 <H1
@@ -157,7 +159,7 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                     language={language}
                     PreTag="div"
                     className={cn(
-                      'rounded-lg my-24 !bg-zinc-50 dark:!bg-zinc-800/30 border border-zinc-200 dark:border-zinc-800 !font-mono [&_code]:!bg-transparent',
+                      'text-sm !my-4 rounded-lg !bg-zinc-50 dark:!bg-zinc-800/30 border border-zinc-200 dark:border-zinc-800 !font-mono [&_code]:!bg-transparent',
                       renderType === 'embedded' &&
                         '[&_code]:!text-sm [&_code]:!whitespace-pre-wrap',
                     )}

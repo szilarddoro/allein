@@ -160,45 +160,8 @@ export class CompletionProvider {
     currentLine: string,
     textBeforeCursor: string,
   ): Promise<InlineCompletionResult> {
-    const textBeforeCursorOnCurrentLine = currentLine.substring(
-      0,
-      position.column - 1,
-    )
-
-    // Check if we're on a new empty line
-    const isOnNewLine =
-      textBeforeCursorOnCurrentLine.trim() === '' && position.column === 1
-
-    // Enhanced trigger logic: support more scenarios
-    const lastChar = textBeforeCursorOnCurrentLine.slice(-1)
-    const lastTwoChars = textBeforeCursorOnCurrentLine.slice(-2)
-
-    // Trigger after sentence endings with space
-    const isAfterSentenceEnd =
-      lastTwoChars === '. ' || lastTwoChars === '! ' || lastTwoChars === '? '
-
-    // Trigger at word boundaries
-    const isWordEnd =
-      lastChar === ' ' ||
-      lastChar === ',' ||
-      lastChar === ';' ||
-      lastChar === ':' ||
-      isOnNewLine
-
-    // Count consecutive words typed (rough heuristic)
-    const words = textBeforeCursorOnCurrentLine.trim().split(/\s+/)
-    const recentWords = words.slice(-3)
-    const hasTypedMultipleWords = recentWords.length >= 2
-
-    // Trigger conditions
-    const shouldTrigger =
-      isAfterSentenceEnd ||
-      isWordEnd ||
-      (hasTypedMultipleWords && lastChar === ' ')
-
-    if (!shouldTrigger) {
-      return { items: [] }
-    }
+    // Allow completions to trigger on every keystroke
+    // Prefiltering will handle skipping unnecessary requests
 
     // Apply prefiltering to skip unnecessary requests
     const shouldSkip = shouldPrefilter({
@@ -227,7 +190,6 @@ export class CompletionProvider {
       position,
       textBeforeCursor,
       currentLine,
-      textBeforeCursorOnCurrentLine,
     )
   }
 
@@ -239,7 +201,6 @@ export class CompletionProvider {
     position: monaco.Position,
     textBeforeCursor: string,
     currentLine: string,
-    textBeforeCursorOnCurrentLine: string,
   ): Promise<InlineCompletionResult> {
     try {
       // Check if AI assistance is available
@@ -252,11 +213,7 @@ export class CompletionProvider {
       const cachedCompletion = cache.get(textBeforeCursor)
 
       if (cachedCompletion) {
-        return this.handleCachedCompletion(
-          cachedCompletion,
-          position,
-          textBeforeCursorOnCurrentLine,
-        )
+        return this.handleCachedCompletion(cachedCompletion, position)
       }
 
       // Cache miss - proceed with API call
@@ -265,7 +222,6 @@ export class CompletionProvider {
         position,
         textBeforeCursor,
         currentLine,
-        textBeforeCursorOnCurrentLine,
       )
     } catch (error) {
       // Notify loading finished on error
@@ -285,23 +241,12 @@ export class CompletionProvider {
   private handleCachedCompletion(
     cachedCompletion: string,
     position: monaco.Position,
-    textBeforeCursorOnCurrentLine: string,
   ): InlineCompletionResult {
     // Record cache hit metric (instantaneous, basically 0ms)
     getCompletionMetrics().recordRequest(0, { type: 'cached' })
 
-    // Add leading space if needed
-    const needsLeadingSpace =
-      textBeforeCursorOnCurrentLine.slice(-1) !== ' ' &&
-      textBeforeCursorOnCurrentLine.length > 0 &&
-      !cachedCompletion.startsWith(' ')
-
-    const insertText = needsLeadingSpace
-      ? ' ' + cachedCompletion
-      : cachedCompletion
-
     const item = {
-      insertText: insertText.trim(),
+      insertText: cachedCompletion,
       range: {
         startLineNumber: position.lineNumber,
         startColumn: position.column,
@@ -321,7 +266,6 @@ export class CompletionProvider {
     position: monaco.Position,
     textBeforeCursor: string,
     currentLine: string,
-    textBeforeCursorOnCurrentLine: string,
   ): Promise<InlineCompletionResult> {
     // Create new abort controller and request ID (UUID-based deduplication)
     this.currentRequest = new AbortController()
@@ -415,12 +359,11 @@ export class CompletionProvider {
 
       // Parse the completion using new transform pipeline
       return this.processCompletion(
-        response.trim(),
+        response,
         model,
         position,
         textBeforeCursor,
         currentLine,
-        textBeforeCursorOnCurrentLine,
         context,
       )
     } catch (error) {
@@ -449,7 +392,6 @@ export class CompletionProvider {
     position: monaco.Position,
     textBeforeCursor: string,
     currentLine: string,
-    textBeforeCursorOnCurrentLine: string,
     context: CompletionContext,
   ): InlineCompletionResult {
     // Detect if we're starting a new sentence (for capitalization)
@@ -535,28 +477,15 @@ export class CompletionProvider {
       }
     }
 
-    // Add leading space if needed
-    const needsLeadingSpace =
-      textBeforeCursorOnCurrentLine.slice(-1) !== ' ' &&
-      textBeforeCursorOnCurrentLine.length > 0 &&
-      !insertText.startsWith(' ')
-
-    if (needsLeadingSpace) {
-      insertText = ' ' + insertText
-    }
-
     // Create completion item
     const item = {
       insertText,
       range,
     }
 
-    // Store in cache for future use (without leading space)
+    // Store in cache for future use
     const cache = getCompletionCache()
-    const completionToCache = needsLeadingSpace
-      ? insertText.slice(1)
-      : insertText
-    cache.put(textBeforeCursor, completionToCache)
+    cache.put(textBeforeCursor, insertText)
 
     return { items: [item] }
   }

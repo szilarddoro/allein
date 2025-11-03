@@ -37,7 +37,8 @@ export const removeCodeBlockFormatting: Transform = (text) => {
     result = result.slice(1, -1)
   }
 
-  return result.trim() || null
+  // Validate that result has content, but return original formatting
+  return result.trim() ? result : null
 }
 
 /**
@@ -62,7 +63,8 @@ export const removeOutputPrefix: Transform = (text) => {
     result = result.replace(prefix, '')
   }
 
-  return result.trim() || null
+  // Validate that result has content, but return original formatting
+  return result.trim() ? result : null
 }
 
 /**
@@ -81,17 +83,17 @@ export const normalizeMarkdown: Transform = (text) => {
     .replace(/~/g, '') // strikethrough
     .replace(/^\.\.\./, '') // ellipsis
     .replace(/\\"/, '"') // escaped quotes
-    .trim()
 
-  // Remove surrounding quotes
+  // Remove surrounding quotes (but preserve internal whitespace)
   if (
     (result.startsWith('"') && result.endsWith('"')) ||
     (result.startsWith("'") && result.endsWith("'"))
   ) {
-    result = result.slice(1, -1).trim()
+    result = result.slice(1, -1)
   }
 
-  return result || null
+  // Validate that result has content, but return original formatting
+  return result.trim() ? result : null
 }
 
 /**
@@ -107,7 +109,8 @@ export const filterShortCompletions: Transform = (text) => {
     return null
   }
 
-  return trimmed
+  // Validation passed, return original text with formatting preserved
+  return text
 }
 
 /**
@@ -151,8 +154,9 @@ export const applyCapitalization: Transform = (text, context) => {
 export const takeFirstLine: Transform = (text) => {
   if (!text) return null
 
-  const firstLine = text.split('\n')[0].trim()
-  return firstLine || null
+  const firstLine = text.split('\n')[0]
+  // Validate that result has content, but return original formatting
+  return firstLine.trim() ? firstLine : null
 }
 
 /**
@@ -184,7 +188,8 @@ export const removeModelQuirks: Transform = (text, context) => {
     result = result.replace(/^###\s*(PATH|LANGUAGE|CONTEXT):.*\n/gi, '')
   }
 
-  return result.trim() || null
+  // Validate that result has content, but return original formatting
+  return result.trim() ? result : null
 }
 
 /**

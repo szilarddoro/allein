@@ -37,11 +37,6 @@ export function shouldPrefilter(context: PrefilterContext): boolean {
     return true
   }
 
-  // Skip if we're in the middle of a word (not at word boundary)
-  if (isMidWord(context)) {
-    return true
-  }
-
   return false
 }
 
@@ -82,28 +77,6 @@ function currentLineIsTooShort(context: PrefilterContext): boolean {
     !listMarkerOrNumberListItemRegExp.test(textBeforeCursor.trim()) &&
     textBeforeCursor.trim().length < 3
   )
-}
-
-/**
- * Check if cursor is in the middle of a word
- */
-function isMidWord(context: PrefilterContext): boolean {
-  const textBeforeCursor = context.currentLine.substring(
-    0,
-    context.cursorPosition.column - 1,
-  )
-  const textAfterCursor = context.currentLine.substring(
-    context.cursorPosition.column - 1,
-  )
-
-  const lastCharBefore = textBeforeCursor.slice(-1)
-  const firstCharAfter = textAfterCursor.charAt(0)
-
-  // If we have alphanumeric on both sides, we're mid-word
-  const isAlphanumericBefore = /[a-zA-Z0-9]/.test(lastCharBefore)
-  const isAlphanumericAfter = /[a-zA-Z0-9]/.test(firstCharAfter)
-
-  return isAlphanumericBefore && isAlphanumericAfter
 }
 
 /**

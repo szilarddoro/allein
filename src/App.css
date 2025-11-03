@@ -200,6 +200,10 @@
   animation: highlight-fade-dark 3s ease-out forwards;
 }
 
+.monaco-editor {
+  @apply !outline-0;
+}
+
 @keyframes highlight-fade-dark {
   0% {
     background-color: oklch(0.488 0.243 264.376 / 0.3);

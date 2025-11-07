@@ -58,7 +58,9 @@ pnpm tauri build
 
 Allein integrates with [Ollama](https://ollama.ai) to bring AI writing assistance directly into your editor. Everything runs locally—your writing never leaves your machine.
 
-### Enable AI Features
+### Setup Ollama
+
+First, install and start Ollama on your machine:
 
 1. **Install Ollama**
 
@@ -75,17 +77,27 @@ Allein integrates with [Ollama](https://ollama.ai) to bring AI writing assistanc
    ollama serve
    ```
 
-3. **Download a model** (we recommend `qwen2.5-coder:1.5b-base` for best results)
+### Download and Configure Models
 
-   ```bash
-   ollama pull qwen2.5-coder:1.5b-base
-   ```
+You can download and configure models in two ways:
 
-4. **Configure Allein**
-   - Open the app
-   - Go to Settings
-   - Allein will auto-detect your Ollama server (usually `http://localhost:11434`)
-   - Select your model and you're done
+#### Option 1: Use the App Onboarding
+
+Simply start Allein and go through the onboarding flow—the app will guide you through downloading and configuring models directly in the UI.
+
+#### Option 2: Download via Terminal
+
+Download the recommended models for different features:
+
+```bash
+# For smart auto-completion suggestions
+ollama pull codellama:7b-code
+
+# For text improvement features
+ollama pull gemma3:latest
+```
+
+Then configure them in Allein settings. The app will auto-detect your Ollama server at `http://localhost:11434` (or you can customize the URL if your server is running on a different host/port).
 
 That's it. You now have AI-powered writing suggestions running entirely on your computer.
 

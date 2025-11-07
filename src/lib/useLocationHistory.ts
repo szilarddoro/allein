@@ -15,15 +15,6 @@ export function useLocationHistory() {
       return
     }
 
-    // Check if navigating back/forward to an existing location in our stack
-    const existingIndex = locationStack.indexOf(currentLocation)
-
-    if (existingIndex !== -1 && existingIndex !== currentIndex) {
-      // User navigated back/forward - update our index
-      setCurrentIndex(existingIndex)
-      return
-    }
-
     // New navigation - add to stack and discard forward history
     const newStack = locationStack.slice(0, currentIndex + 1)
     newStack.push(currentLocation)

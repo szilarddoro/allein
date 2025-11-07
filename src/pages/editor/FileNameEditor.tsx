@@ -38,6 +38,7 @@ export function FileNameEditor({
   const [fileNameValidationErrorType, setFileNameValidationErrorType] =
     useState<'invalid' | 'duplicate' | 'none'>('none')
   const [isEditingFileName, setIsEditingFileName] = useState(false)
+  const [tooltipOpen, setTooltipOpen] = useState(false)
   const fileNameInputRef = useRef<HTMLInputElement>(null)
 
   // Sync file name when current file changes
@@ -187,7 +188,11 @@ export function FileNameEditor({
           )}
         </>
       ) : (
-        <Tooltip delayDuration={500}>
+        <Tooltip
+          delayDuration={500}
+          open={tooltipOpen}
+          onOpenChange={setTooltipOpen}
+        >
           <TooltipTrigger
             asChild
             className="cursor-pointer hover:text-foreground transition-colors focus:outline-none focus:ring-[3px] focus:ring-ring/50 rounded"
@@ -196,12 +201,13 @@ export function FileNameEditor({
               variant="ghost"
               size="sm"
               onClick={handleFileNameClick}
-              onContextMenu={(e) =>
+              onContextMenu={(e) => {
+                setTooltipOpen(false)
                 showContextMenu(e, {
                   onCopyPath: handleCopyFilePath,
                   onOpenInFolder: handleOpenInFolder,
                 })
-              }
+              }}
               className="text-left px-1.5 py-0.5 h-auto font-normal rounded-md"
             >
               {fileName}

@@ -7,7 +7,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { CURRENT_PLATFORM } from '@/lib/constants'
 import { useLocationHistory } from '@/lib/useLocationHistory'
+import { useWindowState } from '@/lib/useWindowState'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight, Cog, PanelLeftOpenIcon } from 'lucide-react'
 import { PropsWithChildren } from 'react'
@@ -24,7 +26,10 @@ export function PageLayout({
   setSidebarOpen,
   fullWidth,
 }: PageLayoutProps) {
+  const { isFullscreen } = useWindowState()
   const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()
+
+  const isFullScreenOnMac = CURRENT_PLATFORM === 'macos' && isFullscreen
 
   return (
     <div className="relative flex flex-1 overflow-hidden h-full">
@@ -36,6 +41,7 @@ export function PageLayout({
             className={cn(
               'flex items-center justify-between gap-2 relative z-20 pr-3',
               !sidebarOpen && 'pl-20',
+              isFullScreenOnMac && 'pl-0',
             )}
           >
             <div className="flex flex-row gap-1.5">
@@ -52,7 +58,10 @@ export function PageLayout({
                     </Button>
                   </TooltipTrigger>
 
-                  <TooltipContent align="center" side="bottom">
+                  <TooltipContent
+                    align={isFullScreenOnMac ? 'start' : 'center'}
+                    side="bottom"
+                  >
                     Open Sidebar
                   </TooltipContent>
                 </Tooltip>

@@ -75,6 +75,22 @@ export function PageLayout({
                 </Tooltip>
               )}
 
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSearchOpen(true)}
+                  >
+                    <Search className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+
+                <TooltipContent align="center" side="bottom">
+                  Search Files <Hotkey modifiers={['meta']} keyCode="k" />
+                </TooltipContent>
+              </Tooltip>
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -94,22 +110,6 @@ export function PageLayout({
               >
                 <ChevronRight className="size-4.5" />
               </Button>
-
-              <Tooltip delayDuration={500}>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setSearchOpen(true)}
-                  >
-                    <Search className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-
-                <TooltipContent align="center" side="bottom">
-                  Search Files <Hotkey modifiers={['meta']} keyCode="k" />
-                </TooltipContent>
-              </Tooltip>
             </div>
 
             <div className="z-20">

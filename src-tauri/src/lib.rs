@@ -3,6 +3,7 @@ use std::fs;
 use std::path::PathBuf;
 use unicode_normalization::UnicodeNormalization;
 use tauri::menu::{MenuBuilder, SubmenuBuilder};
+use tauri_plugin_dialog::DialogExt;
 
 mod database;
 
@@ -39,6 +40,17 @@ pub struct FileSearchResult {
 }
 
 fn get_docs_dir() -> Result<PathBuf, String> {
+    // Try to get custom folder from config first
+    if let Ok(Some(custom_path)) = database::get_config("current_docs_folder") {
+        let path = PathBuf::from(&custom_path);
+        // Validate that the custom path exists and is a directory
+        if path.exists() && path.is_dir() {
+            return Ok(path);
+        }
+        // If path is invalid, fall through to default
+    }
+
+    // Default path
     let home = dirs::home_dir().ok_or("Could not find home directory")?;
     let docs_dir = home.join("allein").join("docs");
 
@@ -349,6 +361,68 @@ async fn update_onboarding_status(status: String, current_step: i64) -> Result<(
     database::update_onboarding_status(&status, current_step)
 }
 
+// Folder commands
+#[tauri::command]
+async fn open_folder_picker(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    use std::sync::{Arc, Mutex};
+    use std::sync::mpsc;
+
+    let (tx, rx) = mpsc::channel();
+    let tx = Arc::new(Mutex::new(Some(tx)));
+
+    let tx_clone = tx.clone();
+    app.dialog()
+        .file()
+        .pick_folder(move |path| {
+            if let Ok(mut sender) = tx_clone.lock() {
+                if let Some(s) = sender.take() {
+                    let _ = s.send(path);
+                }
+            }
+        });
+
+    // Wait for the result
+    rx.recv()
+        .map_err(|_| "Failed to receive folder picker result".to_string())
+        .map(|path| path.map(|p| p.to_string()))
+}
+
+#[tauri::command]
+async fn get_current_docs_folder() -> Result<String, String> {
+    let docs_dir = get_docs_dir()?;
+    Ok(docs_dir.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+async fn set_docs_folder(folder_path: String) -> Result<(), String> {
+    let path = PathBuf::from(&folder_path);
+
+    // Validate path exists and is a directory
+    if !path.exists() {
+        return Err("Folder does not exist".to_string());
+    }
+    if !path.is_dir() {
+        return Err("Path is not a directory".to_string());
+    }
+
+    // Test write permissions by creating a temporary file
+    let test_file = path.join(".allein_test");
+    fs::write(&test_file, "").map_err(|e| format!("Cannot write to folder: {}", e))?;
+    let _ = fs::remove_file(test_file); // Clean up
+
+    // Save to config
+    database::set_config("current_docs_folder", &folder_path)?;
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn reset_docs_folder() -> Result<String, String> {
+    database::delete_config("current_docs_folder")?;
+    let default_dir = get_docs_dir()?;
+    Ok(default_dir.to_string_lossy().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -356,6 +430,7 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             list_files,
             list_files_with_preview,
@@ -371,6 +446,10 @@ pub fn run() {
             delete_config,
             get_onboarding_status,
             update_onboarding_status,
+            open_folder_picker,
+            get_current_docs_folder,
+            set_docs_folder,
+            reset_docs_folder,
         ])
         .setup(|app| {
             let about_menu = SubmenuBuilder::new(app, "About")

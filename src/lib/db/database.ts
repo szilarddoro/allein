@@ -6,6 +6,7 @@ export type ConfigKey =
   | 'completion_model'
   | 'improvement_model'
   | 'ai_assistance_enabled'
+  | 'current_docs_folder'
 
 export interface ConfigModel {
   key: ConfigKey

@@ -13,6 +13,8 @@ import {
   REDO_MENU_EVENT,
   UNDO_MENU_EVENT,
 } from '@/lib/constants'
+import { openFolderPicker } from '@/lib/folders/useOpenFolderPicker'
+import { useSetFolder } from '@/lib/folders/useSetFolder'
 
 const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
 const undoEvent = new CustomEvent(UNDO_MENU_EVENT)
@@ -25,6 +27,7 @@ export interface UseMenuBarProps {
 export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { mutateAsync: setFolder } = useSetFolder()
 
   useEffect(() => {
     if (!pathname) return
@@ -81,6 +84,21 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
               accelerator: 'CmdOrCtrl+N',
               action() {
                 window.dispatchEvent(newFileEvent)
+              },
+            }),
+            separator,
+            await MenuItem.new({
+              text: 'Open Folder...',
+              accelerator: 'CmdOrCtrl+O',
+              async action() {
+                const folderPath = await openFolderPicker()
+                if (folderPath) {
+                  try {
+                    await setFolder(folderPath)
+                  } catch {
+                    // Error handling is done in the mutation hook
+                  }
+                }
               },
             }),
             separator,
@@ -177,5 +195,5 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
     }
 
     setupAppMenuBar()
-  }, [navigate, pathname, onOpenAbout])
+  }, [navigate, pathname, onOpenAbout, setFolder])
 }

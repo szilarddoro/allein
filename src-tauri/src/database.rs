@@ -135,6 +135,19 @@ fn run_migrations(conn: &Connection) -> SqliteResult<()> {
         )?;
     }
 
+    // Migration 5: Add current_docs_folder config
+    if !migration_applied(5)? {
+        conn.execute(
+            "INSERT OR IGNORE INTO config (key, value, created_at, updated_at)
+             VALUES ('current_docs_folder', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+            [],
+        )?;
+        conn.execute(
+            "INSERT INTO __migrations (version, description) VALUES (5, 'add_current_docs_folder_config')",
+            [],
+        )?;
+    }
+
     Ok(())
 }
 

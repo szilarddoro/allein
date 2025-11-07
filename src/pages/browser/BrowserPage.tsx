@@ -31,9 +31,7 @@ export function BrowserPage() {
   const { data: files, status, refetch: reloadFiles } = useFileListWithPreview()
   const { mutateAsync: createFile } = useCreateFile()
   const { mutateAsync: deleteFile, isPending: isDeletingFile } = useDeleteFile()
-  const sortedFiles = (files || []).sort(
-    (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime(),
-  )
+  const sortedFiles = (files || []).sort((a, b) => a.name.localeCompare(b.name))
 
   const { toast } = useToast()
   const navigate = useNavigate()

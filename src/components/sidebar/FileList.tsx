@@ -84,10 +84,7 @@ export function FileList() {
 
       <ul className="flex flex-col gap-2 w-full">
         {files
-          .sort(
-            (a, b) =>
-              new Date(b.modified).getTime() - new Date(a.modified).getTime(),
-          )
+          .sort((a, b) => a.name.localeCompare(b.name))
           .map((file) => (
             <FileListItem
               key={file.path}

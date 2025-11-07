@@ -31,10 +31,32 @@ pnpm tauri build      # Build production executable
 ### Version Management
 ```bash
 ./bump-version.sh [patch|minor|major]  # Bump version, create commit & tag
-gh release create v{VERSION} --notes "release notes"
+gh release create v{VERSION} --notes "release notes"  # Create release after pushing
 ```
 
 **IMPORTANT**: Always use `bump-version.sh` (updates package.json, Cargo.toml, tauri.conf.json). Use clean version numbers (e.g., `v0.7.2`) for releases.
+
+**Release Notes Format**:
+```markdown
+## What's New
+
+### 🚀 Feature Category
+
+- Feature description
+- Another feature
+
+### 🎨 UI/UX Category
+
+- UI improvement
+
+### ⚙️ Configuration & Integration
+
+- Configuration change
+
+---
+
+**Full Changelog**: https://github.com/szilarddoro/allein/compare/v{OLD_VERSION}...v{NEW_VERSION}
+```
 
 ### Git Commits
 

@@ -178,8 +178,8 @@ export function BrowserPage() {
           onClick={handleCreateFile}
           className={cn(
             'rounded-full text-foreground cursor-pointer',
-            'bg-zinc-200/50 border-zinc-200 hover:bg-zinc-200',
-            'dark:bg-zinc-700 dark:border-zinc-600 hover:dark:bg-zinc-600',
+            'bg-neutral-200 border-neutral-300/80 hover:bg-neutral-300/80',
+            'dark:bg-neutral-800 dark:border-neutral-700 dark:hover:bg-neutral-700/70',
           )}
         >
           <Plus className="size-5" />

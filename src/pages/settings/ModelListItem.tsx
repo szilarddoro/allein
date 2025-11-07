@@ -31,7 +31,7 @@ export function ModelListItem({
       className={cn(
         'flex items-center justify-between p-3 border rounded-lg transition-colors duration-300',
         isSelected &&
-          'bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600',
+          'bg-neutral-50 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-600',
       )}
     >
       <div>

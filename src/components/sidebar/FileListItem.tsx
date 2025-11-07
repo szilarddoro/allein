@@ -55,8 +55,8 @@ export function FileListItem({
           className={cn(
             'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
             currentFilePath === file.path
-              ? 'bg-zinc-200/60 hover:bg-zinc-200/90 dark:bg-zinc-700/60 dark:hover:bg-zinc-700/90'
-              : 'hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40',
+              ? 'bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/90'
+              : 'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40',
           )}
           onContextMenu={(e) =>
             showContextMenu(e, {

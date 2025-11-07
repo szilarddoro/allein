@@ -42,7 +42,7 @@ export function PageLayout({
   return (
     <div className="relative flex flex-1 overflow-hidden h-full z-50">
       <div className="flex-1 flex flex-col overflow-auto h-full">
-        <header className="sticky top-0 z-50 py-2 w-full shrink-0 grow-0 bg-zinc-100 dark:bg-zinc-900">
+        <header className="sticky top-0 z-50 py-2 w-full shrink-0 grow-0 bg-gradient-to-b from-zinc-100 via-zinc-100 to-zinc-100/0 dark:from-neutral-900 dark:via-neutral-900 via-85% dark:to-neutral-900/0">
           <TauriDragRegion />
 
           <div

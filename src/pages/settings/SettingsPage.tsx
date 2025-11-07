@@ -13,7 +13,7 @@ export function SettingsPage() {
   return (
     <div
       className={cn(
-        'pt-4 pb-32 flex-1 mx-auto w-full flex flex-col gap-6',
+        'pt-4 pb-32 flex-1 mx-auto w-full flex flex-col gap-4',
         !sidebarOpen && 'pl-4',
       )}
     >

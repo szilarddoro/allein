@@ -117,7 +117,7 @@
 }
 
 .dark {
-  --background: oklch(0.21 0.006 285.885);
+  --background: oklch(0.205 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.23 0 0);
   --card-foreground: oklch(0.985 0 0);
@@ -169,7 +169,7 @@
 }
 
 .monaco-editor .find-widget {
-  @apply !transition-transform !bg-secondary !ring-1 !ring-zinc-200 dark:!ring-zinc-700 !translate-y-0 !-translate-x-2 !shadow-md dark:!shadow-none !border-none !font-sans !rounded-sm !p-2 !h-auto;
+  @apply !transition-transform !bg-secondary !ring-1 !ring-neutral-200 dark:!ring-neutral-700 !translate-y-0 !-translate-x-2 !shadow-md dark:!shadow-none !border-none !font-sans !rounded-sm !p-2 !h-auto;
 }
 
 .monaco-editor .find-widget.visible {

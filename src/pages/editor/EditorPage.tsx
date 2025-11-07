@@ -277,10 +277,10 @@ export function EditorPage() {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-zinc-600 mb-2">
+          <h2 className="text-2xl font-semibold text-neutral-600 mb-2">
             No file selected
           </h2>
-          <p className="text-zinc-500 mb-4">
+          <p className="text-neutral-500 mb-4">
             Create a new file or select an existing one from the sidebar
           </p>
         </div>

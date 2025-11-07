@@ -40,7 +40,7 @@ export function BaseLayout({ className, children }: BaseLayoutProps) {
 
       <div
         className={cn(
-          'relative h-screen flex flex-col bg-gradient-to-br bg-zinc-100 dark:bg-zinc-900 overflow-hidden',
+          'relative h-screen flex flex-col bg-gradient-to-br bg-neutral-100 dark:bg-neutral-900 overflow-hidden',
           className,
         )}
       >

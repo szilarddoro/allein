@@ -78,7 +78,7 @@ export function Sidebar({
         <Button variant="ghost" size="sm" asChild>
           <Link
             to="/"
-            className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40"
+            className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
             aria-current={pathname === '/'}
           >
             <Files className="size-4" />
@@ -89,7 +89,7 @@ export function Sidebar({
 
         <Button
           onClick={handleCreateFile}
-          className="w-full justify-start gap-2 text-left hover:bg-zinc-200/40 dark:hover:bg-zinc-700/40"
+          className="w-full justify-start gap-2 text-left hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
           variant="ghost"
           size="sm"
         >

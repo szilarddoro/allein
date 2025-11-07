@@ -1,7 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
-export function useLocationHistory() {
+export interface UseLocationHistoryProps {
+  maxStackSize: number
+}
+
+export function useLocationHistory(
+  { maxStackSize }: UseLocationHistoryProps = { maxStackSize: 30 },
+) {
   const [locationStack, setLocationStack] = useState<string[]>([])
   const [currentIndex, setCurrentIndex] = useState(-1)
   const { pathname, search } = useLocation()
@@ -28,14 +34,13 @@ export function useLocationHistory() {
     newStack.push(currentLocation)
 
     // Limit stack size to prevent unbounded growth
-    const maxStackSize = 20
     if (newStack.length > maxStackSize) {
       newStack.splice(0, newStack.length - maxStackSize)
     }
 
     setLocationStack(newStack)
     setCurrentIndex(newStack.length - 1)
-  }, [currentLocation, currentIndex, locationStack])
+  }, [currentLocation, currentIndex, locationStack, maxStackSize])
 
   const goBack = useCallback(() => {
     if (currentIndex > 0) {

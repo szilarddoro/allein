@@ -13,7 +13,7 @@ export function SettingsPage() {
   return (
     <div
       className={cn(
-        'pt-4 pr-4 pb-32 flex-1 max-w-7xl 3xl:max-w-3/5 mx-auto w-full flex flex-col gap-6 pl-1',
+        'pt-4 pr-4 pb-32 flex-1 mx-auto w-full flex flex-col gap-6 pl-1',
         !sidebarOpen && 'pl-4',
       )}
     >
@@ -27,15 +27,15 @@ export function SettingsPage() {
         <AppearanceCard />
       </section>
 
+      <section>
+        <AboutCard />
+      </section>
+
       {import.meta.env.DEV && (
         <section>
           <DebugCard />
         </section>
       )}
-
-      <section>
-        <AboutCard />
-      </section>
     </div>
   )
 }

@@ -289,7 +289,7 @@ export function EditorPage() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-1 overflow-hidden pr-4">
+    <div className="h-full flex flex-col gap-1 overflow-hidden">
       <EditorHeader
         currentFile={currentFile || null}
         sidebarOpen={sidebarOpen}
@@ -307,8 +307,8 @@ export function EditorPage() {
             <div
               ref={editorRef}
               className={cn(
-                'flex flex-col h-full pb-4',
-                !sidebarOpen && 'pl-4',
+                'flex flex-col h-full pb-2.5',
+                !sidebarOpen && 'pl-0',
               )}
             >
               <TextEditor
@@ -337,7 +337,7 @@ export function EditorPage() {
             onExpand={() => setShowPreview(true)}
             ref={previewPanelRef}
           >
-            <div className="flex flex-col h-full pb-4 min-h-0">
+            <div className="flex flex-col h-full pb-2.5 min-h-0">
               <MarkdownPreview content={markdownContent} />
             </div>
           </ResizablePanel>
@@ -346,7 +346,7 @@ export function EditorPage() {
         <FloatingActionToolbar
           previewButtonRef={previewButtonRef}
           showPreview={showPreview}
-          className="absolute bottom-7 right-3"
+          className="absolute bottom-5.5 right-3"
           onFormatDocument={handleFormatDocument}
           onImproveWriting={handleOpenImproveWritingModal}
           onTogglePreview={() => setShowPreview((show) => !show)}

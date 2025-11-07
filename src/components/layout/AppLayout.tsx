@@ -1,5 +1,4 @@
 import { Hotkey } from '@/components/Hotkey'
-import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { BaseLayout } from '@/components/layout/BaseLayout'
 import { SearchDialog } from '@/components/search/SearchDialog'
 import { Sidebar } from '@/components/sidebar/Sidebar'
@@ -31,7 +30,6 @@ import {
   Cog,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
-  Search,
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -40,6 +38,8 @@ import {
 } from 'react-resizable-panels'
 import { Outlet, useLocation, useNavigate } from 'react-router'
 import { useMediaQuery } from 'usehooks-ts'
+import { PageLayout } from '@/components/layout/PageLayout'
+import { TauriDragRegion } from '@/components/TauriDragRegion'
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -56,6 +56,7 @@ export function AppLayout() {
   const sidebarPanelRef = useRef<ImperativePanelHandle | null>(null)
   const isLargeScreen = useMediaQuery('(min-width: 1920px)')
   const isExtraLargeScreen = useMediaQuery('(min-width: 2560px)')
+  const fullWidth = pathname.startsWith('/editor')
 
   const fileLength = files?.length ?? 0
 
@@ -196,12 +197,10 @@ export function AppLayout() {
     <BaseLayout>
       <header
         className={cn(
-          'relative pl-4 pr-2 py-2 flex justify-between items-center gap-0.5',
+          'hidden fixed top-0 left-0 w-full pl-4 pr-2 py-2 justify-between items-center gap-0.5 z-10',
           CURRENT_PLATFORM === 'macos' ? (isFullscreen ? 'pl-2' : 'pl-22') : '',
         )}
       >
-        <TauriDragRegion />
-
         <div className="flex items-center gap-2 relative z-20">
           {files.length > 0 && (
             <Tooltip delayDuration={500}>
@@ -232,22 +231,6 @@ export function AppLayout() {
               </TooltipContent>
             </Tooltip>
           )}
-
-          <Tooltip delayDuration={500}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSearchOpen(true)}
-              >
-                <Search className="size-4" />
-              </Button>
-            </TooltipTrigger>
-
-            <TooltipContent align="center" side="bottom">
-              Search Files <Hotkey modifiers={['meta']} keyCode="k" />
-            </TooltipContent>
-          </Tooltip>
 
           <Button
             variant="ghost"
@@ -289,7 +272,7 @@ export function AppLayout() {
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 
-      <main className="flex-auto overflow-hidden flex">
+      <main className="relative flex-auto overflow-hidden flex z-0">
         <ResizablePanelGroup
           ref={panelGroupRef}
           direction="horizontal"
@@ -304,26 +287,46 @@ export function AppLayout() {
             onCollapse={() => setSidebarOpen(false)}
             onExpand={() => setSidebarOpen(true)}
             ref={sidebarPanelRef}
+            className="pl-2 py-2.5 relative"
           >
-            <Sidebar onNewFile={createFile} />
+            <div className="absolute top-0 left-0 right-0 h-8 z-0">
+              <TauriDragRegion />
+            </div>
+
+            <Sidebar
+              onNewFile={createFile}
+              onClose={() => setSidebarOpen(false)}
+            />
           </ResizablePanel>
 
           <ResizableHandle
             onDoubleClick={handleResetResizablePanels}
-            className={cn('px-4 ml-1', !sidebarOpen && 'hidden')}
+            className={cn(
+              'pr-4 before:left-0 before:right-[unset]',
+              'data-[resize-handle-state=hover]:opacity-0 data-[resize-handle-state=drag]:opacity-0',
+              !sidebarOpen && 'hidden',
+            )}
           />
 
           <ResizablePanel
             defaultSize={100 - getSidebarDefaultSize()}
             minSize={50}
           >
-            <div className="flex-1 flex flex-col overflow-auto h-full">
+            <PageLayout
+              sidebarOpen={sidebarOpen}
+              setSidebarOpen={setSidebarOpen}
+              setSearchOpen={setSearchOpen}
+              fullWidth={fullWidth}
+            >
               <Outlet
                 context={
-                  { sidebarOpen, setSearchOpen } satisfies AppLayoutContextProps
+                  {
+                    sidebarOpen,
+                    setSearchOpen,
+                  } satisfies AppLayoutContextProps
                 }
               />
-            </div>
+            </PageLayout>
           </ResizablePanel>
         </ResizablePanelGroup>
       </main>

@@ -153,7 +153,7 @@ export function FileNameEditor({
   }
 
   return (
-    <div className="relative flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto">
+    <div className="relative flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto ml-1">
       {isEditingFileName ? (
         <>
           <label className="sr-only" htmlFor="file-name">

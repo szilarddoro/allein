@@ -39,6 +39,7 @@ import {
 import { Outlet, useLocation, useNavigate } from 'react-router'
 import { useMediaQuery } from 'usehooks-ts'
 import { PageLayout } from '@/components/layout/PageLayout'
+import { TauriDragRegion } from '@/components/TauriDragRegion'
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -286,8 +287,12 @@ export function AppLayout() {
             onCollapse={() => setSidebarOpen(false)}
             onExpand={() => setSidebarOpen(true)}
             ref={sidebarPanelRef}
-            className="ml-2 my-2.5"
+            className="pl-2 py-2.5 relative"
           >
+            <div className="absolute top-0 left-0 right-0 h-8 z-0">
+              <TauriDragRegion />
+            </div>
+
             <Sidebar
               onNewFile={createFile}
               onClose={() => setSidebarOpen(false)}
@@ -298,6 +303,7 @@ export function AppLayout() {
             onDoubleClick={handleResetResizablePanels}
             className={cn(
               'pr-4 before:left-0 before:right-[unset]',
+              'data-[resize-handle-state=hover]:opacity-0 data-[resize-handle-state=drag]:opacity-0',
               !sidebarOpen && 'hidden',
             )}
           />

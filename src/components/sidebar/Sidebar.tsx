@@ -43,7 +43,7 @@ export function Sidebar({
   }
 
   return (
-    <div className="relative w-full h-full flex flex-col bg-card border border-border rounded-[12px] overflow-hidden">
+    <div className="z-10 relative w-full h-full flex flex-col bg-card border border-border rounded-[12px] overflow-hidden">
       <div className="h-10 w-full sticky top-0 pt-1 pr-1">
         <TauriDragRegion />
 

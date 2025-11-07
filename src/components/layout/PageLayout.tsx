@@ -47,7 +47,7 @@ export function PageLayout({
 
           <div
             className={cn(
-              'flex items-center justify-between gap-2 relative z-20 pr-3 pointer-events-none',
+              'flex items-center justify-between gap-2 relative z-20 pr-3 pointer-events-none pl-1',
               !sidebarOpen && 'pl-20',
               isFullScreenOnMac && 'pl-0',
             )}
@@ -138,6 +138,7 @@ export function PageLayout({
           className={cn(
             'flex flex-col flex-1 grow shrink-0 relative gap-6 pr-4 w-full min-h-0',
             !fullWidth && 'max-w-7xl 3xl:max-w-4/5 4xl:max-w-3/5 mx-auto',
+            !sidebarOpen && 'pl-1.5',
           )}
         >
           {children}

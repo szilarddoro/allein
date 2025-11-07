@@ -302,7 +302,7 @@ export function AppLayout() {
           <ResizableHandle
             onDoubleClick={handleResetResizablePanels}
             className={cn(
-              'pr-4 before:left-0 before:right-[unset]',
+              'pr-2.5 before:left-0 before:right-[unset]',
               'data-[resize-handle-state=hover]:opacity-0 data-[resize-handle-state=drag]:opacity-0',
               !sidebarOpen && 'hidden',
             )}

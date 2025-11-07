@@ -90,7 +90,7 @@ export function ModelSelectorField({
                   aria-expanded={open}
                   aria-invalid={fieldState.invalid}
                   disabled={disabled}
-                  className="w-full justify-between shadow-none hover:bg-muted/50 dark:hover:bg-muted/40"
+                  className="w-full justify-between shadow-none !bg-background/60 cursor-text"
                   id={name}
                 >
                   <span className="truncate">

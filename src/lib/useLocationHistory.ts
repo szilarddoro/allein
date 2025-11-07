@@ -7,7 +7,7 @@ export function useLocationHistory() {
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const currentLocation = `${pathname}${search}`
-  const isHistoryNavigationRef = useRef(false)
+  const targetIndexRef = useRef<number | null>(null)
 
   // Track location changes and update stack
   useEffect(() => {
@@ -16,14 +16,11 @@ export function useLocationHistory() {
       return
     }
 
-    if (isHistoryNavigationRef.current) {
+    if (targetIndexRef.current !== null) {
       // This is a back/forward navigation from our own buttons
-      const existingIndex = locationStack.indexOf(currentLocation)
-      if (existingIndex !== -1) {
-        setCurrentIndex(existingIndex)
-        isHistoryNavigationRef.current = false
-        return
-      }
+      setCurrentIndex(targetIndexRef.current)
+      targetIndexRef.current = null
+      return
     }
 
     // Manual navigation - add to stack and discard forward history
@@ -32,12 +29,11 @@ export function useLocationHistory() {
 
     setLocationStack(newStack)
     setCurrentIndex(newStack.length - 1)
-    isHistoryNavigationRef.current = false
   }, [currentLocation, currentIndex, locationStack])
 
   const goBack = useCallback(() => {
     if (currentIndex > 0) {
-      isHistoryNavigationRef.current = true
+      targetIndexRef.current = currentIndex - 1
       const targetLocation = locationStack[currentIndex - 1]
       navigate(targetLocation, { replace: false })
     }
@@ -45,7 +41,7 @@ export function useLocationHistory() {
 
   const goForward = useCallback(() => {
     if (currentIndex < locationStack.length - 1) {
-      isHistoryNavigationRef.current = true
+      targetIndexRef.current = currentIndex + 1
       const targetLocation = locationStack[currentIndex + 1]
       navigate(targetLocation, { replace: false })
     }

@@ -78,7 +78,12 @@ export function FloatingActionToolbar({
             </Button>
           </TooltipTrigger>
 
-          <TooltipContent align="center" side="top" sideOffset={10}>
+          <TooltipContent
+            alignOffset={-10}
+            align="end"
+            side="top"
+            sideOffset={10}
+          >
             <span>Format file</span>{' '}
             <Hotkey modifiers={['meta', 'shift']} keyCode="F" />
           </TooltipContent>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 export function useLocationHistory() {
@@ -7,48 +7,44 @@ export function useLocationHistory() {
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const currentLocation = `${pathname}${search}`
-  const isNavigatingRef = useRef(false)
 
+  // Track location changes and update stack
   useEffect(() => {
-    // If we're navigating to a location that's already in our stack at the current position, ignore it
+    // If we're already at this location, skip
     if (locationStack[currentIndex] === currentLocation) {
       return
     }
 
-    // Check if this location exists elsewhere in the stack (back/forward navigation)
+    // Check if navigating back/forward to an existing location in our stack
     const existingIndex = locationStack.indexOf(currentLocation)
 
-    if (isNavigatingRef.current && existingIndex !== -1) {
-      // This is a back/forward navigation to an existing location
+    if (existingIndex !== -1 && existingIndex !== currentIndex) {
+      // User navigated back/forward - update our index
       setCurrentIndex(existingIndex)
-      isNavigatingRef.current = false
       return
     }
 
-    // This is a new navigation - add to stack and trim forward history if needed
-    const newStack =
-      currentIndex === -1
-        ? [currentLocation]
-        : [...locationStack.slice(0, currentIndex + 1), currentLocation]
+    // New navigation - add to stack and discard forward history
+    const newStack = locationStack.slice(0, currentIndex + 1)
+    newStack.push(currentLocation)
 
     setLocationStack(newStack)
     setCurrentIndex(newStack.length - 1)
-    isNavigatingRef.current = false
   }, [currentLocation, currentIndex, locationStack])
 
   const goBack = useCallback(() => {
     if (currentIndex > 0) {
-      isNavigatingRef.current = true
-      navigate(-1)
+      const targetLocation = locationStack[currentIndex - 1]
+      navigate(targetLocation, { replace: false })
     }
-  }, [currentIndex, navigate])
+  }, [currentIndex, locationStack, navigate])
 
   const goForward = useCallback(() => {
     if (currentIndex < locationStack.length - 1) {
-      isNavigatingRef.current = true
-      navigate(1)
+      const targetLocation = locationStack[currentIndex + 1]
+      navigate(targetLocation, { replace: false })
     }
-  }, [currentIndex, locationStack.length, navigate])
+  }, [currentIndex, locationStack, navigate])
 
   const canGoBack = currentIndex > 0
   const canGoForward = currentIndex < locationStack.length - 1

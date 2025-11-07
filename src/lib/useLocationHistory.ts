@@ -27,6 +27,12 @@ export function useLocationHistory() {
     const newStack = locationStack.slice(0, currentIndex + 1)
     newStack.push(currentLocation)
 
+    // Limit stack size to prevent unbounded growth
+    const maxStackSize = 20
+    if (newStack.length > maxStackSize) {
+      newStack.splice(0, newStack.length - maxStackSize)
+    }
+
     setLocationStack(newStack)
     setCurrentIndex(newStack.length - 1)
   }, [currentLocation, currentIndex, locationStack])

@@ -41,7 +41,7 @@ export function EditorHeader({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-2 py-1 grow-0 shrink-0',
+        'flex items-center justify-between gap-2 pb-1 grow-0 shrink-0',
       )}
     >
       <FileNameEditor

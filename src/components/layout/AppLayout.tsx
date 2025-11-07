@@ -144,23 +144,23 @@ export function AppLayout() {
 
   function getSidebarDefaultSize() {
     if (isExtraLargeScreen) {
-      return 9
+      return 12
     }
 
     if (isLargeScreen) {
-      return 11
+      return 15
     }
 
-    return 17
+    return 20
   }
 
   function getSidebarMinSize() {
     if (isExtraLargeScreen) {
-      return 8
+      return 10
     }
 
     if (isLargeScreen) {
-      return 10
+      return 12
     }
 
     return 15
@@ -168,14 +168,14 @@ export function AppLayout() {
 
   function getSidebarMaxSize() {
     if (isExtraLargeScreen) {
-      return 11
+      return 14
     }
 
     if (isLargeScreen) {
-      return 13
+      return 18
     }
 
-    return 20
+    return 25
   }
 
   function handleResetResizablePanels() {

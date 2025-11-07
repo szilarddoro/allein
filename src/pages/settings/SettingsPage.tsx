@@ -13,11 +13,11 @@ export function SettingsPage() {
   return (
     <div
       className={cn(
-        'pt-4 pr-4 pb-32 flex-1 mx-auto w-full flex flex-col gap-6 pl-1',
+        'pt-4 pb-32 flex-1 mx-auto w-full flex flex-col gap-6',
         !sidebarOpen && 'pl-4',
       )}
     >
-      <H1 className="my-0 text-2xl">Preferences</H1>
+      <H1 className="my-0 text-2xl pl-1">Preferences</H1>
 
       <section>
         <AIAssistantCard />

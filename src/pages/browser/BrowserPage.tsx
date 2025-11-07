@@ -1,4 +1,5 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,14 +19,13 @@ import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
 import { useFileListWithPreview } from '@/lib/files/useFileListWithPreview'
-import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import MarkdownPreview from '@/pages/editor/MarkdownPreview'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { CircleAlert, File, NotebookPen, Plus } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate, useOutletContext } from 'react-router'
+import { useNavigate } from 'react-router'
 
 export function BrowserPage() {
   const { data: files, status, refetch: reloadFiles } = useFileListWithPreview()
@@ -34,7 +34,6 @@ export function BrowserPage() {
   const sortedFiles = (files || []).sort(
     (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime(),
   )
-  const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
 
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -174,95 +173,88 @@ export function BrowserPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div
-        className={cn(
-          'relative flex flex-col gap-6 pr-4 pt-4 pb-16 max-w-7xl 3xl:max-w-4/5 4xl:max-w-3/5 w-full mx-auto pl-1',
-          !sidebarOpen && 'pl-4',
-        )}
-      >
-        <div className="flex flex-row gap-3 items-center justify-start">
-          <Button
-            size="icon"
-            variant="default"
-            onClick={handleCreateFile}
-            className={cn(
-              'rounded-full text-foreground cursor-pointer',
-              'bg-zinc-200/50 border-zinc-200 hover:bg-zinc-200',
-              'dark:bg-zinc-700 dark:border-zinc-600 hover:dark:bg-zinc-600',
-            )}
-          >
-            <Plus className="size-5" />
-            <span className="sr-only">Create a new file</span>
-          </Button>
-          <span className="inline-block h-full bg-border w-px" />
-          <H1 className="my-0 text-2xl">All Files</H1>
-        </div>
+      <div className="flex flex-row gap-3 items-center justify-start mt-4 z-10">
+        <Button
+          size="icon"
+          variant="default"
+          onClick={handleCreateFile}
+          className={cn(
+            'rounded-full text-foreground cursor-pointer',
+            'bg-zinc-200/50 border-zinc-200 hover:bg-zinc-200',
+            'dark:bg-zinc-700 dark:border-zinc-600 hover:dark:bg-zinc-600',
+          )}
+        >
+          <Plus className="size-5" />
+          <span className="sr-only">Create a new file</span>
+        </Button>
+        <span className="inline-block h-full bg-border w-px" />
+        <H1 className="my-0 text-2xl">All Files</H1>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-          {sortedFiles.map((file) => (
-            <Link
-              viewTransition
-              key={file.name}
-              to={{ pathname: '/editor', search: `?file=${file.path}` }}
-              className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
-              onContextMenu={(e) =>
-                showContextMenu(e, {
-                  filePath: file.path,
-                  fileName: file.name,
-                  onOpen: () =>
-                    navigate({
-                      pathname: '/editor',
-                      search: `?file=${file.path}`,
-                    }),
-                  onCopyPath: () => handleCopyFilePath(file.path),
-                  onOpenInFolder: () => handleOpenInFolder(file.path),
-                  onDelete: () => handleDeleteFile(file.path, file.name),
-                  isDeletingFile,
-                })
-              }
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+        {sortedFiles.map((file) => (
+          <Link
+            viewTransition
+            key={file.name}
+            to={{ pathname: '/editor', search: `?file=${file.path}` }}
+            className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
+            onContextMenu={(e) =>
+              showContextMenu(e, {
+                filePath: file.path,
+                fileName: file.name,
+                onOpen: () =>
+                  navigate({
+                    pathname: '/editor',
+                    search: `?file=${file.path}`,
+                  }),
+                onCopyPath: () => handleCopyFilePath(file.path),
+                onOpenInFolder: () => handleOpenInFolder(file.path),
+                onDelete: () => handleDeleteFile(file.path, file.name),
+                isDeletingFile,
+              })
+            }
+          >
+            <Card
+              className={cn(
+                'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative',
+                'before:absolute before:top-0 before:left-0 before:size-full before:z-20 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
+                'after:absolute after:bottom-0 after:left-0 after:w-full after:h-16 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent motion-safe:animate-opacity-in duration-250',
+              )}
             >
-              <Card
-                className={cn(
-                  'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative',
-                  'before:absolute before:top-0 before:left-0 before:size-full before:z-20 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
-                  'after:absolute after:bottom-0 after:left-0 after:w-full after:h-16 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent motion-safe:animate-opacity-in duration-250',
-                )}
+              <CardHeader
+                className={cn('px-0', file.preview.length > 0 && 'sr-only')}
               >
-                <CardHeader
-                  className={cn('px-0', file.preview.length > 0 && 'sr-only')}
-                >
-                  <H3 className="text-xs text-muted-foreground font-normal mb-0 truncate">
-                    <span aria-hidden="true">{getDisplayName(file.name)}</span>
+                <H3 className="text-xs text-muted-foreground font-normal mb-0 truncate">
+                  <span aria-hidden="true">{getDisplayName(file.name)}</span>
+
+                  <span className="sr-only">
+                    Open file: &quot;{getDisplayName(file.name)}&quot;
+                  </span>
+                </H3>
+              </CardHeader>
+
+              <CardContent className="px-0 pt-0.5 pb-0 overflow-hidden">
+                {file.preview ? (
+                  <>
+                    <MarkdownPreview
+                      renderType="embedded"
+                      content={file.preview}
+                      aria-hidden="true"
+                    />
 
                     <span className="sr-only">
-                      Open file: &quot;{getDisplayName(file.name)}&quot;
+                      File content: {file.preview.substring(0, 255)}
                     </span>
-                  </H3>
-                </CardHeader>
-
-                <CardContent className="px-0 pt-0.5 pb-0 overflow-hidden">
-                  {file.preview ? (
-                    <>
-                      <MarkdownPreview
-                        renderType="embedded"
-                        content={file.preview}
-                        aria-hidden="true"
-                      />
-
-                      <span className="sr-only">
-                        File content: {file.preview.substring(0, 255)}
-                      </span>
-                    </>
-                  ) : (
-                    <P className="my-0 text-xs text-muted-foreground sr-only">
-                      File is empty
-                    </P>
-                  )}
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
+                  </>
+                ) : (
+                  <P className="my-0 text-xs text-muted-foreground sr-only">
+                    File is empty
+                  </P>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
     </>
   )

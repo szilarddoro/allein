@@ -1,20 +1,31 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import { FileList } from '@/components/sidebar/FileList'
+import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
 import { Separator } from '@/components/ui/separator'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { H2 } from '@/components/ui/typography'
 import { FileContent } from '@/lib/files/types'
 import { useToast } from '@/lib/useToast'
-import { FilePlus, Files } from 'lucide-react'
+import { FilePlus, Files, PanelLeftCloseIcon } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 
 interface SidebarProps {
   onNewFile: () => Promise<FileContent>
   showIndexingProgress?: boolean
+  onClose?: () => void
 }
 
-export function Sidebar({ onNewFile, showIndexingProgress }: SidebarProps) {
+export function Sidebar({
+  onNewFile,
+  onClose,
+  showIndexingProgress,
+}: SidebarProps) {
   const { toast } = useToast()
   const { pathname } = useLocation()
   const navigate = useNavigate()
@@ -32,7 +43,28 @@ export function Sidebar({ onNewFile, showIndexingProgress }: SidebarProps) {
   }
 
   return (
-    <div className="w-full h-full flex flex-col relative">
+    <div className="relative w-full h-full flex flex-col bg-card border border-border rounded-[12px] overflow-hidden">
+      <div className="h-10 w-full sticky top-0 pt-1 pr-1">
+        <TauriDragRegion />
+
+        <div className="z-20 w-full flex flex-row justify-end">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="z-20 h-6"
+              >
+                <PanelLeftCloseIcon />
+              </Button>
+            </TooltipTrigger>
+
+            <TooltipContent>Close Sidebar</TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
+
       {showIndexingProgress && (
         <DelayedActivityIndicator
           delay={1500}
@@ -42,7 +74,7 @@ export function Sidebar({ onNewFile, showIndexingProgress }: SidebarProps) {
         </DelayedActivityIndicator>
       )}
 
-      <div className="flex flex-col gap-2 py-4 pl-2.5 pr-[3px]">
+      <div className="flex flex-col gap-2 py-4 px-3">
         <Button variant="ghost" size="sm" asChild>
           <Link
             to="/"
@@ -67,11 +99,11 @@ export function Sidebar({ onNewFile, showIndexingProgress }: SidebarProps) {
         </Button>
       </div>
 
-      <div className="pl-2.5">
+      <div className="px-3">
         <Separator />
       </div>
 
-      <div className="flex-1 overflow-y-auto pt-4 pb-20 pl-2.5 flex flex-col gap-2 pr-[3px]">
+      <div className="flex-1 overflow-y-auto pt-4 pb-20 flex flex-col gap-2 px-3">
         <H2 className="sr-only">Files</H2>
 
         <FileList />

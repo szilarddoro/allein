@@ -30,7 +30,6 @@ import {
   Cog,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
-  Search,
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -232,22 +231,6 @@ export function AppLayout() {
             </Tooltip>
           )}
 
-          <Tooltip delayDuration={500}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSearchOpen(true)}
-              >
-                <Search className="size-4" />
-              </Button>
-            </TooltipTrigger>
-
-            <TooltipContent align="center" side="bottom">
-              Search Files <Hotkey modifiers={['meta']} keyCode="k" />
-            </TooltipContent>
-          </Tooltip>
-
           <Button
             variant="ghost"
             size="icon"
@@ -326,6 +309,7 @@ export function AppLayout() {
             <PageLayout
               sidebarOpen={sidebarOpen}
               setSidebarOpen={setSidebarOpen}
+              setSearchOpen={setSearchOpen}
               fullWidth={fullWidth}
             >
               <Outlet

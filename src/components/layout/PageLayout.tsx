@@ -11,12 +11,19 @@ import { CURRENT_PLATFORM } from '@/lib/constants'
 import { useLocationHistory } from '@/lib/useLocationHistory'
 import { useWindowState } from '@/lib/useWindowState'
 import { cn } from '@/lib/utils'
-import { ChevronLeft, ChevronRight, Cog, PanelLeftOpenIcon } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Cog,
+  PanelLeftOpenIcon,
+  Search,
+} from 'lucide-react'
 import { PropsWithChildren } from 'react'
 
 export interface PageLayoutProps extends PropsWithChildren {
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
+  setSearchOpen: (open: boolean) => void
   fullWidth: boolean
 }
 
@@ -24,6 +31,7 @@ export function PageLayout({
   children,
   sidebarOpen,
   setSidebarOpen,
+  setSearchOpen,
   fullWidth,
 }: PageLayoutProps) {
   const { isFullscreen } = useWindowState()
@@ -32,19 +40,19 @@ export function PageLayout({
   const isFullScreenOnMac = CURRENT_PLATFORM === 'macos' && isFullscreen
 
   return (
-    <div className="relative flex flex-1 overflow-hidden h-full">
+    <div className="relative flex flex-1 overflow-hidden h-full z-50">
       <div className="flex-1 flex flex-col overflow-auto h-full">
-        <header className="sticky top-0 z-50 py-2 w-full shrink-0 grow-0">
+        <header className="sticky top-0 z-50 py-2 w-full shrink-0 grow-0 bg-zinc-100 dark:bg-zinc-900">
           <TauriDragRegion />
 
           <div
             className={cn(
-              'flex items-center justify-between gap-2 relative z-20 pr-3',
+              'flex items-center justify-between gap-2 relative z-20 pr-3 pointer-events-none',
               !sidebarOpen && 'pl-20',
               isFullScreenOnMac && 'pl-0',
             )}
           >
-            <div className="flex flex-row gap-1.5">
+            <div className="flex flex-row gap-1.5 rounded-md [&_button]:pointer-events-auto">
               {!sidebarOpen && (
                 <Tooltip delayDuration={500}>
                   <TooltipTrigger asChild>
@@ -86,6 +94,22 @@ export function PageLayout({
               >
                 <ChevronRight className="size-4.5" />
               </Button>
+
+              <Tooltip delayDuration={500}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSearchOpen(true)}
+                  >
+                    <Search className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+
+                <TooltipContent align="center" side="bottom">
+                  Search Files <Hotkey modifiers={['meta']} keyCode="k" />
+                </TooltipContent>
+              </Tooltip>
             </div>
 
             <div className="z-20">
@@ -94,7 +118,7 @@ export function PageLayout({
                   <Button variant="ghost" size="icon" asChild>
                     <Link
                       to="/settings"
-                      className="cursor-default"
+                      className="cursor-default pointer-events-auto"
                       viewTransition
                     >
                       <Cog className="size-4" />

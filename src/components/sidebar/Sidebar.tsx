@@ -74,7 +74,7 @@ export function Sidebar({
         </DelayedActivityIndicator>
       )}
 
-      <div className="flex flex-col gap-2 py-4 px-3">
+      <div className="flex flex-col gap-2 pb-4 px-3">
         <Button variant="ghost" size="sm" asChild>
           <Link
             to="/"

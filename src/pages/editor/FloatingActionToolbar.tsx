@@ -6,12 +6,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { Eye, EyeOff, WandSparkles } from 'lucide-react'
+import { Eye, EyeOff, Paintbrush, Sparkles } from 'lucide-react'
 import { RefObject } from 'react'
 
 export interface FloatingActionToolbarProps {
   className?: string
   showPreview?: boolean
+  onImproveWriting?: () => void
   onFormatDocument?: () => void
   onTogglePreview?: () => void
   previewButtonRef: RefObject<HTMLButtonElement | null>
@@ -21,30 +22,13 @@ export function FloatingActionToolbar({
   className,
   showPreview,
   previewButtonRef,
+  onImproveWriting,
   onTogglePreview,
   onFormatDocument,
 }: FloatingActionToolbarProps) {
   return (
     <div className={cn('group', className)}>
-      <div
-        className={cn(
-          'flex flex-row gap-1',
-          'bg-secondary border-1 border-input/60 rounded-lg p-1 motion-safe:transition-opacity opacity-0',
-          'group-hover:opacity-100 group-focus:opacity-100 focus-within:opacity-100',
-        )}
-      >
-        <Tooltip delayDuration={500}>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onFormatDocument}>
-              <WandSparkles className="size-4" />
-            </Button>
-          </TooltipTrigger>
-
-          <TooltipContent align="center" side="top" sideOffset={10}>
-            Format document <Hotkey modifiers={['meta', 'shift']} keyCode="F" />
-          </TooltipContent>
-        </Tooltip>
-
+      <div className="flex flex-row gap-1 bg-secondary border-1 border-input/60 rounded-lg p-1">
         <Tooltip delayDuration={500}>
           <TooltipTrigger asChild>
             <Button
@@ -71,6 +55,32 @@ export function FloatingActionToolbar({
               {showPreview ? 'Hide preview' : 'Show preview'}
             </span>{' '}
             <Hotkey modifiers={['meta']} keyCode="P" />
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={onImproveWriting}>
+              <Sparkles />
+            </Button>
+          </TooltipTrigger>
+
+          <TooltipContent align="center" side="top" sideOffset={10}>
+            <span>Improve writing</span>{' '}
+            <Hotkey modifiers={['meta']} keyCode="R" />
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip delayDuration={500}>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={onFormatDocument}>
+              <Paintbrush className="size-4" />
+            </Button>
+          </TooltipTrigger>
+
+          <TooltipContent align="center" side="top" sideOffset={10}>
+            <span>Format file</span>{' '}
+            <Hotkey modifiers={['meta', 'shift']} keyCode="F" />
           </TooltipContent>
         </Tooltip>
       </div>

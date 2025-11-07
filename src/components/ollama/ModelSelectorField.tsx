@@ -40,6 +40,7 @@ export interface ModelSelectorFieldProps {
   onCopyCommand: () => void
   disableAnimations?: boolean
   className?: string
+  recommendedModel: string
 }
 
 export function ModelSelectorField({
@@ -54,6 +55,7 @@ export function ModelSelectorField({
   onCopyCommand,
   disableAnimations,
   className,
+  recommendedModel,
 }: ModelSelectorFieldProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -88,7 +90,7 @@ export function ModelSelectorField({
                   aria-expanded={open}
                   aria-invalid={fieldState.invalid}
                   disabled={disabled}
-                  className="w-full justify-between"
+                  className="w-full justify-between shadow-none hover:bg-muted/50 dark:hover:bg-muted/40"
                   id={name}
                 >
                   <span className="truncate">
@@ -146,7 +148,10 @@ export function ModelSelectorField({
                     Loading models...
                   </DelayedActivityIndicator>
                 ) : models && models.length === 0 ? (
-                  <NoModelsMessage onCopyCommand={onCopyCommand} />
+                  <NoModelsMessage
+                    onCopyCommand={onCopyCommand}
+                    recommendedModel={recommendedModel}
+                  />
                 ) : null}
               </FieldDescription>
             )}

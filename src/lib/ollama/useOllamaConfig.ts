@@ -11,7 +11,8 @@ export function useOllamaConfig() {
     refetch: refetchConfig,
   } = useConfig()
 
-  const ollamaUrl = config?.find((c) => c.key === 'ollama_url')?.value || ''
+  const ollamaUrl =
+    config?.find((c) => c.key === 'ollama_url')?.value || DEFAULT_OLLAMA_URL
   const ollamaModel = config?.find((c) => c.key === 'ollama_model')?.value || ''
   const completionModel =
     config?.find((c) => c.key === 'completion_model')?.value || ''

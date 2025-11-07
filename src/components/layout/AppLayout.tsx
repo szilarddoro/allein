@@ -15,8 +15,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { useLocationHistory } from '@/hooks/useLocationHistory'
-import { useWindowState } from '@/hooks/useWindowState'
+import { useLocationHistory } from '@/lib/useLocationHistory'
+import { useWindowState } from '@/lib/useWindowState'
 import { useAIFeatures } from '@/lib/ai/useAIFeatures'
 import { CURRENT_PLATFORM, NEW_FILE_MENU_EVENT } from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
@@ -280,8 +280,8 @@ export function AppLayout() {
               </Button>
             </TooltipTrigger>
 
-            <TooltipContent align="center" side="bottom">
-              Open Settings <Hotkey modifiers={['meta']} keyCode="," />
+            <TooltipContent align="end" side="bottom">
+              Open Preferences <Hotkey modifiers={['meta']} keyCode="," />
             </TooltipContent>
           </Tooltip>
         </div>

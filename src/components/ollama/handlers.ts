@@ -1,11 +1,12 @@
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
-const RECOMMENDED_MODEL = 'qwen2.5-coder:1.5b-base'
-
-export async function handleCopyOllamaPullCommand(toast: {
-  success: (message: string) => void
-}) {
-  await writeText(`ollama pull ${RECOMMENDED_MODEL}`)
+export async function handleCopyOllamaPullCommand(
+  recommendedModel: string,
+  toast: {
+    success: (message: string) => void
+  },
+) {
+  await writeText(`ollama pull ${recommendedModel}`)
   toast.success('Copied to clipboard')
 }
 
@@ -41,5 +42,3 @@ export async function handleRefreshModels(
     toast.error('Failed to load models. Check your server URL configuration.')
   }
 }
-
-export { RECOMMENDED_MODEL }

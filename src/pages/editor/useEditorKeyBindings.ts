@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 
 interface UseEditorKeyBindingsProps {
   onTogglePreview: () => void
-  onOpenCommandPopover: () => void
+  onOpenImproveWritingModal: () => void
 }
 
 /**
@@ -21,7 +21,7 @@ interface UseEditorKeyBindingsProps {
  */
 export function useEditorKeyBindings({
   onTogglePreview,
-  onOpenCommandPopover,
+  onOpenImproveWritingModal,
 }: UseEditorKeyBindingsProps) {
   const handleEditorReady = useCallback(
     (editor: monaco.editor.IStandaloneCodeEditor) => {
@@ -40,9 +40,9 @@ export function useEditorKeyBindings({
         applyBoldFormatting(editor)
       })
 
-      // Override CMD+R to open command popover
+      // Override CMD+R to open writing improvement modal
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR, () => {
-        onOpenCommandPopover()
+        onOpenImproveWritingModal()
       })
 
       // Override CMD+Shift+Minus for strikethrough formatting
@@ -124,7 +124,7 @@ export function useEditorKeyBindings({
 
       return editor
     },
-    [onTogglePreview, onOpenCommandPopover],
+    [onTogglePreview, onOpenImproveWritingModal],
   )
 
   return { handleEditorReady }

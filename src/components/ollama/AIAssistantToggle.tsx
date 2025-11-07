@@ -13,6 +13,7 @@ import {
   FieldError as ReactHookFormFieldError,
 } from 'react-hook-form'
 import { AssistantSettingsFormValues } from './useAIAssistantForm'
+import { ConnectionIndicatorDot } from '@/components/ConnectionIndicatorDot'
 
 export interface AIAssistantToggleProps {
   control: Control<AssistantSettingsFormValues>
@@ -44,36 +45,15 @@ export function AIAssistantToggle({
                 <span aria-hidden="true">AI Assistant</span>
                 <span className="sr-only">Toggle AI Assistant</span>
 
-                <div
-                  className={cn(
-                    'relative motion-safe:transition-all',
-                    !field.value && 'opacity-70 grayscale',
-                  )}
-                >
-                  <span className="sr-only">
-                    {connected ? 'Connected' : 'Not Connected'}
-                  </span>
-                  <div
-                    className={cn(
-                      'size-2 rounded-full relative top-0 left-0 z-10',
-                      connected ? 'bg-green-500' : 'bg-red-500',
-                    )}
-                  />
-
-                  {connected && (
-                    <div
-                      className={cn(
-                        'size-2 rounded-full absolute top-0 left-0 bg-green-400 dark:bg-green-600',
-                        field.value && 'motion-safe:animate-ping',
-                      )}
-                    />
-                  )}
-                </div>
+                <ConnectionIndicatorDot
+                  disabled={!field.value}
+                  connected={connected}
+                />
               </FieldLabel>
 
               <FieldDescription>
-                When enabled, the AI assistant provides autocomplete, writing
-                improvements, and intelligent search.
+                When enabled, the AI assistant provides autocomplete and writing
+                improvements.
               </FieldDescription>
 
               {fieldState.invalid && (

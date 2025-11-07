@@ -6,10 +6,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useInvalidateQueriesOnWindowFocus } from '@/hooks/useInvalidateQueriesOnWindowFocus'
-import { useMenuBar } from '@/hooks/useMenuBar'
+import { useInvalidateQueriesOnWindowFocus } from '@/lib/useInvalidateQueriesOnWindowFocus'
+import { useMenuBar } from '@/lib/useMenuBar'
 import { cn } from '@/lib/utils'
 import { PropsWithChildren, useState } from 'react'
+
 export interface BaseLayoutProps extends PropsWithChildren {
   className?: string
 }
@@ -27,7 +28,7 @@ export function BaseLayout({ className, children }: BaseLayoutProps) {
           <DialogHeader>
             <DialogTitle>About Allein</DialogTitle>
             <DialogDescription className="sr-only">
-              You can find information about the version number and the license.
+              Learn more about the app version and the license.
             </DialogDescription>
           </DialogHeader>
 

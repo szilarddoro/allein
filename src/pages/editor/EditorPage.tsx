@@ -65,33 +65,35 @@ export function EditorPage() {
 
   const { saveContent } = useAutoSave()
 
+  const handleOpenImproveWritingModal = () => {
+    const editor = monacoEditorRef.current
+    if (!editor) return
+
+    const model = editor.getModel()
+
+    if (!model) return
+
+    const selection = editor.getSelection()
+
+    // Check if selection is empty (cursor position only, not actual text selected)
+    const isSelectionEmpty = selection?.isEmpty() ?? true
+    const text =
+      !isSelectionEmpty && selection
+        ? model?.getValueInRange(selection) || ''
+        : model?.getValue() || ''
+
+    if (!text.trim()) {
+      toast.warning('Text not available for improvement')
+      return
+    }
+
+    setSelectedText(text)
+    setShowImprovementDialog(true)
+  }
+
   const { handleEditorReady } = useEditorKeyBindings({
     onTogglePreview: () => setShowPreview((show) => !show),
-    onOpenCommandPopover: () => {
-      const editor = monacoEditorRef.current
-      if (!editor) return
-
-      const model = editor.getModel()
-
-      if (!model) return
-
-      const selection = editor.getSelection()
-
-      // Check if selection is empty (cursor position only, not actual text selected)
-      const isSelectionEmpty = selection?.isEmpty() ?? true
-      const text =
-        !isSelectionEmpty && selection
-          ? model?.getValueInRange(selection) || ''
-          : model?.getValue() || ''
-
-      if (!text.trim()) {
-        toast.warning('Text not available for improvement')
-        return
-      }
-
-      setSelectedText(text)
-      setShowImprovementDialog(true)
-    },
+    onOpenImproveWritingModal: handleOpenImproveWritingModal,
   })
 
   useHighlightLine({
@@ -346,6 +348,7 @@ export function EditorPage() {
           showPreview={showPreview}
           className="absolute bottom-7 right-3"
           onFormatDocument={handleFormatDocument}
+          onImproveWriting={handleOpenImproveWritingModal}
           onTogglePreview={() => setShowPreview((show) => !show)}
         />
       </div>

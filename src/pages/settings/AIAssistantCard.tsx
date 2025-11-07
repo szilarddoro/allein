@@ -37,9 +37,9 @@ export function AIAssistantCard() {
         }),
       ])
 
-      toast.success('Settings saved')
+      toast.success('Preferences saved')
     } catch {
-      toast.error('Failed to update settings.')
+      toast.error('Failed to update preferences')
     }
   }
 

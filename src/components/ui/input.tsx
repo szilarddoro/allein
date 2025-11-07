@@ -3,6 +3,14 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
+  function handleKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
+    if ((ev.metaKey || ev.ctrlKey) && ev.key === 'a') {
+      ;(ev.target as HTMLInputElement).select()
+    }
+
+    props.onKeyDown?.(ev)
+  }
+
   return (
     <input
       type={type}
@@ -14,6 +22,7 @@ function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
         className,
       )}
       {...props}
+      onKeyDown={handleKeyDown}
     />
   )
 }

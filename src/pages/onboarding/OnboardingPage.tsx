@@ -1,13 +1,15 @@
 import { OnboardingLayoutContext } from '@/components/layout/OnboardingLayout'
-import { AssistantSettingsFormValues } from '@/components/ollama/AIAssistantConfigPanel'
 import { useUpdateConfig } from '@/lib/db/useUpdateConfig'
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useToast } from '@/lib/useToast'
-import { AIAssistantStep } from '@/pages/onboarding/steps/AIAssistantStep'
 import { FinalStep } from '@/pages/onboarding/steps/FinalStep'
 import { useOutletContext } from 'react-router'
 import { WelcomeStep } from './steps/WelcomeStep'
 import { useUpdateOnboardingProgress } from './useUpdateOnboardingProgress'
+import {
+  DownloadModelsStep,
+  DownloadModelsSubmitData,
+} from '@/pages/onboarding/steps/DownloadModelsStep'
 
 export function OnboardingPage() {
   const { currentStep, setCurrentStep } =
@@ -30,12 +32,12 @@ export function OnboardingPage() {
     setCurrentStep((prev) => prev + 1)
   }
 
-  async function handleSaveAIConfig(values: AssistantSettingsFormValues) {
+  async function handleSaveAIConfig(values: DownloadModelsSubmitData) {
     try {
       await Promise.all([
         updateConfig({
           key: 'ai_assistance_enabled',
-          value: values.aiAssistantEnabled ? 'true' : 'false',
+          value: 'true',
         }),
         updateConfig({
           key: 'ollama_url',
@@ -53,7 +55,7 @@ export function OnboardingPage() {
 
       handleNext()
     } catch {
-      toast.error('Failed to update settings')
+      toast.error('Failed to update preferences')
     }
   }
 
@@ -70,7 +72,7 @@ export function OnboardingPage() {
   }
 
   if (currentStep === 1) {
-    return <AIAssistantStep onNext={handleSaveAIConfig} onSkip={handleSkip} />
+    return <DownloadModelsStep onNext={handleSaveAIConfig} />
   }
 
   return <FinalStep onNext={handleFinish} />

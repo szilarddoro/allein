@@ -1,11 +1,11 @@
 import { BaseLayout } from '@/components/layout/BaseLayout'
 import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { Button } from '@/components/ui/button'
-import { useWindowState } from '@/hooks/useWindowState'
+import { useWindowState } from '@/lib/useWindowState'
 import { cn } from '@/lib/utils'
 import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
 import { useUpdateOnboardingProgress } from '@/pages/onboarding/useUpdateOnboardingProgress'
-import { ArrowLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router'
 
@@ -59,7 +59,7 @@ export function OnboardingLayout() {
 
   return (
     <BaseLayout>
-      <header className="relative flex justify-start items-center gap-0.5 px-2 py-2 h-16">
+      <header className="fixed w-full flex justify-start items-center gap-0.5 px-2 py-2 h-16 z-10">
         <TauriDragRegion />
 
         <div
@@ -70,13 +70,13 @@ export function OnboardingLayout() {
           )}
         >
           <Button size="icon" variant="ghost" onClick={handleGoBack}>
-            <ArrowLeft />
+            <ChevronLeft />
           </Button>
         </div>
       </header>
 
       <main className="flex-auto overflow-hidden flex flex-col">
-        <div className="flex-1 flex flex-col overflow-auto">
+        <div className="flex-1 flex flex-col overflow-auto pt-16">
           <Outlet
             context={
               {

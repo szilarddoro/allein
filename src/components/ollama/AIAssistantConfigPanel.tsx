@@ -7,6 +7,7 @@ import {
   FieldLabel,
   FieldSet,
 } from '@/components/ui/field'
+import { Anchor } from '@/components/ui/anchor'
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { useOllamaModels } from '@/lib/ollama/useOllamaModels'
@@ -33,6 +34,10 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  RECOMMENDED_AUTOCOMPLETION_MODEL,
+  RECOMMENDED_WRITING_IMPROVEMENTS_MODEL,
+} from '@/lib/constants'
 
 export interface AIAssistantConfigPanelProps {
   onSubmit: (values: AssistantSettingsFormValues) => void
@@ -141,13 +146,11 @@ export function AIAssistantConfigPanel({
 
           {isUnableToConnect && !isFormDirty && (
             <Alert variant="warning">
-              <AlertCircle className="size-4" />
+              <AlertCircle />
 
               <AlertDescription>
-                <span>
-                  Ollama is not running. Please start Ollama or verify the
-                  server URL in advanced options.
-                </span>
+                Ollama is not running. Please start Ollama or verify the server
+                URL in advanced options.
               </AlertDescription>
             </Alert>
           )}
@@ -161,7 +164,14 @@ export function AIAssistantConfigPanel({
             <FieldContent>
               <FieldLabel className="text-base">AI Models</FieldLabel>
               <FieldDescription>
-                Choose models for specific tasks.
+                Download models from Ollama first, then select them here. See{' '}
+                <Anchor
+                  href="https://docs.ollama.com/quickstart"
+                  className="text-blue-500 !underline-offset-2 dark:text-blue-400"
+                >
+                  the quickstart guide
+                </Anchor>{' '}
+                for setup instructions.
               </FieldDescription>
             </FieldContent>
 
@@ -191,8 +201,14 @@ export function AIAssistantConfigPanel({
             models={models}
             modelsLoading={modelsLoading}
             modelsError={modelsError}
-            onCopyCommand={() => handleCopyOllamaPullCommand(toast)}
+            onCopyCommand={() =>
+              handleCopyOllamaPullCommand(
+                RECOMMENDED_AUTOCOMPLETION_MODEL.name,
+                toast,
+              )
+            }
             disableAnimations={disableAnimations}
+            recommendedModel={RECOMMENDED_AUTOCOMPLETION_MODEL.name}
           />
 
           <ModelSelectorField
@@ -209,8 +225,14 @@ export function AIAssistantConfigPanel({
             models={models}
             modelsLoading={modelsLoading}
             modelsError={modelsError}
-            onCopyCommand={() => handleCopyOllamaPullCommand(toast)}
+            onCopyCommand={() =>
+              handleCopyOllamaPullCommand(
+                RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name,
+                toast,
+              )
+            }
             disableAnimations={disableAnimations}
+            recommendedModel={RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name}
           />
 
           <Collapsible
@@ -226,7 +248,7 @@ export function AIAssistantConfigPanel({
               <Button
                 variant="ghost"
                 type="button"
-                className="text-blue-500 text-sm hover:underline flex flex-row gap-1 items-center rounded-xs !px-0.5 py-0 h-auto hover:bg-transparent hover:text-blue-500 dark:hover:bg-transparent"
+                className="text-blue-500 dark:text-blue-400 text-sm hover:underline flex flex-row gap-1 items-center rounded-xs !px-0.5 py-0 h-auto hover:bg-transparent hover:text-blue-500 dark:hover:bg-transparent"
               >
                 Advanced Options{' '}
                 {advancedOptionsOpen ? (

@@ -39,12 +39,10 @@ export function WelcomeStep({ onNext, onSkip }: WelcomeStepProps) {
           className="size-22 mb-2"
         />
 
-        <H1 className="my-0 text-3xl font-bold mb-1 text-center">
-          Welcome to Allein
-        </H1>
+        <H1 className="my-0 text-3xl text-center">Welcome to Allein</H1>
 
-        <P className="my-0 text-muted-foreground text-center max-w-md">
-          The lightweight, AI-powered note taking app.
+        <P className="mt-1 text-foreground/70 text-center max-w-md">
+          The lightweight, AI-powered writing tool.
         </P>
       </div>
 

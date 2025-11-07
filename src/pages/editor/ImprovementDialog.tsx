@@ -109,8 +109,8 @@ export function ImprovementDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-4 flex-1 overflow-hidden">
+        <div className="overflow-hidden flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-4 flex-1 shrink grow-0 overflow-hidden">
             <div className="flex flex-col gap-2 overflow-hidden">
               <H3 className="text-sm font-medium m-0">Original Text</H3>
 
@@ -121,7 +121,7 @@ export function ImprovementDialog({
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 overflow-hidden">
               <H3 className="text-sm font-medium m-0">Improved Text</H3>
 
               {!isAiAssistanceAvailable ? (
@@ -132,7 +132,7 @@ export function ImprovementDialog({
                       to="/settings"
                       className="underline hover:text-foreground transition-colors"
                     >
-                      Settings page
+                      Preferences page
                     </Link>{' '}
                     to enable it.
                   </span>

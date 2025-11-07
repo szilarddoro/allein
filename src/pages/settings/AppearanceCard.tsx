@@ -16,12 +16,12 @@ export function AppearanceCard() {
 
   return (
     <Card>
-      <CardHeader className="gap-0">
+      <CardHeader className="gap-1">
         <CardTitle>
           <H2 className="text-xl mb-0">Appearance</H2>
         </CardTitle>
         <CardDescription>
-          <P className="!mt-0.5 text-muted-foreground text-sm mb-0">
+          <P className="my-0 text-muted-foreground text-sm">
             Customize the appearance of the application.
           </P>
         </CardDescription>
@@ -31,7 +31,7 @@ export function AppearanceCard() {
         <div className="space-y-4">
           <div>
             <Label className="text-sm font-medium">Theme</Label>
-            <P className="text-muted-foreground text-sm mb-3">
+            <P className="text-muted-foreground text-sm mb-3 mt-1">
               Choose your preferred theme for the application.
             </P>
 

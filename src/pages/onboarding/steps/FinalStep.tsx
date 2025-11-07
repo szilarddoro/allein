@@ -19,11 +19,9 @@ export function FinalStep({ onNext }: FinalStepProps) {
           className="size-20 mb-2"
         />
 
-        <H1 className="my-0 text-3xl font-bold mb-1 text-center flex flex-row gap-2 items-center">
-          You&apos;re all set!
-        </H1>
+        <H1 className="my-0 text-3xl text-center">You&apos;re all set!</H1>
 
-        <P className="my-0 text-muted-foreground text-center max-w-md">
+        <P className="mt-1 mb-0 text-foreground/70 text-center max-w-md">
           Start writing and stay organized.
         </P>
       </div>

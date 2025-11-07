@@ -2,7 +2,7 @@ import alleinLogo from '@/assets/allein-logo.png'
 import { Button } from '@/components/ui/button'
 import { H1, P } from '@/components/ui/typography'
 import { cn } from '@/lib/utils'
-import { Database, UserRound, Wand2, Zap } from 'lucide-react'
+import { Database, Sparkles, UserRound, Zap } from 'lucide-react'
 import { PropsWithChildren } from 'react'
 
 export function FeatureListItem({
@@ -51,7 +51,7 @@ export function WelcomeStep({ onNext, onSkip }: WelcomeStepProps) {
           <Zap className="size-4" /> Context-aware autocompletion
         </FeatureListItem>
         <FeatureListItem className="delay-[350ms]">
-          <Wand2 className="size-4" /> Writing improvements
+          <Sparkles className="size-4" /> Writing improvements
         </FeatureListItem>
         <FeatureListItem className="delay-[550ms]">
           <Database className="size-4" /> Private LLMs - Works offline

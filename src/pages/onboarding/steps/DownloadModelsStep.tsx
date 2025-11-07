@@ -11,7 +11,7 @@ import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { ModelCardWithProgress } from '@/pages/onboarding/steps/ModelCardWithProgress'
 import { usePullModelWithStatus } from '@/pages/onboarding/steps/usePullModelWithStatus'
 import { AdvancedOptionsDialog } from '@/pages/onboarding/steps/AdvancedOptionsDialog'
-import { AlertCircle, Wand2, Zap } from 'lucide-react'
+import { AlertCircle, Sparkles, Zap } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useState } from 'react'
 import suggestionsPreviewLight from '@/assets/previews/context-aware-autocompletion-light.png'
@@ -151,7 +151,7 @@ export function DownloadModelsStep({ onNext }: DownloadModelsStepProps) {
               : improvementsPreviewLight
           }
           previewImageAlt="A desktop application showcasing writing improvements"
-          icon={<Wand2 className="size-4" />}
+          icon={<Sparkles className="size-4" />}
           title="Writing Improvements"
           description="Refine your writing with intelligent grammar and style feedback."
           modelName={RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name}

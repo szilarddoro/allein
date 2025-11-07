@@ -38,7 +38,7 @@ export const defineCustomThemes = (monaco: Monaco) => {
       { token: 'strong', fontStyle: 'bold' },
     ],
     colors: {
-      'editor.background': '#171717',
+      'editor.background': '#1d1d1d',
       'editor.foreground': '#fafafa',
       'editor.lineHighlightBackground': '#1c1c1f',
       'editorCursor.foreground': '#8ec5ff',

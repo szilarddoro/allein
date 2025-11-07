@@ -132,11 +132,19 @@ Path: `src/pages/editor/completion/`
 
 **Attribution**: Inspired by [continuedev/continue](https://github.com/continuedev/continue) (Apache 2.0). See NOTICE file for details.
 
+### Model Download System
+
+**Overview**: Users download and install Ollama models in onboarding. React Query streams progress from `/api/pull`, auto-detects existing installations, and persists config to SQLite.
+
+**Key Components**: Interactive cards display model previews, progress bars track downloads, advanced options dialog allows custom Ollama URL configuration.
+
 ### Ollama Integration
 
 - **Default URL**: `http://localhost:11434`
 - **Provider**: `ollama-ai-provider-v2` with Vercel AI SDK
-- **Hooks**: `useOllamaConfig()`, `useOllamaModels()`, `useOllamaConnection()`
+- **Configuration**: Supports both completion and improvement model selection via `useOllamaConfig()`
+- **Model Management**: React Query hooks handle discovery, status checks, and streaming downloads with real-time progress tracking
+- **Customization**: Users can configure custom Ollama server URLs during onboarding via AdvancedOptionsDialog
 
 ### Styling & Config
 

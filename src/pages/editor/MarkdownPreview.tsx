@@ -38,7 +38,7 @@ interface MarkdownPreviewProps {
   'aria-hidden'?: 'true' | 'false'
 }
 
-const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
+export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
   content,
   placeholder,
   className,
@@ -238,5 +238,3 @@ const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     </div>
   )
 }
-
-export default MarkdownPreview

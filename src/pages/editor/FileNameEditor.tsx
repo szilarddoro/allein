@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from 'react'
 export interface FileNameEditorProps {
   currentFile: FileContent | null
   onFileRenamed: (newPath: string) => void
+  sidebarOpen: boolean
 }
 
 /**
@@ -29,6 +30,7 @@ export interface FileNameEditorProps {
 export function FileNameEditor({
   currentFile,
   onFileRenamed,
+  sidebarOpen,
 }: FileNameEditorProps) {
   const { toast } = useToast()
   const { data: files } = useFileList()
@@ -214,7 +216,10 @@ export function FileNameEditor({
             </Button>
           </TooltipTrigger>
 
-          <TooltipContent align="center" side="bottom">
+          <TooltipContent
+            align={sidebarOpen ? 'center' : 'start'}
+            side="bottom"
+          >
             Click to edit file name
           </TooltipContent>
         </Tooltip>

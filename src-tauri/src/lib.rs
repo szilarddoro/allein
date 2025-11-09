@@ -441,6 +441,9 @@ async fn list_files_and_folders_tree() -> Result<Vec<TreeItem>, String> {
         }
     }
 
+    // Get docs_dir as string for comparison
+    let docs_dir_str = docs_dir.to_string_lossy().to_string();
+
     // Build result with files placed in their folders
     for file in files {
         // Get the directory path of the file
@@ -463,11 +466,14 @@ async fn list_files_and_folders_tree() -> Result<Vec<TreeItem>, String> {
             children: None,
         };
 
-        // Try to find the parent folder
-        if !file_dir.is_empty() {
+        // Check if this is a root-level file (directly in docs_dir)
+        if file_dir == docs_dir_str {
+            result.push(tree_item);
+        } else if !file_dir.is_empty() {
+            // File is in a subfolder
             folder_map.entry(file_dir).or_insert_with(Vec::new).push(tree_item);
         } else {
-            // Root level file
+            // Edge case: file with no directory path
             result.push(tree_item);
         }
     }

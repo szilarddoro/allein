@@ -4,17 +4,13 @@ import { FileListItem } from '@/components/sidebar/FileListItem'
 import { P } from '@/components/ui/typography'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
-import {
-  useFilesAndFolders,
-  flattenTreeItems,
-} from '@/lib/files/useFilesAndFolders'
+import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 export function FileList() {
-  const { data, status, error } = useFilesAndFolders()
-  const files = flattenTreeItems(data)
+  const { data: filesAndFolders, status, error } = useFilesAndFolders()
   const [currentFilePath] = useCurrentFilePath()
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -62,7 +58,7 @@ export function FileList() {
     )
   }
 
-  if (files.length === 0) {
+  if (filesAndFolders.length === 0) {
     return (
       <P className="text-xs text-muted-foreground px-2 text-center mt-2">
         No files were found.
@@ -87,19 +83,23 @@ export function FileList() {
       />
 
       <ul className="flex flex-col gap-2 w-full">
-        {files
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((file) => (
+        {filesAndFolders.map((data) => {
+          if (data.type === 'folder') {
+            return <span key={data.path}>{data.name}</span>
+          }
+
+          return (
             <FileListItem
-              key={file.path}
-              file={file}
+              key={data.path}
+              file={data}
               deletePending={deleteStatus === 'pending'}
               onDelete={() => {
-                setFileToDelete({ path: file.path, name: file.name })
+                setFileToDelete({ path: data.path, name: data.name })
                 setIsDeleteDialogOpen(true)
               }}
             />
-          ))}
+          )
+        })}
       </ul>
     </>
   )

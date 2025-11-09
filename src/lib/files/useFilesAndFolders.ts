@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
-import { FileInfoWithPreview, TreeItem } from './types'
+import { TreeItem } from './types'
+import type { FileInfoWithPreview } from './types'
 
 interface UseFilesAndFoldersReturn {
   data: TreeItem[]
@@ -30,9 +31,9 @@ export function flattenTreeItems(items: TreeItem[]): FileInfoWithPreview[] {
         files.push({
           name: item.name,
           path: item.path,
-          preview: item.preview || '',
-          size: item.size || 0,
-          modified: item.modified || '',
+          preview: item.preview,
+          size: item.size,
+          modified: item.modified,
         })
       } else if (item.children) {
         traverse(item.children)
@@ -45,8 +46,32 @@ export function flattenTreeItems(items: TreeItem[]): FileInfoWithPreview[] {
 }
 
 /**
+ * Sort tree items with folders first, then files, both alphabetically
+ */
+function sortTreeItems(items: TreeItem[]): TreeItem[] {
+  const sorted = [...items].sort((a, b) => {
+    // Folders come first
+    if (a.type === 'folder' && b.type === 'file') return -1
+    if (a.type === 'file' && b.type === 'folder') return 1
+    // Otherwise, sort alphabetically by name
+    return a.name.localeCompare(b.name)
+  })
+
+  // Recursively sort children for folders
+  return sorted.map((item) => {
+    if (item.type === 'folder' && item.children) {
+      return {
+        ...item,
+        children: sortTreeItems(item.children),
+      }
+    }
+    return item
+  })
+}
+
+/**
  * Unified hook for fetching both files and folders as a tree structure
- * @returns Files and folders in a nested tree structure
+ * @returns Files and folders in a nested tree structure with folders sorted first
  */
 export function useFilesAndFolders(): UseFilesAndFoldersReturn {
   const query = useQuery({
@@ -57,7 +82,7 @@ export function useFilesAndFolders(): UseFilesAndFoldersReturn {
   })
 
   return {
-    data: query.data || [],
+    data: sortTreeItems(query.data || []),
     status: query.status as 'pending' | 'error' | 'success',
     error: query.error as Error | null,
     refetch: () => query.refetch(),

@@ -29,14 +29,18 @@ export interface FolderNode {
  * Unified tree item that can be either a file or folder
  * Used for rendering nested file/folder structures
  */
-export interface TreeItem {
-  type: 'file' | 'folder'
-  name: string
-  path: string
-  // File properties
-  preview?: string
-  size?: number
-  modified?: string
-  // Folder properties
-  children?: TreeItem[]
-}
+export type TreeItem =
+  | {
+      type: 'file'
+      name: string
+      path: string
+      preview: string
+      size: number
+      modified: string
+    }
+  | {
+      type: 'folder'
+      name: string
+      path: string
+      children?: TreeItem[]
+    }

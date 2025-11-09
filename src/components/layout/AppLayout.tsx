@@ -19,10 +19,7 @@ import { useWindowState } from '@/lib/useWindowState'
 import { useAIFeatures } from '@/lib/ai/useAIFeatures'
 import { CURRENT_PLATFORM, NEW_FILE_MENU_EVENT } from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
-import {
-  useFilesAndFolders,
-  flattenTreeItems,
-} from '@/lib/files/useFilesAndFolders'
+import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
@@ -45,6 +42,7 @@ import { PageLayout } from '@/components/layout/PageLayout'
 import { TauriDragRegion } from '@/components/TauriDragRegion'
 
 export function AppLayout() {
+  useAIFeatures()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
   const { mutateAsync: createFile } = useCreateFile()
@@ -53,8 +51,7 @@ export function AppLayout() {
   const { pathname } = useLocation()
   const { toast } = useToast()
   const { data: progress, status: progressStatus } = useOnboardingProgress()
-  const { data, status: filesStatus } = useFilesAndFolders()
-  const files = flattenTreeItems(data)
+  const { data: files, status: filesStatus } = useFilesAndFolders()
   const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null)
   const sidebarPanelRef = useRef<ImperativePanelHandle | null>(null)
@@ -63,8 +60,6 @@ export function AppLayout() {
   const fullWidth = pathname.startsWith('/editor')
 
   const fileLength = files?.length ?? 0
-
-  useAIFeatures()
 
   useEffect(() => {
     if (!sidebarOpen) {

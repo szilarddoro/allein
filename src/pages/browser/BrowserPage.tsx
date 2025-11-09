@@ -18,10 +18,7 @@ import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
-import {
-  useFilesAndFolders,
-  flattenTreeItems,
-} from '@/lib/files/useFilesAndFolders'
+import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { MarkdownPreview } from '@/pages/editor/MarkdownPreview'
@@ -31,11 +28,13 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 export function BrowserPage() {
-  const { data, status, refetch: reloadFiles } = useFilesAndFolders()
-  const files = flattenTreeItems(data || [])
+  const {
+    data: filesAndFolders,
+    status,
+    refetch: reloadFiles,
+  } = useFilesAndFolders()
   const { mutateAsync: createFile } = useCreateFile()
   const { mutateAsync: deleteFile, isPending: isDeletingFile } = useDeleteFile()
-  const sortedFiles = (files || []).sort((a, b) => a.name.localeCompare(b.name))
 
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -117,7 +116,7 @@ export function BrowserPage() {
     )
   }
 
-  if (sortedFiles.length === 0) {
+  if (filesAndFolders.length === 0) {
     return (
       <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
         <div className="p-2 rounded-lg bg-muted text-muted-foreground">
@@ -194,69 +193,75 @@ export function BrowserPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-16">
-        {sortedFiles.map((file) => (
-          <Link
-            viewTransition
-            key={file.name}
-            to={{ pathname: '/editor', search: `?file=${file.path}` }}
-            className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
-            onContextMenu={(e) =>
-              showContextMenu(e, {
-                filePath: file.path,
-                fileName: file.name,
-                onOpen: () =>
-                  navigate({
-                    pathname: '/editor',
-                    search: `?file=${file.path}`,
-                  }),
-                onCopyPath: () => handleCopyFilePath(file.path),
-                onOpenInFolder: () => handleOpenInFolder(file.path),
-                onDelete: () => handleDeleteFile(file.path, file.name),
-                isDeletingFile,
-              })
-            }
-          >
-            <Card
-              className={cn(
-                'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative',
-                'before:absolute before:top-0 before:left-0 before:size-full before:z-20 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
-                'after:absolute after:bottom-0 after:left-0 after:w-full after:h-16 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent motion-safe:animate-opacity-in duration-250',
-              )}
+        {filesAndFolders.map((data) => {
+          if (data.type === 'folder') {
+            return <span key={data.path}>{data.name}</span>
+          }
+
+          return (
+            <Link
+              viewTransition
+              key={data.path}
+              to={{ pathname: '/editor', search: `?file=${data.path}` }}
+              className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
+              onContextMenu={(e) =>
+                showContextMenu(e, {
+                  filePath: data.path,
+                  fileName: data.name,
+                  onOpen: () =>
+                    navigate({
+                      pathname: '/editor',
+                      search: `?file=${data.path}`,
+                    }),
+                  onCopyPath: () => handleCopyFilePath(data.path),
+                  onOpenInFolder: () => handleOpenInFolder(data.path),
+                  onDelete: () => handleDeleteFile(data.path, data.name),
+                  isDeletingFile,
+                })
+              }
             >
-              <CardHeader
-                className={cn('px-0', file.preview.length > 0 && 'sr-only')}
+              <Card
+                className={cn(
+                  'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative',
+                  'before:absolute before:top-0 before:left-0 before:size-full before:z-20 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
+                  'after:absolute after:bottom-0 after:left-0 after:w-full after:h-16 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent motion-safe:animate-opacity-in duration-250',
+                )}
               >
-                <H3 className="text-xs text-muted-foreground font-normal mb-0 truncate">
-                  <span aria-hidden="true">{getDisplayName(file.name)}</span>
-
-                  <span className="sr-only">
-                    Open file: &quot;{getDisplayName(file.name)}&quot;
-                  </span>
-                </H3>
-              </CardHeader>
-
-              <CardContent className="px-0 pt-0.5 pb-0 overflow-hidden">
-                {file.preview ? (
-                  <>
-                    <MarkdownPreview
-                      renderType="embedded"
-                      content={file.preview}
-                      aria-hidden="true"
-                    />
+                <CardHeader
+                  className={cn('px-0', data.preview.length > 0 && 'sr-only')}
+                >
+                  <H3 className="text-xs text-muted-foreground font-normal mb-0 truncate">
+                    <span aria-hidden="true">{getDisplayName(data.name)}</span>
 
                     <span className="sr-only">
-                      File content: {file.preview.substring(0, 255)}
+                      Open file: &quot;{getDisplayName(data.name)}&quot;
                     </span>
-                  </>
-                ) : (
-                  <P className="my-0 text-xs text-muted-foreground sr-only">
-                    File is empty
-                  </P>
-                )}
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+                  </H3>
+                </CardHeader>
+
+                <CardContent className="px-0 pt-0.5 pb-0 overflow-hidden">
+                  {data.preview ? (
+                    <>
+                      <MarkdownPreview
+                        renderType="embedded"
+                        content={data.preview}
+                        aria-hidden="true"
+                      />
+
+                      <span className="sr-only">
+                        File content: {data.preview.substring(0, 255)}
+                      </span>
+                    </>
+                  ) : (
+                    <P className="my-0 text-xs text-muted-foreground sr-only">
+                      File is empty
+                    </P>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
+          )
+        })}
       </div>
     </>
   )

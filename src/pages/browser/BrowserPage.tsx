@@ -18,7 +18,10 @@ import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
-import { useFileListWithPreview } from '@/lib/files/useFileListWithPreview'
+import {
+  useFilesAndFolders,
+  flattenTreeItems,
+} from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { MarkdownPreview } from '@/pages/editor/MarkdownPreview'
@@ -28,7 +31,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 export function BrowserPage() {
-  const { data: files, status, refetch: reloadFiles } = useFileListWithPreview()
+  const { data, status, refetch: reloadFiles } = useFilesAndFolders()
+  const files = flattenTreeItems(data || [])
   const { mutateAsync: createFile } = useCreateFile()
   const { mutateAsync: deleteFile, isPending: isDeletingFile } = useDeleteFile()
   const sortedFiles = (files || []).sort((a, b) => a.name.localeCompare(b.name))

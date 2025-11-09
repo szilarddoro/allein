@@ -4,13 +4,17 @@ import { FileListItem } from '@/components/sidebar/FileListItem'
 import { P } from '@/components/ui/typography'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
-import { useFileList } from '@/lib/files/useFileList'
+import {
+  useFilesAndFolders,
+  flattenTreeItems,
+} from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 export function FileList() {
-  const { data: files, status, error } = useFileList()
+  const { data, status, error } = useFilesAndFolders()
+  const files = flattenTreeItems(data)
   const [currentFilePath] = useCurrentFilePath()
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -53,7 +57,7 @@ export function FileList() {
   if (status === 'error') {
     return (
       <P className="text-xs text-muted-foreground px-2 text-center mt-2">
-        {error.message}
+        {error?.message || 'Failed to load files'}
       </P>
     )
   }

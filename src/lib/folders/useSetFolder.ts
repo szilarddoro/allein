@@ -2,8 +2,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
-import { FILES_QUERY_KEY } from '@/lib/files/useFileList'
-import { FILES_WITH_PREVIEW_QUERY_KEY } from '@/lib/files/useFileListWithPreview'
+import {
+  FILES_QUERY_KEY,
+  FILES_WITH_PREVIEW_QUERY_KEY,
+} from '@/lib/files/useFilesAndFolders'
 import { CURRENT_FOLDER_QUERY_KEY } from './useCurrentFolder'
 
 export function useSetFolder() {

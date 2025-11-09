@@ -19,7 +19,10 @@ import { useWindowState } from '@/lib/useWindowState'
 import { useAIFeatures } from '@/lib/ai/useAIFeatures'
 import { CURRENT_PLATFORM, NEW_FILE_MENU_EVENT } from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
-import { useFileList } from '@/lib/files/useFileList'
+import {
+  useFilesAndFolders,
+  flattenTreeItems,
+} from '@/lib/files/useFilesAndFolders'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
@@ -50,7 +53,8 @@ export function AppLayout() {
   const { pathname } = useLocation()
   const { toast } = useToast()
   const { data: progress, status: progressStatus } = useOnboardingProgress()
-  const { data: files, status: filesStatus } = useFileList()
+  const { data, status: filesStatus } = useFilesAndFolders()
+  const files = flattenTreeItems(data)
   const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null)
   const sidebarPanelRef = useRef<ImperativePanelHandle | null>(null)

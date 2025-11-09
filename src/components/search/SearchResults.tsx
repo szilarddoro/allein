@@ -7,7 +7,10 @@ import {
   CommandSeparator,
 } from '@/components/ui/command'
 import { getDisplayName } from '@/lib/files/fileUtils'
-import { useFileList } from '@/lib/files/useFileList'
+import {
+  useFilesAndFolders,
+  flattenTreeItems,
+} from '@/lib/files/useFilesAndFolders'
 import { FileSearchResult } from '@/lib/search/types'
 import { cn } from '@/lib/utils'
 import { File } from 'lucide-react'
@@ -34,7 +37,8 @@ export function SearchResults({
   searchTerm,
   onSelect,
 }: SearchResultsProps) {
-  const { data: files, status: filesStatus } = useFileList()
+  const { data, status: filesStatus } = useFilesAndFolders()
+  const files = flattenTreeItems(data)
   const { data: results = [], isLoading } = useSearch(
     searchTerm,
     open && searchTerm.length > 2,

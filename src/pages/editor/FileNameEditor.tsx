@@ -6,7 +6,10 @@ import {
 } from '@/components/ui/tooltip'
 import { removeMdExtension } from '@/lib/files/fileUtils'
 import { FileContent } from '@/lib/files/types'
-import { useFileList } from '@/lib/files/useFileList'
+import {
+  useFilesAndFolders,
+  flattenTreeItems,
+} from '@/lib/files/useFilesAndFolders'
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import { validateFileName } from '@/lib/files/validation'
 import { useToast } from '@/lib/useToast'
@@ -33,7 +36,8 @@ export function FileNameEditor({
   sidebarOpen,
 }: FileNameEditorProps) {
   const { toast } = useToast()
-  const { data: files } = useFileList()
+  const { data } = useFilesAndFolders()
+  const files = flattenTreeItems(data)
   const { mutateAsync: renameFile } = useRenameFile()
   const { showContextMenu } = useFileNameContextMenu()
   const [fileName, setFileName] = useState('')

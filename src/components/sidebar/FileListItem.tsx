@@ -8,6 +8,7 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { useNavigate } from 'react-router'
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
 export interface FileListItemProps {
   file: FileInfo
@@ -27,7 +28,7 @@ export function FileListItem({
 
   async function handleCopyFilePath(filePath: string) {
     try {
-      await navigator.clipboard.writeText(filePath)
+      await writeText(filePath)
       toast.success('Copied to clipboard')
     } catch {
       toast.error('Failed to copy file path')

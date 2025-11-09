@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { H2 } from '@/components/ui/typography'
+import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { FileContent } from '@/lib/files/types'
 import { useToast } from '@/lib/useToast'
 import { FilePlus, Files, PanelLeftCloseIcon } from 'lucide-react'
@@ -17,18 +18,21 @@ import { useLocation, useNavigate } from 'react-router'
 
 interface SidebarProps {
   onNewFile: () => Promise<FileContent>
+  onCreateFolder?: () => Promise<void>
   showIndexingProgress?: boolean
   onClose?: () => void
 }
 
 export function Sidebar({
   onNewFile,
+  onCreateFolder,
   onClose,
   showIndexingProgress,
 }: SidebarProps) {
   const { toast } = useToast()
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const { showContextMenu } = useSidebarContextMenu()
 
   async function handleCreateFile() {
     try {
@@ -39,6 +43,16 @@ export function Sidebar({
       })
     } catch {
       toast.error('Failed to create file')
+    }
+  }
+
+  async function handleCreateFolder() {
+    try {
+      if (onCreateFolder) {
+        await onCreateFolder()
+      }
+    } catch {
+      toast.error('Failed to create folder')
     }
   }
 
@@ -103,7 +117,15 @@ export function Sidebar({
         <Separator />
       </div>
 
-      <div className="flex-1 overflow-y-auto pt-4 pb-20 flex flex-col gap-2 px-3">
+      <div
+        className="flex-1 overflow-y-auto pt-4 pb-20 flex flex-col gap-2 px-3"
+        onContextMenu={(e) =>
+          showContextMenu(e, {
+            onCreateFile: handleCreateFile,
+            onCreateFolder: handleCreateFolder,
+          })
+        }
+      >
         <H2 className="sr-only">Files</H2>
 
         <FileList />

@@ -6,10 +6,13 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { TreeItem } from '@/lib/files/types'
-import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
+import { useFolderContextMenu } from '@/lib/folders/useFolderContextMenu'
+import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
+import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
 export interface FolderListItemProps {
   folder: TreeItem
@@ -23,13 +26,31 @@ export function FolderListItem({
   onDelete,
 }: FolderListItemProps) {
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)
-  const { showContextMenu } = useFileContextMenu()
+  const { showContextMenu } = useFolderContextMenu()
+  const { toast } = useToast()
 
   if (folder.type !== 'folder') {
     return null
   }
 
   const folderChildren = folder.children || []
+
+  async function handleCopyFolderPath(folderPath: string) {
+    try {
+      await writeText(folderPath)
+      toast.success('Copied to clipboard')
+    } catch {
+      toast.error('Failed to copy folder path')
+    }
+  }
+
+  async function handleOpenFolderInFinder(folderPath: string) {
+    try {
+      await revealItemInDir(folderPath)
+    } catch {
+      toast.error('Failed to open folder')
+    }
+  }
 
   return (
     <li className="w-full">
@@ -41,13 +62,12 @@ export function FolderListItem({
             className="w-full justify-start flex items-center gap-2 !p-2 rounded-md cursor-default transition-colors hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
             onContextMenu={(e) =>
               showContextMenu(e, {
-                filePath: folder.path,
-                fileName: folder.name,
-                onOpen: () => {},
-                onCopyPath: () => {},
-                onOpenInFolder: () => {},
+                folderPath: folder.path,
+                folderName: folder.name,
+                onCopyPath: () => handleCopyFolderPath(folder.path),
+                onOpenInFolder: () => handleOpenFolderInFinder(folder.path),
                 onDelete: () => onDelete(folder.path, folder.name, 'folder'),
-                isDeletingFile,
+                isDeletingFolder: isDeletingFile,
               })
             }
           >

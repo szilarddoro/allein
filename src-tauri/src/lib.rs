@@ -344,8 +344,34 @@ async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
     let mut results = Vec::new();
     let query_normalized = normalize_for_search(&query);
 
-    let entries =
-        fs::read_dir(&docs_dir).map_err(|e| format!("Failed to read docs directory: {}", e))?;
+    search_files_recursive(&docs_dir, &query_normalized, &mut results)?;
+
+    // Sort results: filename matches first, then content matches
+    results.sort_by(|a, b| {
+        if a.match_type == "filename" && b.match_type != "filename" {
+            std::cmp::Ordering::Less
+        } else if a.match_type != "filename" && b.match_type == "filename" {
+            std::cmp::Ordering::Greater
+        } else {
+            a.name.cmp(&b.name)
+        }
+    });
+
+    Ok(results)
+}
+
+/// Recursively search files in a directory and its subdirectories
+fn search_files_recursive(
+    dir: &PathBuf,
+    query_normalized: &str,
+    results: &mut Vec<FileSearchResult>,
+) -> Result<(), String> {
+    // Stop if we've reached the result limit
+    if results.len() >= 50 {
+        return Ok(());
+    }
+
+    let entries = fs::read_dir(dir).map_err(|e| format!("Failed to read directory: {}", e))?;
 
     for entry in entries {
         // Stop if we've reached the result limit
@@ -364,7 +390,7 @@ async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
                 .to_string();
 
             // Check if filename matches (diacritic-insensitive)
-            if normalize_for_search(&file_name).contains(&query_normalized) {
+            if normalize_for_search(&file_name).contains(query_normalized) {
                 // Check limit before pushing
                 if results.len() < 50 {
                     results.push(FileSearchResult {
@@ -393,11 +419,11 @@ async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
 
                     // Check if line matches (diacritic-insensitive)
                     let line_normalized = normalize_for_search(line);
-                    if line_normalized.contains(&query_normalized) {
+                    if line_normalized.contains(query_normalized) {
                         // Extract snippet with context from original line
                         let snippet = if line.len() > 100 {
                             // Find the position of the match in normalized text
-                            if let Some(match_pos) = line_normalized.find(&query_normalized) {
+                            if let Some(match_pos) = line_normalized.find(query_normalized) {
                                 let start = match_pos.saturating_sub(50);
                                 let end = (match_pos + query_normalized.len() + 50).min(line.len());
                                 let snippet_text = &line[start..end];
@@ -426,21 +452,13 @@ async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
                     }
                 }
             }
+        } else if path.is_dir() {
+            // Recursively search subdirectories
+            search_files_recursive(&path, query_normalized, results)?;
         }
     }
 
-    // Sort results: filename matches first, then content matches
-    results.sort_by(|a, b| {
-        if a.match_type == "filename" && b.match_type != "filename" {
-            std::cmp::Ordering::Less
-        } else if a.match_type != "filename" && b.match_type == "filename" {
-            std::cmp::Ordering::Greater
-        } else {
-            a.name.cmp(&b.name)
-        }
-    });
-
-    Ok(results)
+    Ok(())
 }
 
 /// Recursively build folder tree up to specified depth (max 5 levels)

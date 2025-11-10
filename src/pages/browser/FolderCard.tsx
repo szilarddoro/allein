@@ -2,15 +2,57 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Link } from '@/components/ui/link'
 import { H3, P } from '@/components/ui/typography'
 import { TreeItem } from '@/lib/files/types'
+import { useFolderContextMenu } from '@/lib/folders/useFolderContextMenu'
 import { cn } from '@/lib/utils'
 import { FolderClosed } from 'lucide-react'
+import type { MouseEvent } from 'react'
+import { useToast } from '@/lib/useToast'
+import { revealItemInDir } from '@tauri-apps/plugin-opener'
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
 export interface FolderCardProps {
   folder: TreeItem & { type: 'folder' }
+  onCreateFile?: (folderPath: string) => void
+  onDelete?: (path: string, name: string) => void
 }
 
-export function FolderCard({ folder }: FolderCardProps) {
+export function FolderCard({
+  folder,
+  onCreateFile,
+  onDelete,
+}: FolderCardProps) {
   const folderChildren = folder.children || []
+  const { showContextMenu } = useFolderContextMenu()
+  const { toast } = useToast()
+
+  async function handleCopyFolderPath() {
+    try {
+      await writeText(folder.path)
+      toast.success('Copied to clipboard')
+    } catch {
+      toast.error('Failed to copy folder path')
+    }
+  }
+
+  async function handleOpenFolderInFinder() {
+    try {
+      await revealItemInDir(folder.path)
+    } catch {
+      toast.error('Failed to open folder')
+    }
+  }
+
+  function handleContextMenu(e: MouseEvent<HTMLDivElement>) {
+    showContextMenu(e as any, {
+      folderPath: folder.path,
+      folderName: folder.name,
+      onCreateFile: onCreateFile && (() => onCreateFile(folder.path)),
+      onCopyPath: handleCopyFolderPath,
+      onOpenInFolder: handleOpenFolderInFinder,
+      onDelete: onDelete ? () => onDelete(folder.path, folder.name) : () => {},
+      isDeletingFolder: false,
+    })
+  }
 
   return (
     <li>
@@ -28,6 +70,7 @@ export function FolderCard({ folder }: FolderCardProps) {
             'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative bg-background/70',
             'before:absolute before:top-0 before:left-0 before:size-full group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5 before:motion-safe:transition-colors',
           )}
+          onContextMenu={handleContextMenu}
         >
           <CardHeader className={cn('px-0 sr-only')}></CardHeader>
 

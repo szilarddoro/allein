@@ -36,10 +36,8 @@ function deduplicateAdjacent<T>(arr: T[]): T[] {
 export function LocationHistoryProvider({ children }: PropsWithChildren) {
   const locationStackRef = useRef<string[]>([])
   const currentIndexRef = useRef(-1)
-  const [buttonStates, setButtonStates] = useState({
-    canGoBack: false,
-    canGoForward: false,
-  })
+  const [canGoBack, setCanGoBack] = useState(false)
+  const [canGoForward, setCanGoForward] = useState(false)
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const currentLocation = normalizeLocation(`${pathname}${search}`)
@@ -47,11 +45,10 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
 
   // Helper to update button states based on current ref values
   const updateButtonStates = useCallback(() => {
-    setButtonStates({
-      canGoBack: currentIndexRef.current > 0,
-      canGoForward:
-        currentIndexRef.current < locationStackRef.current.length - 1,
-    })
+    setCanGoBack(currentIndexRef.current > 0)
+    setCanGoForward(
+      currentIndexRef.current < locationStackRef.current.length - 1,
+    )
   }, [])
 
   // Track location changes and update stack
@@ -127,8 +124,8 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
   return (
     <LocationHistoryContext.Provider
       value={{
-        canGoBack: buttonStates.canGoBack,
-        canGoForward: buttonStates.canGoForward,
+        canGoBack,
+        canGoForward,
         goBack,
         goForward,
         removeEntriesForFile,

@@ -12,6 +12,7 @@ import { useReadFile } from '@/lib/files/useReadFile'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { FloatingActionToolbar } from '@/pages/editor/FloatingActionToolbar'
 import { CircleAlert, RefreshCw } from 'lucide-react'
 import * as monaco from 'monaco-editor'
@@ -34,6 +35,7 @@ export function EditorPage() {
   const { sidebarOpen, setSearchOpen } =
     useOutletContext<AppLayoutContextProps>()
   const { toast } = useToast()
+  const { removeEntriesForFile } = useLocationHistory()
   const editorRef = useRef<HTMLDivElement>(null)
   const monacoEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(
     null,
@@ -51,6 +53,14 @@ export function EditorPage() {
   const previewPanelRef = useRef<ImperativePanelHandle | null>(null)
 
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
+
+  const handleFileRenamed = (newPath: string) => {
+    // Remove old file path from location history before updating to new path
+    if (currentFilePath) {
+      removeEntriesForFile(currentFilePath)
+    }
+    updateCurrentFilePath(newPath)
+  }
 
   useEffect(() => {
     monacoEditorRef.current = null
@@ -293,7 +303,7 @@ export function EditorPage() {
       <EditorHeader
         currentFile={currentFile || null}
         sidebarOpen={sidebarOpen}
-        onFileRenamed={updateCurrentFilePath}
+        onFileRenamed={handleFileRenamed}
         inlineCompletionLoading={inlineCompletionLoading}
       />
 

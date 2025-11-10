@@ -7,7 +7,11 @@ import {
   CommandSeparator,
 } from '@/components/ui/command'
 import { getDisplayName } from '@/lib/files/fileUtils'
-import { useFileList } from '@/lib/files/useFileList'
+import {
+  useFilesAndFolders,
+  flattenTreeItems,
+} from '@/lib/files/useFilesAndFolders'
+import { useCurrentFolder } from '@/lib/folders/useCurrentFolder'
 import { FileSearchResult } from '@/lib/search/types'
 import { cn } from '@/lib/utils'
 import { File } from 'lucide-react'
@@ -23,6 +27,17 @@ function normalizeForSearch(str: string): string {
     .toLowerCase()
 }
 
+function getParentFolder(currentFolder: string, path: string): string {
+  const pathWithoutCurrentFolder = path.replace(currentFolder, '')
+  const segments = pathWithoutCurrentFolder.split('/').filter(Boolean)
+
+  if (segments.length <= 1) {
+    return 'Home'
+  }
+
+  return segments.slice(0, segments.length - 1).join('/')
+}
+
 export interface SearchResultsProps {
   open: boolean
   searchTerm: string
@@ -34,7 +49,10 @@ export function SearchResults({
   searchTerm,
   onSelect,
 }: SearchResultsProps) {
-  const { data: files, status: filesStatus } = useFileList()
+  const { data: currentFolder, status: currentFolderStatus } =
+    useCurrentFolder()
+  const { data, status: filesStatus } = useFilesAndFolders()
+  const files = flattenTreeItems(data)
   const { data: results = [], isLoading } = useSearch(
     searchTerm,
     open && searchTerm.length > 2,
@@ -44,7 +62,7 @@ export function SearchResults({
   const filenameResults = results.filter((r) => r.match_type === 'filename')
   const contentResults = results.filter((r) => r.match_type === 'content')
 
-  if (filesStatus === 'pending') {
+  if (filesStatus === 'pending' || currentFolderStatus !== 'success') {
     // Return empty component if we don't have fallback data yet
     return null
   }
@@ -72,7 +90,12 @@ export function SearchResults({
               })
             }
           >
-            <span>{getDisplayName(file.name)}</span>
+            <div className="flex items-center gap-2">
+              <span>{getDisplayName(file.name)}</span>
+              <span className="text-xs text-muted-foreground shrink-0">
+                {getParentFolder(currentFolder, file.path)}
+              </span>
+            </div>
           </CommandItem>
         ))}
       </CommandGroup>
@@ -100,7 +123,12 @@ export function SearchResults({
           {filenameResults.map((result) => (
             <CommandItem key={result.path} onSelect={() => onSelect?.(result)}>
               <File />
-              <span className="truncate">{getDisplayName(result.name)}</span>
+              <div className="flex items-center gap-2">
+                <span className="truncate">{getDisplayName(result.name)}</span>
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {getParentFolder(currentFolder, result.path)}
+                </span>
+              </div>
             </CommandItem>
           ))}
         </CommandGroup>
@@ -117,25 +145,32 @@ export function SearchResults({
               key={`${result.path}-${index}`}
               onSelect={() => onSelect?.(result)}
             >
-              <span className="truncate text-sm">
-                {getDisplayName(result.name)}
-              </span>
+              <div className="flex flex-col gap-0.5 w-full">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm">
+                    {getDisplayName(result.name)}
+                  </span>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {getParentFolder(currentFolder, result.path)}
+                  </span>
+                </div>
 
-              {result.snippet && (
-                <span
-                  className={cn(
-                    'truncate text-xs text-muted-foreground',
-                    result.line_number && 'font-mono',
-                  )}
-                >
-                  {result.line_number && (
-                    <span className="text-muted-foreground/70">
-                      {result.line_number}:{' '}
-                    </span>
-                  )}
-                  {result.snippet}
-                </span>
-              )}
+                {result.snippet && (
+                  <span
+                    className={cn(
+                      'truncate text-xs text-muted-foreground',
+                      result.line_number && 'font-mono',
+                    )}
+                  >
+                    {result.line_number && (
+                      <span className="text-muted-foreground/70">
+                        {result.line_number}:{' '}
+                      </span>
+                    )}
+                    {result.snippet}
+                  </span>
+                )}
+              </div>
             </CommandItem>
           ))}
         </CommandGroup>

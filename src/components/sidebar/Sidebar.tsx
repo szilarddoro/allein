@@ -1,5 +1,6 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import { FileList } from '@/components/sidebar/FileList'
+import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
@@ -11,34 +12,51 @@ import {
 } from '@/components/ui/tooltip'
 import { H2 } from '@/components/ui/typography'
 import { FileContent } from '@/lib/files/types'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useToast } from '@/lib/useToast'
-import { FilePlus, Files, PanelLeftCloseIcon } from 'lucide-react'
+import { FilePlus, House, PanelLeftCloseIcon } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 
 interface SidebarProps {
-  onNewFile: () => Promise<FileContent>
+  onNewFile: (folderPath?: string) => Promise<FileContent>
+  onCreateFolder?: (folderPath?: string) => Promise<void>
   showIndexingProgress?: boolean
   onClose?: () => void
 }
 
 export function Sidebar({
   onNewFile,
+  onCreateFolder,
   onClose,
   showIndexingProgress,
 }: SidebarProps) {
   const { toast } = useToast()
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const [currentFolderPath] = useCurrentFolderPath()
+  const { showContextMenu } = useSidebarContextMenu()
 
-  async function handleCreateFile() {
+  async function handleCreateFile(folderPath?: string) {
     try {
-      const { path } = await onNewFile()
+      const { path } = await onNewFile(
+        folderPath || currentFolderPath || undefined,
+      )
       navigate({
         pathname: '/editor',
-        search: `?file=${path}&focus=true`,
+        search: `?file=${encodeURIComponent(path)}&focus=true`,
       })
     } catch {
       toast.error('Failed to create file')
+    }
+  }
+
+  async function handleCreateFolder() {
+    try {
+      if (onCreateFolder) {
+        await onCreateFolder()
+      }
+    } catch {
+      toast.error('Failed to create folder')
     }
   }
 
@@ -74,21 +92,21 @@ export function Sidebar({
         </DelayedActivityIndicator>
       )}
 
-      <div className="flex flex-col gap-2 pb-4 px-3">
+      <div className="flex flex-col gap-2 pb-4 px-2.5">
         <Button variant="ghost" size="sm" asChild>
           <Link
             to="/"
             className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
             aria-current={pathname === '/'}
           >
-            <Files className="size-4" />
-            <span aria-hidden="true">All Files</span>
+            <House className="size-4" />
+            <span aria-hidden="true">Home</span>
             <span className="sr-only">Go to the file list</span>
           </Link>
         </Button>
 
         <Button
-          onClick={handleCreateFile}
+          onClick={() => handleCreateFile()}
           className="w-full justify-start gap-2 text-left hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
           variant="ghost"
           size="sm"
@@ -99,11 +117,19 @@ export function Sidebar({
         </Button>
       </div>
 
-      <div className="px-3">
+      <div className="px-2.5">
         <Separator />
       </div>
 
-      <div className="flex-1 overflow-y-auto pt-4 pb-20 flex flex-col gap-2 px-3">
+      <div
+        className="flex-1 overflow-y-auto pt-4 pb-20 flex flex-col gap-2 px-2.5"
+        onContextMenu={(e) =>
+          showContextMenu(e, {
+            onCreateFile: handleCreateFile,
+            onCreateFolder: handleCreateFolder,
+          })
+        }
+      >
         <H2 className="sr-only">Files</H2>
 
         <FileList />

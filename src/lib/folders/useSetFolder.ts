@@ -2,8 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
-import { FILES_QUERY_KEY } from '@/lib/files/useFileList'
-import { FILES_WITH_PREVIEW_QUERY_KEY } from '@/lib/files/useFileListWithPreview'
+import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from '@/lib/files/useFilesAndFolders'
 import { CURRENT_FOLDER_QUERY_KEY } from './useCurrentFolder'
 
 export function useSetFolder() {
@@ -19,9 +18,8 @@ export function useSetFolder() {
 
       // Invalidate all file queries to refetch from new folder
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: FILES_QUERY_KEY() }),
         queryClient.invalidateQueries({
-          queryKey: FILES_WITH_PREVIEW_QUERY_KEY(),
+          queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(),
         }),
         queryClient.invalidateQueries({ queryKey: CURRENT_FOLDER_QUERY_KEY }),
       ])

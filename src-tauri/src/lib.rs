@@ -39,6 +39,29 @@ pub struct FileSearchResult {
     pub line_number: Option<usize>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FolderNode {
+    pub name: String,
+    pub path: String,
+    pub children: Vec<FolderNode>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TreeItem {
+    #[serde(rename = "type")]
+    pub item_type: String, // "file" or "folder"
+    pub name: String,
+    pub path: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preview: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub modified: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub children: Option<Vec<TreeItem>>,
+}
+
 fn get_docs_dir() -> Result<PathBuf, String> {
     // Try to get custom folder from config first
     if let Ok(Some(custom_path)) = database::get_config("current_docs_folder") {
@@ -178,14 +201,25 @@ async fn write_file(file_path: String, content: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn create_file() -> Result<FileContent, String> {
-    let docs_dir = get_docs_dir()?;
+async fn create_file(folder_path: Option<String>) -> Result<FileContent, String> {
+    let target_dir = if let Some(path) = folder_path {
+        let path_buf = PathBuf::from(&path);
+
+        // Validate that the path exists and is a directory
+        if !path_buf.exists() || !path_buf.is_dir() {
+            return Err("Folder does not exist".to_string());
+        }
+
+        path_buf
+    } else {
+        get_docs_dir()?
+    };
 
     // Find the next available untitled file number
     let mut counter = 1;
     let mut file_path;
     loop {
-        file_path = docs_dir.join(format!("Untitled-{}.md", counter));
+        file_path = target_dir.join(format!("Untitled-{}.md", counter));
         if !file_path.exists() {
             break;
         }
@@ -199,6 +233,39 @@ async fn create_file() -> Result<FileContent, String> {
         content: String::new(),
         path: file_path.to_string_lossy().to_string(),
     })
+}
+
+#[tauri::command]
+async fn create_untitled_folder(parent_folder_path: Option<String>) -> Result<String, String> {
+    let target_dir = if let Some(path) = parent_folder_path {
+        let path_buf = PathBuf::from(&path);
+
+        // Validate that the path exists and is a directory
+        if !path_buf.exists() || !path_buf.is_dir() {
+            return Err("Folder does not exist".to_string());
+        }
+
+        path_buf
+    } else {
+        get_docs_dir()?
+    };
+
+    // Find the next available untitled folder number
+    let mut counter = 1;
+    let mut new_folder_path;
+    loop {
+        new_folder_path = target_dir.join(format!("Untitled Folder {}", counter));
+        if !new_folder_path.exists() {
+            break;
+        }
+        counter += 1;
+    }
+
+    // Create folder
+    fs::create_dir(&new_folder_path)
+        .map_err(|e| format!("Failed to create folder: {}", e))?;
+
+    Ok(new_folder_path.to_string_lossy().to_string())
 }
 
 #[tauri::command]
@@ -220,6 +287,53 @@ async fn rename_file(old_path: String, new_name: String) -> Result<String, Strin
 }
 
 #[tauri::command]
+async fn move_file(from_path: String, to_folder: String) -> Result<String, String> {
+    let from_path_buf = PathBuf::from(&from_path);
+    let file_name = from_path_buf
+        .file_name()
+        .ok_or("Invalid file path")?
+        .to_string_lossy()
+        .to_string();
+
+    let to_path = PathBuf::from(&to_folder).join(&file_name);
+
+    // Ensure destination is different from source
+    if from_path_buf == to_path {
+        return Err("Source and destination are the same".to_string());
+    }
+
+    fs::rename(&from_path, &to_path).map_err(|e| format!("Failed to move file: {}", e))?;
+
+    Ok(to_path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+async fn move_folder(from_path: String, to_folder: String) -> Result<String, String> {
+    let from_path_buf = PathBuf::from(&from_path);
+    let folder_name = from_path_buf
+        .file_name()
+        .ok_or("Invalid folder path")?
+        .to_string_lossy()
+        .to_string();
+
+    let to_path = PathBuf::from(&to_folder).join(&folder_name);
+
+    // Ensure destination is different from source
+    if from_path_buf == to_path {
+        return Err("Source and destination are the same".to_string());
+    }
+
+    // Prevent moving a folder into itself or its children
+    if to_path.starts_with(&from_path_buf) {
+        return Err("Cannot move a folder into itself or its children".to_string());
+    }
+
+    fs::rename(&from_path, &to_path).map_err(|e| format!("Failed to move folder: {}", e))?;
+
+    Ok(to_path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
 async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
     // Require minimum query length of 3 characters to prevent excessive results
     if query.len() < 3 {
@@ -230,8 +344,34 @@ async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
     let mut results = Vec::new();
     let query_normalized = normalize_for_search(&query);
 
-    let entries =
-        fs::read_dir(&docs_dir).map_err(|e| format!("Failed to read docs directory: {}", e))?;
+    search_files_recursive(&docs_dir, &query_normalized, &mut results)?;
+
+    // Sort results: filename matches first, then content matches
+    results.sort_by(|a, b| {
+        if a.match_type == "filename" && b.match_type != "filename" {
+            std::cmp::Ordering::Less
+        } else if a.match_type != "filename" && b.match_type == "filename" {
+            std::cmp::Ordering::Greater
+        } else {
+            a.name.cmp(&b.name)
+        }
+    });
+
+    Ok(results)
+}
+
+/// Recursively search files in a directory and its subdirectories
+fn search_files_recursive(
+    dir: &PathBuf,
+    query_normalized: &str,
+    results: &mut Vec<FileSearchResult>,
+) -> Result<(), String> {
+    // Stop if we've reached the result limit
+    if results.len() >= 50 {
+        return Ok(());
+    }
+
+    let entries = fs::read_dir(dir).map_err(|e| format!("Failed to read directory: {}", e))?;
 
     for entry in entries {
         // Stop if we've reached the result limit
@@ -250,7 +390,7 @@ async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
                 .to_string();
 
             // Check if filename matches (diacritic-insensitive)
-            if normalize_for_search(&file_name).contains(&query_normalized) {
+            if normalize_for_search(&file_name).contains(query_normalized) {
                 // Check limit before pushing
                 if results.len() < 50 {
                     results.push(FileSearchResult {
@@ -279,11 +419,11 @@ async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
 
                     // Check if line matches (diacritic-insensitive)
                     let line_normalized = normalize_for_search(line);
-                    if line_normalized.contains(&query_normalized) {
+                    if line_normalized.contains(query_normalized) {
                         // Extract snippet with context from original line
                         let snippet = if line.len() > 100 {
                             // Find the position of the match in normalized text
-                            if let Some(match_pos) = line_normalized.find(&query_normalized) {
+                            if let Some(match_pos) = line_normalized.find(query_normalized) {
                                 let start = match_pos.saturating_sub(50);
                                 let end = (match_pos + query_normalized.len() + 50).min(line.len());
                                 let snippet_text = &line[start..end];
@@ -312,21 +452,279 @@ async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
                     }
                 }
             }
+        } else if path.is_dir() {
+            // Recursively search subdirectories
+            search_files_recursive(&path, query_normalized, results)?;
         }
     }
 
-    // Sort results: filename matches first, then content matches
-    results.sort_by(|a, b| {
-        if a.match_type == "filename" && b.match_type != "filename" {
-            std::cmp::Ordering::Less
-        } else if a.match_type != "filename" && b.match_type == "filename" {
-            std::cmp::Ordering::Greater
-        } else {
-            a.name.cmp(&b.name)
-        }
-    });
+    Ok(())
+}
 
-    Ok(results)
+/// Recursively build folder tree up to specified depth (max 5 levels)
+fn build_folder_tree(path: &PathBuf, current_depth: u32) -> Result<Vec<FolderNode>, String> {
+    const MAX_DEPTH: u32 = 5;
+
+    if current_depth >= MAX_DEPTH {
+        return Ok(Vec::new());
+    }
+
+    let mut folders = Vec::new();
+    let entries =
+        fs::read_dir(path).map_err(|e| format!("Failed to read directory: {}", e))?;
+
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let entry_path = entry.path();
+
+        if entry_path.is_dir() {
+            let folder_name = entry_path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("unknown")
+                .to_string();
+
+            // Skip hidden folders (starting with .)
+            if folder_name.starts_with('.') {
+                continue;
+            }
+
+            let children = build_folder_tree(&entry_path, current_depth + 1)?;
+
+            folders.push(FolderNode {
+                name: folder_name,
+                path: entry_path.to_string_lossy().to_string(),
+                children,
+            });
+        }
+    }
+
+    // Sort folders alphabetically by name
+    folders.sort_by(|a, b| a.name.cmp(&b.name));
+
+    Ok(folders)
+}
+
+#[tauri::command]
+async fn list_folder_tree() -> Result<Vec<FolderNode>, String> {
+    let docs_dir = get_docs_dir()?;
+    build_folder_tree(&docs_dir, 0)
+}
+
+#[tauri::command]
+async fn list_files_and_folders_tree(folder_path: Option<String>) -> Result<Vec<TreeItem>, String> {
+    let target_dir = if let Some(path) = folder_path {
+        let path_buf = PathBuf::from(&path);
+
+        // Validate that the path exists and is a directory
+        if !path_buf.exists() || !path_buf.is_dir() {
+            return Err("Folder does not exist".to_string());
+        }
+
+        path_buf
+    } else {
+        get_docs_dir()?
+    };
+
+    // Get all files with preview
+    let files = list_files_with_preview_impl(&target_dir)?;
+
+    // Get folder tree
+    let folder_tree = build_folder_tree(&target_dir, 0)?;
+
+    // Convert folders to TreeItems and build a map for path lookups
+    let mut result = Vec::new();
+    let mut folder_map: std::collections::HashMap<String, Vec<TreeItem>> = std::collections::HashMap::new();
+
+    // Convert folders to TreeItems recursively
+    fn folder_to_tree_item(folder: &FolderNode, map: &mut std::collections::HashMap<String, Vec<TreeItem>>) -> TreeItem {
+        let mut children = vec![];
+
+        // Add folder's direct children from the recursion
+        if let Some(child_items) = map.remove(&folder.path) {
+            children = child_items;
+        }
+
+        // Process folder's children
+        for child_folder in &folder.children {
+            children.push(folder_to_tree_item(child_folder, map));
+        }
+
+        TreeItem {
+            item_type: "folder".to_string(),
+            name: folder.name.clone(),
+            path: folder.path.clone(),
+            preview: None,
+            size: None,
+            modified: None,
+            children: if children.is_empty() { None } else { Some(children) },
+        }
+    }
+
+    // Get target_dir as string for comparison
+    let target_dir_str = target_dir.to_string_lossy().to_string();
+
+    // Build result with files placed in their folders
+    for file in files {
+        // Get the directory path of the file
+        let file_dir = {
+            let path_str = &file.path;
+            if let Some(last_slash) = path_str.rfind('/') {
+                path_str[..last_slash].to_string()
+            } else {
+                String::new()
+            }
+        };
+
+        let tree_item = TreeItem {
+            item_type: "file".to_string(),
+            name: file.name.clone(),
+            path: file.path.clone(),
+            preview: Some(file.preview.clone()),
+            size: Some(file.size),
+            modified: Some(file.modified.clone()),
+            children: None,
+        };
+
+        // Check if this is a root-level file (directly in target_dir)
+        if file_dir == target_dir_str {
+            result.push(tree_item);
+        } else if !file_dir.is_empty() {
+            // File is in a subfolder
+            folder_map.entry(file_dir).or_insert_with(Vec::new).push(tree_item);
+        } else {
+            // Edge case: file with no directory path
+            result.push(tree_item);
+        }
+    }
+
+    // Convert folders to TreeItems and add to result
+    for folder in folder_tree {
+        result.push(folder_to_tree_item(&folder, &mut folder_map));
+    }
+
+    Ok(result)
+}
+
+// Helper function to list files with preview (extracted from the main function)
+// Recursively searches all subdirectories for markdown files
+fn list_files_with_preview_impl(docs_dir: &PathBuf) -> Result<Vec<FileInfoWithPreview>, String> {
+    let mut files = Vec::new();
+    collect_files_recursive(docs_dir, &mut files)?;
+
+    // Sort files alphabetically by name
+    files.sort_by(|a, b| a.name.cmp(&b.name));
+
+    Ok(files)
+}
+
+// Recursively collect markdown files from a directory and its subdirectories
+fn collect_files_recursive(dir: &PathBuf, files: &mut Vec<FileInfoWithPreview>) -> Result<(), String> {
+    let entries =
+        fs::read_dir(dir).map_err(|e| format!("Failed to read directory: {}", e))?;
+
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+
+        if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
+            let metadata = entry
+                .metadata()
+                .map_err(|e| format!("Failed to read file metadata: {}", e))?;
+            let modified = metadata
+                .modified()
+                .map_err(|e| format!("Failed to get file modification time: {}", e))?
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_err(|e| format!("Failed to convert modification time: {}", e))?
+                .as_secs();
+
+            // Read file content and get preview (first 800 characters)
+            let content = fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read file: {}", e))?;
+            let preview: String = content.chars().take(800).collect();
+
+            files.push(FileInfoWithPreview {
+                name: path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("unknown")
+                    .to_string(),
+                path: path.to_string_lossy().to_string(),
+                size: metadata.len(),
+                modified: modified.to_string(),
+                preview,
+            });
+        } else if path.is_dir() {
+            // Recursively search subdirectories
+            collect_files_recursive(&path, files)?;
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn list_files_in_folder(folder_path: String) -> Result<Vec<FileInfoWithPreview>, String> {
+    let folder_path_buf = PathBuf::from(&folder_path);
+
+    if !folder_path_buf.exists() || !folder_path_buf.is_dir() {
+        return Err("Folder does not exist".to_string());
+    }
+
+    let mut files = Vec::new();
+    let entries =
+        fs::read_dir(&folder_path_buf).map_err(|e| format!("Failed to read directory: {}", e))?;
+
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+
+        if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("md") {
+            let metadata = entry
+                .metadata()
+                .map_err(|e| format!("Failed to read file metadata: {}", e))?;
+            let modified = metadata
+                .modified()
+                .map_err(|e| format!("Failed to get file modification time: {}", e))?
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_err(|e| format!("Failed to convert modification time: {}", e))?
+                .as_secs();
+
+            // Read file content and get preview (first 800 characters)
+            let content = fs::read_to_string(&path)
+                .map_err(|e| format!("Failed to read file: {}", e))?;
+            let preview: String = content.chars().take(800).collect();
+
+            files.push(FileInfoWithPreview {
+                name: path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("unknown")
+                    .to_string(),
+                path: path.to_string_lossy().to_string(),
+                size: metadata.len(),
+                modified: modified.to_string(),
+                preview,
+            });
+        }
+    }
+
+    // Sort files alphabetically by name
+    files.sort_by(|a, b| a.name.cmp(&b.name));
+
+    Ok(files)
+}
+
+#[tauri::command]
+async fn create_folder(folder_path: String) -> Result<(), String> {
+    fs::create_dir_all(&folder_path)
+        .map_err(|e| format!("Failed to create folder: {}", e))
+}
+
+#[tauri::command]
+async fn delete_folder(folder_path: String) -> Result<(), String> {
+    fs::remove_dir_all(&folder_path)
+        .map_err(|e| format!("Failed to delete folder: {}", e))
 }
 
 // Config commands
@@ -439,7 +837,15 @@ pub fn run() {
             create_file,
             delete_file,
             rename_file,
+            move_file,
+            move_folder,
             search_files,
+            list_folder_tree,
+            list_files_and_folders_tree,
+            list_files_in_folder,
+            create_folder,
+            create_untitled_folder,
+            delete_folder,
             get_config,
             get_all_config,
             set_config,

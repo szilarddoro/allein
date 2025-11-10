@@ -1,43 +1,63 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import { FileDeleteConfirmDialog } from '@/components/sidebar/FileDeleteConfirmDialog'
 import { FileListItem } from '@/components/sidebar/FileListItem'
+import { FolderListItem } from '@/components/sidebar/FolderListItem'
 import { P } from '@/components/ui/typography'
+import { useCreateFile } from '@/lib/files/useCreateFile'
+import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
-import { useFileList } from '@/lib/files/useFileList'
+import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
+import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 export function FileList() {
-  const { data: files, status, error } = useFileList()
+  const { data: filesAndFolders, status, error, refetch } = useFilesAndFolders()
   const [currentFilePath] = useCurrentFilePath()
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { mutateAsync: deleteFile, status: deleteStatus } = useDeleteFile()
-  const [fileToDelete, setFileToDelete] = useState<{
+  const { mutateAsync: createFile } = useCreateFile()
+  const { mutateAsync: createFolder } = useCreateFolder()
+  const { mutateAsync: deleteFile, status: deleteFileStatus } = useDeleteFile()
+  const { mutateAsync: deleteFolder, status: deleteFolderStatus } =
+    useDeleteFolder()
+  const [itemToDelete, setItemToDelete] = useState<{
     path: string
     name: string
+    type: 'file' | 'folder'
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  async function confirmDeleteFile() {
-    if (!fileToDelete) return
+  const deleteStatus =
+    deleteFileStatus === 'pending' || deleteFolderStatus === 'pending'
+      ? 'pending'
+      : 'idle'
+
+  async function confirmDeleteItem() {
+    if (!itemToDelete) return
 
     try {
-      await deleteFile(fileToDelete.path)
+      if (itemToDelete.type === 'folder') {
+        await deleteFolder(itemToDelete.path)
+      } else {
+        await deleteFile(itemToDelete.path)
+      }
 
       // Navigate to home if deleting the currently edited file
-      if (currentFilePath === fileToDelete.path) {
+      if (currentFilePath === itemToDelete.path) {
         navigate('/')
       }
     } catch {
-      toast.error('Failed to delete file')
+      toast.error(
+        `Failed to delete ${itemToDelete.type === 'folder' ? 'folder' : 'file'}`,
+      )
     } finally {
       setIsDeleteDialogOpen(false)
 
       setTimeout(() => {
-        setFileToDelete(null)
+        setItemToDelete(null)
       }, 150)
     }
   }
@@ -53,12 +73,12 @@ export function FileList() {
   if (status === 'error') {
     return (
       <P className="text-xs text-muted-foreground px-2 text-center mt-2">
-        {error.message}
+        {error?.message || 'Failed to load files'}
       </P>
     )
   }
 
-  if (files.length === 0) {
+  if (filesAndFolders.length === 0) {
     return (
       <P className="text-xs text-muted-foreground px-2 text-center mt-2">
         No files were found.
@@ -66,37 +86,83 @@ export function FileList() {
     )
   }
 
+  function handleDeleteRequest(
+    path: string,
+    name: string,
+    type: 'file' | 'folder',
+  ) {
+    setItemToDelete({ path, name, type })
+    setIsDeleteDialogOpen(true)
+  }
+
+  async function handleCreateFileInFolder(folderPath: string) {
+    try {
+      const { path } = await createFile({
+        targetFolder: folderPath,
+      })
+      navigate({
+        pathname: '/editor',
+        search: `?file=${encodeURIComponent(path)}&focus=true`,
+      })
+    } catch {
+      toast.error('Failed to create file')
+    }
+  }
+
+  async function handleCreateFolderInFolder(folderPath: string) {
+    try {
+      await createFolder({
+        targetFolder: folderPath,
+      })
+      refetch()
+    } catch {
+      toast.error('Failed to create folder')
+    }
+  }
+
   return (
     <>
       <FileDeleteConfirmDialog
-        fileToDelete={fileToDelete}
+        itemToDelete={itemToDelete}
         open={isDeleteDialogOpen}
-        onSubmit={confirmDeleteFile}
+        onSubmit={confirmDeleteItem}
         deletePending={deleteStatus === 'pending'}
         onOpenChange={(open) => {
           if (!open) {
             setIsDeleteDialogOpen(false)
-            // Keep fileToDelete until dialog is fully closed to prevent text jump
-            setTimeout(() => setFileToDelete(null), 150)
+            // Keep itemToDelete until dialog is fully closed to prevent text jump
+            setTimeout(() => setItemToDelete(null), 150)
           }
         }}
       />
 
-      <ul className="flex flex-col gap-2 w-full">
-        {files
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((file) => (
-            <FileListItem
-              key={file.path}
-              file={file}
-              deletePending={deleteStatus === 'pending'}
-              onDelete={() => {
-                setFileToDelete({ path: file.path, name: file.name })
-                setIsDeleteDialogOpen(true)
-              }}
-            />
-          ))}
-      </ul>
+      <nav aria-label="File browser">
+        <ul className="flex flex-col gap-1.5 w-full">
+          {filesAndFolders.map((data) => {
+            if (data.type === 'folder') {
+              return (
+                <FolderListItem
+                  key={data.path}
+                  folder={data}
+                  isDeletingFile={deleteStatus === 'pending'}
+                  onDelete={handleDeleteRequest}
+                  onCreateFile={handleCreateFileInFolder}
+                  onCreateFolder={handleCreateFolderInFolder}
+                />
+              )
+            }
+
+            return (
+              <FileListItem
+                key={data.path}
+                file={data}
+                isDeletingFile={deleteStatus === 'pending'}
+                onDelete={handleDeleteRequest}
+              />
+            )
+          })}
+        </ul>
+      </nav>
     </>
   )
 }

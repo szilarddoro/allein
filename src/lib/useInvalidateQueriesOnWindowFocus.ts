@@ -1,5 +1,4 @@
-import { FILES_QUERY_KEY } from '@/lib/files/useFileList'
-import { FILES_WITH_PREVIEW_QUERY_KEY } from '@/lib/files/useFileListWithPreview'
+import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from '@/lib/files/useFilesAndFolders'
 import { READ_FILE_BASE_QUERY_KEY } from '@/lib/files/useReadFile'
 import { OLLAMA_WARMUP_BASE_QUERY_KEY } from '@/lib/ollama/useWarmupCompletionModel'
 import { OLLAMA_MODEL_BASE_QUERY_KEY } from '@/lib/ollama/useOllamaModels'
@@ -29,10 +28,7 @@ export function useInvalidateQueriesOnWindowFocus() {
         try {
           await Promise.all([
             queryClient.invalidateQueries({
-              queryKey: FILES_QUERY_KEY(),
-            }),
-            queryClient.invalidateQueries({
-              queryKey: FILES_WITH_PREVIEW_QUERY_KEY(),
+              queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(),
             }),
             queryClient.invalidateQueries({
               predicate: (query) =>

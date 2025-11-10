@@ -18,3 +18,23 @@ export interface FileContent {
   path: string
   name: string
 }
+
+/**
+ * Unified tree item that can be either a file or folder
+ * Used for rendering nested file/folder structures
+ */
+export type TreeItem =
+  | {
+      type: 'file'
+      name: string
+      path: string
+      preview: string
+      size: number
+      modified: string
+    }
+  | {
+      type: 'folder'
+      name: string
+      path: string
+      children?: TreeItem[]
+    }

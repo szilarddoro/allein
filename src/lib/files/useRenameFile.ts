@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
-import { FILES_QUERY_KEY } from './useFileList'
+import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from './useFilesAndFolders'
 import { READ_FILE_QUERY_KEY } from '@/lib/files/useReadFile'
 import { ensureMdExtension } from './fileUtils'
 
@@ -48,7 +48,9 @@ export function useRenameFile() {
     onSuccess: async (newPath) => {
       try {
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: FILES_QUERY_KEY() }),
+          queryClient.invalidateQueries({
+            queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(),
+          }),
           queryClient.invalidateQueries({
             queryKey: READ_FILE_QUERY_KEY(newPath),
           }),

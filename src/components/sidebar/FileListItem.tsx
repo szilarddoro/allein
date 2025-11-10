@@ -8,16 +8,19 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { useNavigate } from 'react-router'
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
 export interface FileListItemProps {
   file: FileInfo
-  deletePending?: boolean
-  onDelete: () => void
+  className?: string
+  isDeletingFile?: boolean
+  onDelete: (path: string, name: string, type: 'file' | 'folder') => void
 }
 
 export function FileListItem({
   file,
-  deletePending = false,
+  className,
+  isDeletingFile = false,
   onDelete,
 }: FileListItemProps) {
   const [currentFilePath] = useCurrentFilePath()
@@ -27,7 +30,7 @@ export function FileListItem({
 
   async function handleCopyFilePath(filePath: string) {
     try {
-      await navigator.clipboard.writeText(filePath)
+      await writeText(filePath)
       toast.success('Copied to clipboard')
     } catch {
       toast.error('Failed to copy file path')
@@ -49,7 +52,7 @@ export function FileListItem({
           viewTransition
           to={{
             pathname: '/editor',
-            search: `?file=${file.path}`,
+            search: `?file=${encodeURIComponent(file.path)}`,
           }}
           aria-current={currentFilePath === file.path}
           className={cn(
@@ -57,6 +60,7 @@ export function FileListItem({
             currentFilePath === file.path
               ? 'bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/90'
               : 'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40',
+            className,
           )}
           onContextMenu={(e) =>
             showContextMenu(e, {
@@ -65,12 +69,12 @@ export function FileListItem({
               onOpen: () =>
                 navigate({
                   pathname: '/editor',
-                  search: `?file=${file.path}`,
+                  search: `?file=${encodeURIComponent(file.path)}`,
                 }),
               onCopyPath: () => handleCopyFilePath(file.path),
               onOpenInFolder: () => handleOpenInFolder(file.path),
-              onDelete: () => onDelete(),
-              isDeletingFile: deletePending,
+              onDelete: () => onDelete(file.path, file.name, 'file'),
+              isDeletingFile,
             })
           }
         >

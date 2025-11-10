@@ -14,25 +14,26 @@ export interface FileDeleteConfirmDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: () => void
-  fileToDelete: { path: string; name: string } | null
+  itemToDelete: { path: string; name: string; type?: 'file' | 'folder' } | null
   deletePending?: boolean
 }
 
 export function FileDeleteConfirmDialog({
-  fileToDelete,
+  itemToDelete,
   open,
   deletePending,
   onOpenChange,
   onSubmit,
 }: FileDeleteConfirmDialogProps) {
+  const itemType = itemToDelete?.type === 'folder' ? 'Folder' : 'File'
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete File</AlertDialogTitle>
+          <AlertDialogTitle>Delete {itemType}</AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to delete &quot;
-            {fileToDelete ? getDisplayName(fileToDelete.name) : ''}&quot;? This
+            {itemToDelete ? getDisplayName(itemToDelete.name) : ''}&quot;? This
             action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>

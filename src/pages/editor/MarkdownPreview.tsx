@@ -228,7 +228,13 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
               th: ({ children }) => (
                 <TableHead className="font-semibold">{children}</TableHead>
               ),
-              td: ({ children }) => <TableCell>{children}</TableCell>,
+              td: ({ children }) => (
+                <TableCell
+                  className={cn(renderType === 'embedded' && 'text-sm')}
+                >
+                  {children}
+                </TableCell>
+              ),
             }}
           >
             {content || placeholder}

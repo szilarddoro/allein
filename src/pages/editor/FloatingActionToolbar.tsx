@@ -28,7 +28,7 @@ export function FloatingActionToolbar({
 }: FloatingActionToolbarProps) {
   return (
     <div className={cn('group', className)}>
-      <div className="flex flex-row gap-1 bg-secondary border-1 border-input/60 rounded-lg p-1">
+      <div className="flex flex-row gap-1 bg-secondary dark:bg-background border-1 border-input/60 rounded-lg p-1">
         <Tooltip delayDuration={500}>
           <TooltipTrigger asChild>
             <Button

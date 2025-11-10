@@ -11,46 +11,79 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Link } from '@/components/ui/link'
-import { H1, H3, P } from '@/components/ui/typography'
+import { H1, P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCreateFile } from '@/lib/files/useCreateFile'
+import { useCreateFolder } from '@/lib/files/useCreateFolder'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
+import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
-import { useFileListWithPreview } from '@/lib/files/useFileListWithPreview'
+import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
-import { cn } from '@/lib/utils'
-import { MarkdownPreview } from '@/pages/editor/MarkdownPreview'
+import { FolderCard } from '@/pages/browser/FolderCard'
+import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { CircleAlert, File, NotebookPen, Plus } from 'lucide-react'
+import { CircleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { BrowserHeader } from './BrowserHeader'
+import { FileCard } from './FileCard'
 
 export function BrowserPage() {
-  const { data: files, status, refetch: reloadFiles } = useFileListWithPreview()
+  const [currentFolderPath] = useCurrentFolderPath()
+
+  const {
+    data: filesAndFolders,
+    status,
+    refetch: reloadFiles,
+  } = useFilesAndFolders({ currentFolderPath })
   const { mutateAsync: createFile } = useCreateFile()
+  const { mutateAsync: createFolder } = useCreateFolder()
   const { mutateAsync: deleteFile, isPending: isDeletingFile } = useDeleteFile()
-  const sortedFiles = (files || []).sort((a, b) => a.name.localeCompare(b.name))
+  const { mutateAsync: deleteFolder, isPending: isDeletingFolder } =
+    useDeleteFolder()
 
   const { toast } = useToast()
   const navigate = useNavigate()
   const { showContextMenu } = useFileContextMenu()
+  const { showContextMenu: showBackgroundContextMenu } = useSidebarContextMenu()
   const [fileToDelete, setFileToDelete] = useState<{
     path: string
     name: string
+    type: 'file' | 'folder'
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  async function handleCreateFile() {
+  async function handleCreateFile(folderPath?: string) {
     try {
-      const { path } = await createFile()
+      const { path } = await createFile({
+        targetFolder: folderPath || currentFolderPath || undefined,
+      })
       navigate({
         pathname: '/editor',
-        search: `?file=${path}&focus=true`,
+        search: `?file=${encodeURIComponent(path)}&focus=true`,
       })
     } catch {
       toast.error('Failed to create file')
+    }
+  }
+
+  async function handleCreateFolder(folderPath?: string) {
+    try {
+      const targetFolder = folderPath || currentFolderPath || undefined
+      await createFolder({ targetFolder })
+
+      reloadFiles()
+
+      if (targetFolder) {
+        navigate({
+          pathname: '/',
+          search: `?folder=${encodeURIComponent(targetFolder)}`,
+        })
+      }
+    } catch {
+      toast.error('Failed to create folder')
     }
   }
 
@@ -71,18 +104,28 @@ export function BrowserPage() {
     }
   }
 
-  function handleDeleteFile(filePath: string, fileName: string) {
-    setFileToDelete({ path: filePath, name: fileName })
+  function handleDeleteItem(
+    itemPath: string,
+    itemName: string,
+    type: 'file' | 'folder',
+  ) {
+    setFileToDelete({ path: itemPath, name: itemName, type })
     setIsDeleteDialogOpen(true)
   }
 
-  async function confirmDeleteFile() {
+  async function confirmDeleteItem() {
     if (!fileToDelete) return
 
     try {
-      await deleteFile(fileToDelete.path)
+      if (fileToDelete.type === 'folder') {
+        await deleteFolder(fileToDelete.path)
+      } else {
+        await deleteFile(fileToDelete.path)
+      }
     } catch {
-      toast.error('Failed to delete file')
+      toast.error(
+        `Failed to delete ${fileToDelete.type === 'folder' ? 'folder' : 'file'}`,
+      )
     } finally {
       setIsDeleteDialogOpen(false)
 
@@ -95,7 +138,9 @@ export function BrowserPage() {
   if (status === 'pending') {
     return (
       <div className="flex-1 overflow-hidden flex justify-center items-center">
-        <DelayedActivityIndicator>Loading files...</DelayedActivityIndicator>
+        <DelayedActivityIndicator>
+          Loading files and folders...
+        </DelayedActivityIndicator>
       </div>
     )
   }
@@ -105,35 +150,25 @@ export function BrowserPage() {
       <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
         <P className="text-destructive flex flex-row gap-1 items-center text-sm">
           <CircleAlert className="size-4" />
-          An error occurred while loading files.
+          An error occurred while loading files and folders.
         </P>
 
-        <Button onClick={() => reloadFiles()}>Reload files</Button>
+        <Button onClick={() => reloadFiles()}>Reload</Button>
       </div>
     )
   }
 
-  if (sortedFiles.length === 0) {
+  if (filesAndFolders.length === 0) {
     return (
-      <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
-        <div className="p-2 rounded-lg bg-muted text-muted-foreground">
-          <File className="size-5" />
-        </div>
+      <>
+        <BrowserHeader onCreateFile={handleCreateFile} />
 
-        <div className="flex flex-col gap-1 mt-3 mb-4">
-          <H1 className="text-base text-muted-foreground px-2 text-center font-medium !my-0">
-            No files are available
+        <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
+          <H1 className="text-sm text-muted-foreground px-2 text-center font-normal !my-0">
+            This folder is empty
           </H1>
-
-          <P className="!my-0 text-muted-foreground text-sm">
-            Click the button below to take your first note.
-          </P>
         </div>
-
-        <Button size="sm" onClick={handleCreateFile}>
-          <NotebookPen className="size-4" /> New file
-        </Button>
-      </div>
+      </>
     )
   }
 
@@ -151,7 +186,9 @@ export function BrowserPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete File</AlertDialogTitle>
+            <AlertDialogTitle>
+              Delete {fileToDelete?.type === 'folder' ? 'Folder' : 'File'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete &quot;
               {fileToDelete ? getDisplayName(fileToDelete.name) : ''}&quot;?
@@ -161,8 +198,8 @@ export function BrowserPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmDeleteFile}
-              disabled={isDeletingFile}
+              onClick={confirmDeleteItem}
+              disabled={isDeletingFile || isDeletingFolder}
               variant="destructive"
             >
               Delete
@@ -171,89 +208,51 @@ export function BrowserPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex flex-row gap-3 items-center justify-start mt-4 z-10">
-        <Button
-          size="icon"
-          variant="default"
-          onClick={handleCreateFile}
-          className={cn(
-            'rounded-full text-foreground cursor-pointer',
-            'bg-neutral-200 border-neutral-300/80 hover:bg-neutral-300/80',
-            'dark:bg-neutral-800 dark:border-neutral-700 dark:hover:bg-neutral-700/70',
-          )}
-        >
-          <Plus className="size-5" />
-          <span className="sr-only">Create a new file</span>
-        </Button>
-        <span className="inline-block h-full bg-border w-px" />
-        <H1 className="my-0 text-2xl">All Files</H1>
-      </div>
+      <BrowserHeader onCreateFile={handleCreateFile} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-16">
-        {sortedFiles.map((file) => (
-          <Link
-            viewTransition
-            key={file.name}
-            to={{ pathname: '/editor', search: `?file=${file.path}` }}
-            className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
-            onContextMenu={(e) =>
-              showContextMenu(e, {
-                filePath: file.path,
-                fileName: file.name,
-                onOpen: () =>
-                  navigate({
-                    pathname: '/editor',
-                    search: `?file=${file.path}`,
-                  }),
-                onCopyPath: () => handleCopyFilePath(file.path),
-                onOpenInFolder: () => handleOpenInFolder(file.path),
-                onDelete: () => handleDeleteFile(file.path, file.name),
-                isDeletingFile,
-              })
+      <nav
+        aria-label="File browser"
+        className="scroll-mt-0 flex-1 min-h-0"
+        onContextMenu={(e) =>
+          showBackgroundContextMenu(e, {
+            onCreateFile: () => handleCreateFile(),
+            onCreateFolder: () => handleCreateFolder(),
+          })
+        }
+      >
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-16">
+          {filesAndFolders.map((data) => {
+            if (data.type === 'folder') {
+              return (
+                <FolderCard
+                  key={data.path}
+                  folder={data}
+                  onCreateFile={handleCreateFile}
+                  onCreateFolder={handleCreateFolder}
+                  onDelete={(path, name) =>
+                    handleDeleteItem(path, name, 'folder')
+                  }
+                />
+              )
             }
-          >
-            <Card
-              className={cn(
-                'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative',
-                'before:absolute before:top-0 before:left-0 before:size-full before:z-20 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
-                'after:absolute after:bottom-0 after:left-0 after:w-full after:h-16 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent motion-safe:animate-opacity-in duration-250',
-              )}
-            >
-              <CardHeader
-                className={cn('px-0', file.preview.length > 0 && 'sr-only')}
-              >
-                <H3 className="text-xs text-muted-foreground font-normal mb-0 truncate">
-                  <span aria-hidden="true">{getDisplayName(file.name)}</span>
 
-                  <span className="sr-only">
-                    Open file: &quot;{getDisplayName(file.name)}&quot;
-                  </span>
-                </H3>
-              </CardHeader>
-
-              <CardContent className="px-0 pt-0.5 pb-0 overflow-hidden">
-                {file.preview ? (
-                  <>
-                    <MarkdownPreview
-                      renderType="embedded"
-                      content={file.preview}
-                      aria-hidden="true"
-                    />
-
-                    <span className="sr-only">
-                      File content: {file.preview.substring(0, 255)}
-                    </span>
-                  </>
-                ) : (
-                  <P className="my-0 text-xs text-muted-foreground sr-only">
-                    File is empty
-                  </P>
-                )}
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
+            return (
+              <FileCard
+                key={data.path}
+                file={data}
+                isDeletingFile={isDeletingFile}
+                onShowContextMenu={showContextMenu}
+                onCopyFilePath={handleCopyFilePath}
+                onOpenInFolder={handleOpenInFolder}
+                onDelete={(filePath, fileName) =>
+                  handleDeleteItem(filePath, fileName, 'file')
+                }
+                navigate={navigate}
+              />
+            )
+          })}
+        </ul>
+      </nav>
     </>
   )
 }

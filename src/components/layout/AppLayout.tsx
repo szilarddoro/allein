@@ -17,9 +17,15 @@ import {
 import { useLocationHistory } from '@/lib/useLocationHistory'
 import { useWindowState } from '@/lib/useWindowState'
 import { useAIFeatures } from '@/lib/ai/useAIFeatures'
-import { CURRENT_PLATFORM, NEW_FILE_MENU_EVENT } from '@/lib/constants'
+import {
+  CURRENT_PLATFORM,
+  NEW_FILE_MENU_EVENT,
+  NEW_FOLDER_MENU_EVENT,
+} from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
-import { useFileList } from '@/lib/files/useFileList'
+import { useCreateFolder } from '@/lib/files/useCreateFolder'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
+import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
@@ -42,15 +48,18 @@ import { PageLayout } from '@/components/layout/PageLayout'
 import { TauriDragRegion } from '@/components/TauriDragRegion'
 
 export function AppLayout() {
+  useAIFeatures()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
   const { mutateAsync: createFile } = useCreateFile()
+  const { mutateAsync: createFolder } = useCreateFolder()
   const { isFullscreen } = useWindowState()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const [currentFolderPath] = useCurrentFolderPath()
   const { toast } = useToast()
   const { data: progress, status: progressStatus } = useOnboardingProgress()
-  const { data: files, status: filesStatus } = useFileList()
+  const { data: files, status: filesStatus } = useFilesAndFolders()
   const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null)
   const sidebarPanelRef = useRef<ImperativePanelHandle | null>(null)
@@ -59,8 +68,6 @@ export function AppLayout() {
   const fullWidth = pathname.startsWith('/editor')
 
   const fileLength = files?.length ?? 0
-
-  useAIFeatures()
 
   useEffect(() => {
     if (!sidebarOpen) {
@@ -85,24 +92,43 @@ export function AppLayout() {
     return () => document.removeEventListener('contextmenu', handleContextMenu)
   }, [])
 
-  const createNewFile = useCallback(async () => {
-    try {
-      const { path } = await createFile()
-      navigate(
-        {
-          pathname: '/editor',
-          search: `?file=${path}&focus=true`,
-        },
-        { viewTransition: true },
-      )
-    } catch {
-      toast.error('Failed to create file.')
-    }
-  }, [createFile, navigate, toast])
+  const createNewFile = useCallback(
+    async (folderPath?: string) => {
+      try {
+        const fileContent = await createFile({
+          targetFolder: folderPath || undefined,
+        })
+        navigate(
+          {
+            pathname: '/editor',
+            search: `?file=${encodeURIComponent(fileContent.path)}&focus=true`,
+          },
+          { viewTransition: true },
+        )
+        return fileContent
+      } catch (error) {
+        toast.error('Failed to create file.')
+        throw error
+      }
+    },
+    [createFile, navigate, toast],
+  )
+
+  const createNewFolder = useCallback(
+    async (folderPath?: string) => {
+      try {
+        const targetFolder = folderPath || currentFolderPath || undefined
+        await createFolder({ targetFolder })
+      } catch {
+        toast.error('Failed to create folder.')
+      }
+    },
+    [createFolder, toast, currentFolderPath],
+  )
 
   // Global keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         navigate('/settings')
@@ -120,27 +146,32 @@ export function AppLayout() {
         e.preventDefault()
         setSearchOpen(true)
       }
-
-      if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        await createNewFile()
-      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [createNewFile, fileLength, navigate, pathname])
+  }, [createFolder, currentFolderPath, fileLength, navigate, pathname])
 
   // Events are dispatched by the global Tauri menu item
   useEffect(() => {
     const handleCreateNewFile = async () => {
-      await createNewFile()
+      await createNewFile(currentFolderPath || undefined)
     }
 
     window.addEventListener(NEW_FILE_MENU_EVENT, handleCreateNewFile)
     return () =>
       window.removeEventListener(NEW_FILE_MENU_EVENT, handleCreateNewFile)
-  }, [createNewFile, toast])
+  }, [createNewFile, currentFolderPath])
+
+  useEffect(() => {
+    const handleCreateNewFolder = async () => {
+      await createNewFolder(currentFolderPath || undefined)
+    }
+
+    window.addEventListener(NEW_FOLDER_MENU_EVENT, handleCreateNewFolder)
+    return () =>
+      window.removeEventListener(NEW_FOLDER_MENU_EVENT, handleCreateNewFolder)
+  }, [createNewFolder, currentFolderPath])
 
   function getSidebarDefaultSize() {
     if (isExtraLargeScreen) {
@@ -294,7 +325,8 @@ export function AppLayout() {
             </div>
 
             <Sidebar
-              onNewFile={createFile}
+              onNewFile={createNewFile}
+              onCreateFolder={createNewFolder}
               onClose={() => setSidebarOpen(false)}
             />
           </ResizablePanel>

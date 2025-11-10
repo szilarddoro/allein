@@ -60,6 +60,7 @@ export function useFolderContextMenu() {
         const menu = await Menu.new({
           items: [
             createFileItem,
+            separator,
             copyPathItem,
             openInFolderItem,
             separator,

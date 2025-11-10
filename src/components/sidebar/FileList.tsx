@@ -4,6 +4,7 @@ import { FileListItem } from '@/components/sidebar/FileListItem'
 import { FolderListItem } from '@/components/sidebar/FolderListItem'
 import { P } from '@/components/ui/typography'
 import { useCreateFile } from '@/lib/files/useCreateFile'
+import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
@@ -18,6 +19,7 @@ export function FileList() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { mutateAsync: createFile } = useCreateFile()
+  const { mutateAsync: createFolder } = useCreateFolder()
   const { mutateAsync: deleteFile, status: deleteFileStatus } = useDeleteFile()
   const { mutateAsync: deleteFolder, status: deleteFolderStatus } =
     useDeleteFolder()
@@ -107,6 +109,17 @@ export function FileList() {
     }
   }
 
+  async function handleCreateFolderInFolder(folderPath: string) {
+    try {
+      await createFolder({
+        targetFolder: folderPath,
+      })
+      toast.success('Folder created')
+    } catch {
+      toast.error('Failed to create folder')
+    }
+  }
+
   return (
     <>
       <FileDeleteConfirmDialog
@@ -134,6 +147,7 @@ export function FileList() {
                   isDeletingFile={deleteStatus === 'pending'}
                   onDelete={handleDeleteRequest}
                   onCreateFile={handleCreateFileInFolder}
+                  onCreateFolder={handleCreateFolderInFolder}
                 />
               )
             }

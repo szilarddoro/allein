@@ -11,8 +11,8 @@ export function useCreateFolder() {
 
   return useMutation({
     mutationFn: (options: UseCreateFolderOptions = {}) =>
-      invoke<string>('create_folder', {
-        folderPath: options.targetFolder || null,
+      invoke<string>('create_untitled_folder', {
+        parentFolderPath: options.targetFolder || null,
       }),
     onSuccess: async (_newFolderPath, variables) => {
       try {

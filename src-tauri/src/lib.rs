@@ -236,8 +236,8 @@ async fn create_file(folder_path: Option<String>) -> Result<FileContent, String>
 }
 
 #[tauri::command]
-async fn create_folder(folder_path: Option<String>) -> Result<String, String> {
-    let target_dir = if let Some(path) = folder_path {
+async fn create_untitled_folder(parent_folder_path: Option<String>) -> Result<String, String> {
+    let target_dir = if let Some(path) = parent_folder_path {
         let path_buf = PathBuf::from(&path);
 
         // Validate that the path exists and is a directory
@@ -826,6 +826,7 @@ pub fn run() {
             list_files_and_folders_tree,
             list_files_in_folder,
             create_folder,
+            create_untitled_folder,
             delete_folder,
             get_config,
             get_all_config,

@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { H1, P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCreateFile } from '@/lib/files/useCreateFile'
+import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
@@ -37,6 +38,7 @@ export function BrowserPage() {
     refetch: reloadFiles,
   } = useFilesAndFolders({ currentFolderPath })
   const { mutateAsync: createFile } = useCreateFile()
+  const { mutateAsync: createFolder } = useCreateFolder()
   const { mutateAsync: deleteFile, isPending: isDeletingFile } = useDeleteFile()
   const { mutateAsync: deleteFolder, isPending: isDeletingFolder } =
     useDeleteFolder()
@@ -62,6 +64,18 @@ export function BrowserPage() {
       })
     } catch {
       toast.error('Failed to create file')
+    }
+  }
+
+  async function handleCreateFolder(folderPath?: string) {
+    try {
+      await createFolder({
+        targetFolder: folderPath || currentFolderPath || undefined,
+      })
+      toast.success('Folder created')
+      reloadFiles()
+    } catch {
+      toast.error('Failed to create folder')
     }
   }
 
@@ -197,6 +211,7 @@ export function BrowserPage() {
                   key={data.path}
                   folder={data}
                   onCreateFile={handleCreateFile}
+                  onCreateFolder={handleCreateFolder}
                   onDelete={(path, name) =>
                     handleDeleteItem(path, name, 'folder')
                   }

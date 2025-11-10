@@ -27,6 +27,14 @@ export interface FileNameEditorProps {
 }
 
 /**
+ * Extract directory path from a full file path.
+ * Examples: "/path/to/folder/file.md" -> "/path/to/folder", "/file.md" -> "/"
+ */
+function getFileDirectory(filePath: string): string {
+  return filePath.substring(0, filePath.lastIndexOf('/'))
+}
+
+/**
  * Inline file name editor with validation.
  * Allows users to click and edit the file name with real-time validation.
  */
@@ -94,11 +102,14 @@ export function FileNameEditor({
     }
 
     if (
-      files?.some(
-        (file) =>
-          removeMdExtension(file.name) === inputValue &&
-          file.path !== currentFile?.path,
-      )
+      files?.some((file) => {
+        const isSameName = removeMdExtension(file.name) === inputValue
+        const isDifferentFile = file.path !== currentFile?.path
+        const isInSameFolder =
+          getFileDirectory(file.path) === getFileDirectory(currentFile.path)
+
+        return isSameName && isDifferentFile && isInSameFolder
+      })
     ) {
       requestAnimationFrame(() => {
         fileNameInputRef.current?.focus()

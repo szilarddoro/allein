@@ -49,7 +49,9 @@ export function BrowserPage() {
 
   async function handleCreateFile() {
     try {
-      const { path } = await createFile()
+      const { path } = await createFile({
+        targetFolder: currentFolderPath || undefined,
+      })
       navigate({
         pathname: '/editor',
         search: `?file=${path}&focus=true`,

@@ -13,12 +13,14 @@ import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 export interface FolderCardProps {
   folder: TreeItem & { type: 'folder' }
   onCreateFile?: (folderPath: string) => void
+  onCreateFolder?: (folderPath: string) => void
   onDelete?: (path: string, name: string) => void
 }
 
 export function FolderCard({
   folder,
   onCreateFile,
+  onCreateFolder,
   onDelete,
 }: FolderCardProps) {
   const folderChildren = folder.children || []
@@ -47,6 +49,7 @@ export function FolderCard({
       folderPath: folder.path,
       folderName: folder.name,
       onCreateFile: onCreateFile && (() => onCreateFile(folder.path)),
+      onCreateFolder: onCreateFolder && (() => onCreateFolder(folder.path)),
       onCopyPath: handleCopyFolderPath,
       onOpenInFolder: handleOpenFolderInFinder,
       onDelete: onDelete ? () => onDelete(folder.path, folder.name) : () => {},

@@ -10,12 +10,35 @@ import { useLocation, useNavigate } from 'react-router'
 
 export const MAX_STACK_SIZE = 30
 
+// Normalize location by removing 'focus' and 'line' query params
+function normalizeLocation(location: string): string {
+  const [pathname, search] = location.split('?')
+  if (!search) return pathname
+
+  const params = new URLSearchParams(search)
+  params.delete('focus')
+  params.delete('line')
+
+  const normalizedSearch = params.toString()
+  return normalizedSearch ? `${pathname}?${normalizedSearch}` : pathname
+}
+
+// Remove adjacent duplicates from array
+function deduplicateAdjacent<T>(arr: T[]): T[] {
+  return arr.reduce((acc, item) => {
+    if (acc[acc.length - 1] !== item) {
+      acc.push(item)
+    }
+    return acc
+  }, [] as T[])
+}
+
 export function LocationHistoryProvider({ children }: PropsWithChildren) {
   const [locationStack, setLocationStack] = useState<string[]>([])
   const [currentIndex, setCurrentIndex] = useState(-1)
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
-  const currentLocation = `${pathname}${search}`
+  const currentLocation = normalizeLocation(`${pathname}${search}`)
   const targetIndexRef = useRef<number | null>(null)
 
   // Track location changes and update stack
@@ -65,10 +88,12 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
     (filePath: string) => {
       setLocationStack((prevStack) => {
         // Filter out entries that reference this file
-        const newStack = prevStack.filter(
+        let newStack = prevStack.filter(
           (location) =>
             !location.includes(`file=${encodeURIComponent(filePath)}`),
         )
+
+        newStack = deduplicateAdjacent(newStack)
 
         // Adjust currentIndex if needed
         const newIndex = Math.min(currentIndex, newStack.length - 1)

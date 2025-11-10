@@ -9,11 +9,13 @@ import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useToast } from '@/lib/useToast'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 export function FileList() {
+  const { removeEntriesForFile } = useLocationHistory()
   const { data: filesAndFolders, status, error, refetch } = useFilesAndFolders()
   const [currentFilePath] = useCurrentFilePath()
   const navigate = useNavigate()
@@ -43,6 +45,7 @@ export function FileList() {
         await deleteFolder(itemToDelete.path)
       } else {
         await deleteFile(itemToDelete.path)
+        removeEntriesForFile(itemToDelete.path)
       }
 
       // Navigate to home if deleting the currently edited file

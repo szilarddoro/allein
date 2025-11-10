@@ -29,10 +29,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { BrowserHeader } from './BrowserHeader'
 import { FileCard } from './FileCard'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 
 export function BrowserPage() {
+  const { removeEntriesForFile } = useLocationHistory()
   const [currentFolderPath] = useCurrentFolderPath()
-
   const {
     data: filesAndFolders,
     status,
@@ -121,6 +122,7 @@ export function BrowserPage() {
         await deleteFolder(fileToDelete.path)
       } else {
         await deleteFile(fileToDelete.path)
+        removeEntriesForFile(fileToDelete.path)
       }
     } catch {
       toast.error(

@@ -36,21 +36,10 @@ function deduplicateAdjacent<T>(arr: T[]): T[] {
 export function LocationHistoryProvider({ children }: PropsWithChildren) {
   const [locationStack, setLocationStack] = useState<string[]>([])
   const [currentIndex, setCurrentIndex] = useState(-1)
-  const [fileToNavigateAwayFrom, setFileToNavigateAwayFrom] = useState<
-    string | null
-  >(null)
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const currentLocation = normalizeLocation(`${pathname}${search}`)
   const targetIndexRef = useRef<number | null>(null)
-
-  // Handle navigation away from deleted/renamed files
-  useEffect(() => {
-    if (fileToNavigateAwayFrom) {
-      navigate('/', { replace: true })
-      setFileToNavigateAwayFrom(null)
-    }
-  }, [fileToNavigateAwayFrom, navigate])
 
   // Track location changes and update stack
   useEffect(() => {
@@ -112,16 +101,8 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
 
         return newStack
       })
-
-      // If current location references deleted/renamed file, mark for navigation
-      if (
-        pathname === '/editor' &&
-        search.includes(`file=${encodeURIComponent(filePath)}`)
-      ) {
-        setFileToNavigateAwayFrom(filePath)
-      }
     },
-    [currentIndex, pathname, search],
+    [currentIndex],
   )
 
   const canGoBack = currentIndex > 0

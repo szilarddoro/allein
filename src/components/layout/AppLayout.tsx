@@ -86,16 +86,18 @@ export function AppLayout() {
 
   const createNewFile = useCallback(async () => {
     try {
-      const { path } = await createFile()
+      const fileContent = await createFile({})
       navigate(
         {
           pathname: '/editor',
-          search: `?file=${path}&focus=true`,
+          search: `?file=${fileContent.path}&focus=true`,
         },
         { viewTransition: true },
       )
-    } catch {
+      return fileContent
+    } catch (error) {
       toast.error('Failed to create file.')
+      throw error
     }
   }, [createFile, navigate, toast])
 
@@ -293,7 +295,7 @@ export function AppLayout() {
             </div>
 
             <Sidebar
-              onNewFile={createFile}
+              onNewFile={createNewFile}
               onClose={() => setSidebarOpen(false)}
             />
           </ResizablePanel>

@@ -19,7 +19,7 @@ export function FileList() {
   const { mutateAsync: deleteFile, status: deleteFileStatus } = useDeleteFile()
   const { mutateAsync: deleteFolder, status: deleteFolderStatus } =
     useDeleteFolder()
-  const [fileToDelete, setFileToDelete] = useState<{
+  const [itemToDelete, setItemToDelete] = useState<{
     path: string
     name: string
     type: 'file' | 'folder'
@@ -32,32 +32,28 @@ export function FileList() {
       : 'idle'
 
   async function confirmDeleteItem() {
-    if (!fileToDelete) return
+    if (!itemToDelete) return
 
     try {
-      if (fileToDelete.type === 'folder') {
-        await deleteFolder(fileToDelete.path)
+      if (itemToDelete.type === 'folder') {
+        await deleteFolder(itemToDelete.path)
       } else {
-        await deleteFile(fileToDelete.path)
+        await deleteFile(itemToDelete.path)
       }
 
       // Navigate to home if deleting the currently edited file
-      if (currentFilePath === fileToDelete.path) {
+      if (currentFilePath === itemToDelete.path) {
         navigate('/')
       }
-
-      toast.success(
-        `${fileToDelete.type === 'folder' ? 'Folder' : 'File'} deleted successfully`,
-      )
     } catch {
       toast.error(
-        `Failed to delete ${fileToDelete.type === 'folder' ? 'folder' : 'file'}`,
+        `Failed to delete ${itemToDelete.type === 'folder' ? 'folder' : 'file'}`,
       )
     } finally {
       setIsDeleteDialogOpen(false)
 
       setTimeout(() => {
-        setFileToDelete(null)
+        setItemToDelete(null)
       }, 150)
     }
   }
@@ -91,22 +87,22 @@ export function FileList() {
     name: string,
     type: 'file' | 'folder',
   ) {
-    setFileToDelete({ path, name, type })
+    setItemToDelete({ path, name, type })
     setIsDeleteDialogOpen(true)
   }
 
   return (
     <>
       <FileDeleteConfirmDialog
-        itemToDelete={fileToDelete}
+        itemToDelete={itemToDelete}
         open={isDeleteDialogOpen}
         onSubmit={confirmDeleteItem}
         deletePending={deleteStatus === 'pending'}
         onOpenChange={(open) => {
           if (!open) {
             setIsDeleteDialogOpen(false)
-            // Keep fileToDelete until dialog is fully closed to prevent text jump
-            setTimeout(() => setFileToDelete(null), 150)
+            // Keep itemToDelete until dialog is fully closed to prevent text jump
+            setTimeout(() => setItemToDelete(null), 150)
           }
         }}
       />

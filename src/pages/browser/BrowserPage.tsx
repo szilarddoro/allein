@@ -190,26 +190,28 @@ export function BrowserPage() {
         <H1 className="my-0 text-2xl">All Files</H1>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-16">
-        {filesAndFolders.map((data) => {
-          if (data.type === 'folder') {
-            return <span key={data.path}>{data.name}</span>
-          }
+      <nav aria-label="File browser" className="scroll-mt-0">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-16">
+          {filesAndFolders.map((data) => {
+            if (data.type === 'folder') {
+              return <li key={data.path}>{data.name}</li>
+            }
 
-          return (
-            <FileCard
-              key={data.path}
-              file={data}
-              isDeletingFile={isDeletingFile}
-              onShowContextMenu={showContextMenu}
-              onCopyFilePath={handleCopyFilePath}
-              onOpenInFolder={handleOpenInFolder}
-              onDelete={handleDeleteFile}
-              navigate={navigate}
-            />
-          )
-        })}
-      </div>
+            return (
+              <FileCard
+                key={data.path}
+                file={data}
+                isDeletingFile={isDeletingFile}
+                onShowContextMenu={showContextMenu}
+                onCopyFilePath={handleCopyFilePath}
+                onOpenInFolder={handleOpenInFolder}
+                onDelete={handleDeleteFile}
+                navigate={navigate}
+              />
+            )
+          })}
+        </ul>
+      </nav>
     </>
   )
 }

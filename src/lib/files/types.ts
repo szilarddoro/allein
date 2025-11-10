@@ -19,12 +19,6 @@ export interface FileContent {
   name: string
 }
 
-export interface FolderNode {
-  name: string
-  path: string
-  children: FolderNode[]
-}
-
 /**
  * Unified tree item that can be either a file or folder
  * Used for rendering nested file/folder structures

@@ -88,7 +88,7 @@ export function Sidebar({
         </DelayedActivityIndicator>
       )}
 
-      <div className="flex flex-col gap-2 pb-4 px-3">
+      <div className="flex flex-col gap-2 pb-4 px-2.5">
         <Button variant="ghost" size="sm" asChild>
           <Link
             to="/"
@@ -113,12 +113,12 @@ export function Sidebar({
         </Button>
       </div>
 
-      <div className="px-3">
+      <div className="px-2.5">
         <Separator />
       </div>
 
       <div
-        className="flex-1 overflow-y-auto pt-4 pb-20 flex flex-col gap-2 px-3"
+        className="flex-1 overflow-y-auto pt-4 pb-20 flex flex-col gap-2 px-2.5"
         onContextMenu={(e) =>
           showContextMenu(e, {
             onCreateFile: handleCreateFile,

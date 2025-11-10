@@ -14,12 +14,14 @@ export interface FileListItemProps {
   file: FileInfo
   deletePending?: boolean
   onDelete: () => void
+  className?: string
 }
 
 export function FileListItem({
   file,
   deletePending = false,
   onDelete,
+  className,
 }: FileListItemProps) {
   const [currentFilePath] = useCurrentFilePath()
   const { showContextMenu } = useFileContextMenu()
@@ -58,6 +60,7 @@ export function FileListItem({
             currentFilePath === file.path
               ? 'bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/90'
               : 'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40',
+            className,
           )}
           onContextMenu={(e) =>
             showContextMenu(e, {

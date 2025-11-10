@@ -1,6 +1,7 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import { FileDeleteConfirmDialog } from '@/components/sidebar/FileDeleteConfirmDialog'
 import { FileListItem } from '@/components/sidebar/FileListItem'
+import { FolderListItem } from '@/components/sidebar/FolderListItem'
 import { P } from '@/components/ui/typography'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
@@ -82,25 +83,27 @@ export function FileList() {
         }}
       />
 
-      <ul className="flex flex-col gap-2 w-full">
-        {filesAndFolders.map((data) => {
-          if (data.type === 'folder') {
-            return <span key={data.path}>{data.name}</span>
-          }
+      <nav aria-label="File browser">
+        <ul className="flex flex-col gap-2 w-full">
+          {filesAndFolders.map((data) => {
+            if (data.type === 'folder') {
+              return <FolderListItem key={data.path} folder={data} />
+            }
 
-          return (
-            <FileListItem
-              key={data.path}
-              file={data}
-              deletePending={deleteStatus === 'pending'}
-              onDelete={() => {
-                setFileToDelete({ path: data.path, name: data.name })
-                setIsDeleteDialogOpen(true)
-              }}
-            />
-          )
-        })}
-      </ul>
+            return (
+              <FileListItem
+                key={data.path}
+                file={data}
+                deletePending={deleteStatus === 'pending'}
+                onDelete={() => {
+                  setFileToDelete({ path: data.path, name: data.name })
+                  setIsDeleteDialogOpen(true)
+                }}
+              />
+            )
+          })}
+        </ul>
+      </nav>
     </>
   )
 }

@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { CURRENT_PLATFORM } from '@/lib/constants'
-import { useLocationHistory } from '@/lib/useLocationHistory'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useWindowState } from '@/lib/useWindowState'
 import { cn } from '@/lib/utils'
 import {

@@ -201,14 +201,25 @@ async fn write_file(file_path: String, content: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn create_file() -> Result<FileContent, String> {
-    let docs_dir = get_docs_dir()?;
+async fn create_file(folder_path: Option<String>) -> Result<FileContent, String> {
+    let target_dir = if let Some(path) = folder_path {
+        let path_buf = PathBuf::from(&path);
+
+        // Validate that the path exists and is a directory
+        if !path_buf.exists() || !path_buf.is_dir() {
+            return Err("Folder does not exist".to_string());
+        }
+
+        path_buf
+    } else {
+        get_docs_dir()?
+    };
 
     // Find the next available untitled file number
     let mut counter = 1;
     let mut file_path;
     loop {
-        file_path = docs_dir.join(format!("Untitled-{}.md", counter));
+        file_path = target_dir.join(format!("Untitled-{}.md", counter));
         if !file_path.exists() {
             break;
         }

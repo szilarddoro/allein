@@ -40,7 +40,7 @@ export const defineCustomThemes = (monaco: Monaco) => {
     colors: {
       'editor.background': '#1d1d1d',
       'editor.foreground': '#fafafa',
-      'editor.lineHighlightBackground': '#1c1c1f',
+      'editor.lineHighlightBackground': '#262626',
       'editorCursor.foreground': '#8ec5ff',
       'editor.selectionBackground': '#1a368c',
       'editorLineNumber.foreground': '#858585',

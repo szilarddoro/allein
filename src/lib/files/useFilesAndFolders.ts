@@ -13,12 +13,6 @@ interface UseFilesAndFoldersReturn {
 // Query key for files and folders tree
 export const FILES_AND_FOLDERS_TREE_QUERY_KEY = () => ['files-and-folders-tree']
 
-// Query key for basic file list (for backwards compatibility with mutation invalidation)
-export const FILES_QUERY_KEY = () => ['files']
-
-// Query key for files with preview (for backwards compatibility with mutation invalidation)
-export const FILES_WITH_PREVIEW_QUERY_KEY = () => ['files-with-preview']
-
 /**
  * Flatten a tree structure to get all files (for backwards compatibility)
  */

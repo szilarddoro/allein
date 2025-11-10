@@ -2,10 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { queryClient } from '@/lib/queryClientConfig'
 import { READ_FILE_QUERY_KEY } from '@/lib/files/useReadFile'
-import {
-  FILES_QUERY_KEY,
-  FILES_WITH_PREVIEW_QUERY_KEY,
-} from '@/lib/files/useFilesAndFolders'
+import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from '@/lib/files/useFilesAndFolders'
 
 export function useWriteFile() {
   return useMutation({
@@ -24,10 +21,7 @@ export function useWriteFile() {
             refetchType: 'none',
           }),
           queryClient.invalidateQueries({
-            queryKey: FILES_QUERY_KEY(),
-          }),
-          queryClient.invalidateQueries({
-            queryKey: FILES_WITH_PREVIEW_QUERY_KEY(),
+            queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(),
           }),
         ])
       } catch {

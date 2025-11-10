@@ -25,7 +25,7 @@ export function FolderCard({ folder }: FolderCardProps) {
       >
         <Card
           className={cn(
-            'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative border-border bg-secondary',
+            'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative bg-background/70',
             'before:absolute before:top-0 before:left-0 before:size-full group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5 before:motion-safe:transition-colors',
           )}
         >

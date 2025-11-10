@@ -18,12 +18,14 @@ export interface FolderListItemProps {
   folder: TreeItem
   isDeletingFile?: boolean
   onDelete: (path: string, name: string, type: 'file' | 'folder') => void
+  nested?: boolean
 }
 
 export function FolderListItem({
   folder,
   isDeletingFile = false,
   onDelete,
+  nested,
 }: FolderListItemProps) {
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)
   const { showContextMenu } = useFolderContextMenu()
@@ -80,7 +82,12 @@ export function FolderListItem({
           className={cn('pl-[17px]', folderChildren.length > 0 && 'py-px')}
         >
           {folderChildren.length > 0 && (
-            <ul className="border-l border-foreground/20 pl-1.5 truncate py-1">
+            <ul
+              className={cn(
+                'border-l border-foreground/20 pl-1.5 truncate py-1',
+                nested ? 'pr-0' : 'pr-1',
+              )}
+            >
               {folderChildren.map((child) => {
                 if (child.type === 'file') {
                   return (
@@ -99,6 +106,7 @@ export function FolderListItem({
                     folder={child}
                     isDeletingFile={isDeletingFile}
                     onDelete={onDelete}
+                    nested
                   />
                 )
               })}

@@ -54,10 +54,10 @@ export function EditorPage() {
 
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
 
-  const handleFileRenamed = (newPath: string) => {
+  const handleFileRenamed = (newPath: string, oldPath: string) => {
     // Clean up old file path from location history
-    if (currentFilePath) {
-      removeEntriesForFile(currentFilePath)
+    if (oldPath) {
+      removeEntriesForFile(oldPath)
     }
     // Update to the new file path
     updateCurrentFilePath(newPath)

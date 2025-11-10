@@ -18,13 +18,13 @@ import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
-import { cn } from '@/lib/utils'
+import { FolderCard } from '@/pages/browser/FolderCard'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { CircleAlert, File, NotebookPen, Plus } from 'lucide-react'
+import { CircleAlert, File, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { FileCard } from './FileCard'
-import { FolderCard } from '@/pages/browser/FolderCard'
+import { BrowserHeader } from './BrowserHeader'
 
 export function BrowserPage() {
   const [searchParams] = useSearchParams()
@@ -122,12 +122,12 @@ export function BrowserPage() {
     return (
       <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
         <div className="p-2 rounded-lg bg-muted text-muted-foreground">
-          <File className="size-5" />
+          <File className="size-8" />
         </div>
 
-        <div className="flex flex-col gap-1 mt-3 mb-4">
+        <div className="flex flex-col gap-1 mt-1 mb-4">
           <H1 className="text-base text-muted-foreground px-2 text-center font-medium !my-0">
-            No files are available
+            This folder is empty
           </H1>
 
           <P className="!my-0 text-muted-foreground text-sm">
@@ -136,7 +136,7 @@ export function BrowserPage() {
         </div>
 
         <Button size="sm" onClick={handleCreateFile}>
-          <NotebookPen className="size-4" /> New file
+          <Plus className="size-4" /> New file
         </Button>
       </div>
     )
@@ -176,23 +176,7 @@ export function BrowserPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex flex-row gap-3 items-center justify-start mt-4 z-10">
-        <Button
-          size="icon"
-          variant="default"
-          onClick={handleCreateFile}
-          className={cn(
-            'rounded-full text-foreground cursor-pointer',
-            'bg-neutral-200 border-neutral-300/80 hover:bg-neutral-300/80',
-            'dark:bg-neutral-800 dark:border-neutral-700 dark:hover:bg-neutral-700/70',
-          )}
-        >
-          <Plus className="size-5" />
-          <span className="sr-only">Create a new file</span>
-        </Button>
-        <span className="inline-block h-full bg-border w-px" />
-        <H1 className="my-0 text-2xl">All Files</H1>
-      </div>
+      <BrowserHeader onCreateFile={handleCreateFile} />
 
       <nav aria-label="File browser" className="scroll-mt-0">
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-16">

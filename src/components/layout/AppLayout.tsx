@@ -120,7 +120,7 @@ export function AppLayout() {
 
   // Global keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         navigate('/settings')
@@ -137,13 +137,6 @@ export function AppLayout() {
       if (fileLength > 0 && e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setSearchOpen(true)
-      }
-
-      if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        if (pathname.startsWith('/')) {
-          await createNewFile(currentFolderPath || undefined)
-        }
       }
     }
 

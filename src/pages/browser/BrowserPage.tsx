@@ -16,6 +16,7 @@ import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
+import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
@@ -37,6 +38,8 @@ export function BrowserPage() {
   } = useFilesAndFolders({ currentFolderPath })
   const { mutateAsync: createFile } = useCreateFile()
   const { mutateAsync: deleteFile, isPending: isDeletingFile } = useDeleteFile()
+  const { mutateAsync: deleteFolder, isPending: isDeletingFolder } =
+    useDeleteFolder()
 
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -44,6 +47,7 @@ export function BrowserPage() {
   const [fileToDelete, setFileToDelete] = useState<{
     path: string
     name: string
+    type: 'file' | 'folder'
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
@@ -78,18 +82,28 @@ export function BrowserPage() {
     }
   }
 
-  function handleDeleteFile(filePath: string, fileName: string) {
-    setFileToDelete({ path: filePath, name: fileName })
+  function handleDeleteItem(
+    itemPath: string,
+    itemName: string,
+    type: 'file' | 'folder',
+  ) {
+    setFileToDelete({ path: itemPath, name: itemName, type })
     setIsDeleteDialogOpen(true)
   }
 
-  async function confirmDeleteFile() {
+  async function confirmDeleteItem() {
     if (!fileToDelete) return
 
     try {
-      await deleteFile(fileToDelete.path)
+      if (fileToDelete.type === 'folder') {
+        await deleteFolder(fileToDelete.path)
+      } else {
+        await deleteFile(fileToDelete.path)
+      }
     } catch {
-      toast.error('Failed to delete file')
+      toast.error(
+        `Failed to delete ${fileToDelete.type === 'folder' ? 'folder' : 'file'}`,
+      )
     } finally {
       setIsDeleteDialogOpen(false)
 
@@ -150,7 +164,9 @@ export function BrowserPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete File</AlertDialogTitle>
+            <AlertDialogTitle>
+              Delete {fileToDelete?.type === 'folder' ? 'Folder' : 'File'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete &quot;
               {fileToDelete ? getDisplayName(fileToDelete.name) : ''}&quot;?
@@ -160,8 +176,8 @@ export function BrowserPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmDeleteFile}
-              disabled={isDeletingFile}
+              onClick={confirmDeleteItem}
+              disabled={isDeletingFile || isDeletingFolder}
               variant="destructive"
             >
               Delete
@@ -176,7 +192,16 @@ export function BrowserPage() {
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-16">
           {filesAndFolders.map((data) => {
             if (data.type === 'folder') {
-              return <FolderCard key={data.path} folder={data} />
+              return (
+                <FolderCard
+                  key={data.path}
+                  folder={data}
+                  onCreateFile={handleCreateFile}
+                  onDelete={(path, name) =>
+                    handleDeleteItem(path, name, 'folder')
+                  }
+                />
+              )
             }
 
             return (
@@ -187,7 +212,9 @@ export function BrowserPage() {
                 onShowContextMenu={showContextMenu}
                 onCopyFilePath={handleCopyFilePath}
                 onOpenInFolder={handleOpenInFolder}
-                onDelete={handleDeleteFile}
+                onDelete={(filePath, fileName) =>
+                  handleDeleteItem(filePath, fileName, 'file')
+                }
                 navigate={navigate}
               />
             )

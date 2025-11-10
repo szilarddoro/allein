@@ -450,14 +450,25 @@ async fn list_folder_tree() -> Result<Vec<FolderNode>, String> {
 }
 
 #[tauri::command]
-async fn list_files_and_folders_tree() -> Result<Vec<TreeItem>, String> {
-    let docs_dir = get_docs_dir()?;
+async fn list_files_and_folders_tree(folder_path: Option<String>) -> Result<Vec<TreeItem>, String> {
+    let target_dir = if let Some(path) = folder_path {
+        let path_buf = PathBuf::from(&path);
+
+        // Validate that the path exists and is a directory
+        if !path_buf.exists() || !path_buf.is_dir() {
+            return Err("Folder does not exist".to_string());
+        }
+
+        path_buf
+    } else {
+        get_docs_dir()?
+    };
 
     // Get all files with preview
-    let files = list_files_with_preview_impl(&docs_dir)?;
+    let files = list_files_with_preview_impl(&target_dir)?;
 
     // Get folder tree
-    let folder_tree = build_folder_tree(&docs_dir, 0)?;
+    let folder_tree = build_folder_tree(&target_dir, 0)?;
 
     // Convert folders to TreeItems and build a map for path lookups
     let mut result = Vec::new();
@@ -488,8 +499,8 @@ async fn list_files_and_folders_tree() -> Result<Vec<TreeItem>, String> {
         }
     }
 
-    // Get docs_dir as string for comparison
-    let docs_dir_str = docs_dir.to_string_lossy().to_string();
+    // Get target_dir as string for comparison
+    let target_dir_str = target_dir.to_string_lossy().to_string();
 
     // Build result with files placed in their folders
     for file in files {
@@ -513,8 +524,8 @@ async fn list_files_and_folders_tree() -> Result<Vec<TreeItem>, String> {
             children: None,
         };
 
-        // Check if this is a root-level file (directly in docs_dir)
-        if file_dir == docs_dir_str {
+        // Check if this is a root-level file (directly in target_dir)
+        if file_dir == target_dir_str {
             result.push(tree_item);
         } else if !file_dir.is_empty() {
             // File is in a subfolder

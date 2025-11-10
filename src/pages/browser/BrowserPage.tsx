@@ -51,10 +51,10 @@ export function BrowserPage() {
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  async function handleCreateFile() {
+  async function handleCreateFile(folderPath?: string) {
     try {
       const { path } = await createFile({
-        targetFolder: currentFolderPath || undefined,
+        targetFolder: folderPath || currentFolderPath || undefined,
       })
       navigate({
         pathname: '/editor',

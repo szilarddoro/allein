@@ -22,6 +22,7 @@ import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
 import { FolderCard } from '@/pages/browser/FolderCard'
+import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { CircleAlert } from 'lucide-react'
 import { useState } from 'react'
@@ -46,6 +47,7 @@ export function BrowserPage() {
   const { toast } = useToast()
   const navigate = useNavigate()
   const { showContextMenu } = useFileContextMenu()
+  const { showContextMenu: showBackgroundContextMenu } = useSidebarContextMenu()
   const [fileToDelete, setFileToDelete] = useState<{
     path: string
     name: string
@@ -202,7 +204,16 @@ export function BrowserPage() {
 
       <BrowserHeader onCreateFile={handleCreateFile} />
 
-      <nav aria-label="File browser" className="scroll-mt-0">
+      <nav
+        aria-label="File browser"
+        className="scroll-mt-0"
+        onContextMenu={(e) =>
+          showBackgroundContextMenu(e, {
+            onCreateFile: () => handleCreateFile(),
+            onCreateFolder: () => handleCreateFolder(),
+          })
+        }
+      >
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-16">
           {filesAndFolders.map((data) => {
             if (data.type === 'folder') {

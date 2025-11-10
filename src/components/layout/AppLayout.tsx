@@ -19,6 +19,7 @@ import { useWindowState } from '@/lib/useWindowState'
 import { useAIFeatures } from '@/lib/ai/useAIFeatures'
 import { CURRENT_PLATFORM, NEW_FILE_MENU_EVENT } from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
+import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
@@ -46,6 +47,7 @@ export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
   const { mutateAsync: createFile } = useCreateFile()
+  const { mutateAsync: createFolder } = useCreateFolder()
   const { isFullscreen } = useWindowState()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -100,6 +102,15 @@ export function AppLayout() {
       throw error
     }
   }, [createFile, navigate, toast])
+
+  const createNewFolder = useCallback(async () => {
+    try {
+      await createFolder({})
+      toast.success('Folder created')
+    } catch {
+      toast.error('Failed to create folder.')
+    }
+  }, [createFolder, toast])
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -296,6 +307,7 @@ export function AppLayout() {
 
             <Sidebar
               onNewFile={createNewFile}
+              onCreateFolder={createNewFolder}
               onClose={() => setSidebarOpen(false)}
             />
           </ResizablePanel>

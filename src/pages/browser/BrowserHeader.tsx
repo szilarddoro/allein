@@ -54,7 +54,7 @@ export function BrowserHeader({
       <span className="inline-block h-full bg-border w-px" />
 
       {!segments || segments.length === 0 ? (
-        <H1 className="text-2xl text-foreground font-semibold my-0">{title}</H1>
+        <H1 className="text-xl text-foreground font-semibold my-0">{title}</H1>
       ) : (
         <Breadcrumb>
           <BreadcrumbList>
@@ -67,7 +67,7 @@ export function BrowserHeader({
 
             {segments.map((segment, index) => (
               <Fragment key={`${segment}-${index}`}>
-                <BreadcrumbSeparator />
+                <BreadcrumbSeparator className="text-xl">/</BreadcrumbSeparator>
                 {index === segments.length - 1 ? (
                   <BreadcrumbPage>{segment}</BreadcrumbPage>
                 ) : (

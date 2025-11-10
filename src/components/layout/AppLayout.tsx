@@ -151,25 +151,11 @@ export function AppLayout() {
         e.preventDefault()
         setSearchOpen(true)
       }
-
-      if (e.key === 'n' && (e.metaKey || e.ctrlKey) && e.shiftKey) {
-        e.preventDefault()
-        if (pathname.startsWith('/')) {
-          createNewFolder(currentFolderPath || undefined)
-        }
-      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [
-    createNewFile,
-    createNewFolder,
-    fileLength,
-    navigate,
-    pathname,
-    currentFolderPath,
-  ])
+  }, [fileLength, navigate, pathname])
 
   // Events are dispatched by the global Tauri menu item
   useEffect(() => {

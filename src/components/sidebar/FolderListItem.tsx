@@ -87,7 +87,7 @@ export function FolderListItem({
           {folderChildren.length > 0 && (
             <ul
               className={cn(
-                'border-l border-foreground/20 pl-1.5 truncate py-1',
+                'flex flex-col gap-1.5 border-l border-foreground/20 pl-1.5 truncate py-1',
                 nested ? 'pr-0' : 'pr-1',
               )}
             >

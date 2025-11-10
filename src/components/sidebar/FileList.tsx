@@ -124,7 +124,7 @@ export function FileList() {
       />
 
       <nav aria-label="File browser">
-        <ul className="flex flex-col gap-2 w-full">
+        <ul className="flex flex-col gap-1.5 w-full">
           {filesAndFolders.map((data) => {
             if (data.type === 'folder') {
               return (

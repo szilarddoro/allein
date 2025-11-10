@@ -120,20 +120,16 @@ export function AppLayout() {
         const targetFolder = folderPath || currentFolderPath || undefined
         await createFolder({ targetFolder })
         toast.success('Folder created')
-        // Reload files in browser after creating folder
-        if (pathname.startsWith('/')) {
-          window.location.reload()
-        }
       } catch {
         toast.error('Failed to create folder.')
       }
     },
-    [createFolder, toast, currentFolderPath, pathname],
+    [createFolder, toast, currentFolderPath],
   )
 
   // Global keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
       if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         navigate('/settings')
@@ -147,6 +143,15 @@ export function AppLayout() {
         }
       }
 
+      // Note: Normally, this would not be necessary, but there is a built-in handler
+      // for CMD+Shift+N that repaints the window.
+      if (e.key === 'n' && (e.metaKey || e.ctrlKey) && e.shiftKey) {
+        e.preventDefault()
+        await createFolder({
+          targetFolder: currentFolderPath || undefined,
+        })
+      }
+
       if (fileLength > 0 && e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setSearchOpen(true)
@@ -155,7 +160,7 @@ export function AppLayout() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [fileLength, navigate, pathname])
+  }, [createFolder, currentFolderPath, fileLength, navigate, pathname])
 
   // Events are dispatched by the global Tauri menu item
   useEffect(() => {

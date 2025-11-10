@@ -11,7 +11,7 @@ import { SettingsPage } from '@/pages/settings/SettingsPage'
 import '@fontsource-variable/inter'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router'
 
 const router = createBrowserRouter([
   {
@@ -29,6 +29,10 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <SettingsPage />,
+      },
+      {
+        path: '*',
+        element: <Navigate to="/" />,
       },
     ],
   },

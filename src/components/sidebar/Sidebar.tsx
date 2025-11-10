@@ -12,12 +12,13 @@ import {
 } from '@/components/ui/tooltip'
 import { H2 } from '@/components/ui/typography'
 import { FileContent } from '@/lib/files/types'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useToast } from '@/lib/useToast'
 import { FilePlus, House, PanelLeftCloseIcon } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 
 interface SidebarProps {
-  onNewFile: () => Promise<FileContent>
+  onNewFile: (folderPath?: string) => Promise<FileContent>
   onCreateFolder?: () => Promise<void>
   showIndexingProgress?: boolean
   onClose?: () => void
@@ -32,11 +33,14 @@ export function Sidebar({
   const { toast } = useToast()
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const [currentFolderPath] = useCurrentFolderPath()
   const { showContextMenu } = useSidebarContextMenu()
 
-  async function handleCreateFile() {
+  async function handleCreateFile(folderPath?: string) {
     try {
-      const { path } = await onNewFile()
+      const { path } = await onNewFile(
+        folderPath || currentFolderPath || undefined,
+      )
       navigate({
         pathname: '/editor',
         search: `?file=${encodeURIComponent(path)}&focus=true`,
@@ -102,7 +106,7 @@ export function Sidebar({
         </Button>
 
         <Button
-          onClick={handleCreateFile}
+          onClick={() => handleCreateFile()}
           className="w-full justify-start gap-2 text-left hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
           variant="ghost"
           size="sm"

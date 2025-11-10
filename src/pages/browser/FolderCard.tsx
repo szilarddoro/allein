@@ -45,7 +45,7 @@ export function FolderCard({
   }
 
   function handleContextMenu(e: MouseEvent<HTMLDivElement>) {
-    showContextMenu(e as any, {
+    showContextMenu(e as MouseEvent, {
       folderPath: folder.path,
       folderName: folder.name,
       onCreateFile: onCreateFile && (() => onCreateFile(folder.path)),

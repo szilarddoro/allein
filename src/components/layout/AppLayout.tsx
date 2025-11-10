@@ -86,22 +86,27 @@ export function AppLayout() {
     return () => document.removeEventListener('contextmenu', handleContextMenu)
   }, [])
 
-  const createNewFile = useCallback(async () => {
-    try {
-      const fileContent = await createFile({})
-      navigate(
-        {
-          pathname: '/editor',
-          search: `?file=${encodeURIComponent(fileContent.path)}&focus=true`,
-        },
-        { viewTransition: true },
-      )
-      return fileContent
-    } catch (error) {
-      toast.error('Failed to create file.')
-      throw error
-    }
-  }, [createFile, navigate, toast])
+  const createNewFile = useCallback(
+    async (folderPath?: string) => {
+      try {
+        const fileContent = await createFile({
+          targetFolder: folderPath || undefined,
+        })
+        navigate(
+          {
+            pathname: '/editor',
+            search: `?file=${encodeURIComponent(fileContent.path)}&focus=true`,
+          },
+          { viewTransition: true },
+        )
+        return fileContent
+      } catch (error) {
+        toast.error('Failed to create file.')
+        throw error
+      }
+    },
+    [createFile, navigate, toast],
+  )
 
   const createNewFolder = useCallback(async () => {
     try {

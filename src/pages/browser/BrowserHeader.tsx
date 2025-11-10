@@ -41,7 +41,7 @@ export function BrowserHeader({
       <Button
         size="icon"
         variant="default"
-        onClick={onCreateFile}
+        onClick={() => onCreateFile()}
         className={cn(
           'rounded-full text-foreground cursor-pointer',
           'bg-neutral-200 border-neutral-300/80 hover:bg-neutral-300/80',

@@ -24,6 +24,7 @@ import { CircleAlert, File, NotebookPen, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { FileCard } from './FileCard'
+import { FolderCard } from '@/pages/browser/FolderCard'
 
 export function BrowserPage() {
   const {
@@ -194,7 +195,7 @@ export function BrowserPage() {
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-16">
           {filesAndFolders.map((data) => {
             if (data.type === 'folder') {
-              return <li key={data.path}>{data.name}</li>
+              return <FolderCard key={data.path} folder={data} />
             }
 
             return (

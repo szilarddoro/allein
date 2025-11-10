@@ -33,7 +33,7 @@ export function FolderCard({ folder }: FolderCardProps) {
 
           <CardContent className="p-0 flex flex-col justify-center items-center h-full">
             <FolderClosed className="size-7 text-blue-500" />
-            <H3 className="text-sm text-muted-foreground font-medium mb-0 truncate">
+            <H3 className="text-sm font-medium mb-0 truncate">
               <span aria-hidden="true">{folder.name}</span>
 
               <span className="sr-only">

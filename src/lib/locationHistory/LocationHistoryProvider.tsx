@@ -34,29 +34,46 @@ function deduplicateAdjacent<T>(arr: T[]): T[] {
 }
 
 export function LocationHistoryProvider({ children }: PropsWithChildren) {
-  const [locationStack, setLocationStack] = useState<string[]>([])
-  const [currentIndex, setCurrentIndex] = useState(-1)
+  const locationStackRef = useRef<string[]>([])
+  const currentIndexRef = useRef(-1)
+  const [buttonStates, setButtonStates] = useState({
+    canGoBack: false,
+    canGoForward: false,
+  })
   const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const currentLocation = normalizeLocation(`${pathname}${search}`)
   const targetIndexRef = useRef<number | null>(null)
 
+  // Helper to update button states based on current ref values
+  const updateButtonStates = useCallback(() => {
+    setButtonStates({
+      canGoBack: currentIndexRef.current > 0,
+      canGoForward:
+        currentIndexRef.current < locationStackRef.current.length - 1,
+    })
+  }, [])
+
   // Track location changes and update stack
   useEffect(() => {
     // If we're already at this location, skip
-    if (locationStack[currentIndex] === currentLocation) {
+    if (locationStackRef.current[currentIndexRef.current] === currentLocation) {
       return
     }
 
     if (targetIndexRef.current !== null) {
       // This is a back/forward navigation from our own buttons
-      setCurrentIndex(targetIndexRef.current)
+      currentIndexRef.current = targetIndexRef.current
       targetIndexRef.current = null
+      updateButtonStates()
       return
     }
 
     // Manual navigation - add to stack and discard forward history
-    const newStack = locationStack.slice(0, currentIndex + 1)
+    const newStack = locationStackRef.current.slice(
+      0,
+      currentIndexRef.current + 1,
+    )
     newStack.push(currentLocation)
 
     // Limit stack size to prevent unbounded growth
@@ -64,55 +81,54 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
       newStack.splice(0, newStack.length - MAX_STACK_SIZE)
     }
 
-    setLocationStack(newStack)
-    setCurrentIndex(newStack.length - 1)
-  }, [currentLocation, currentIndex, locationStack])
+    locationStackRef.current = newStack
+    currentIndexRef.current = newStack.length - 1
+    updateButtonStates()
+  }, [currentLocation, updateButtonStates])
 
   const goBack = useCallback(() => {
-    if (currentIndex > 0) {
-      targetIndexRef.current = currentIndex - 1
-      const targetLocation = locationStack[currentIndex - 1]
+    if (currentIndexRef.current > 0) {
+      targetIndexRef.current = currentIndexRef.current - 1
+      const targetLocation =
+        locationStackRef.current[currentIndexRef.current - 1]
       navigate(targetLocation, { replace: false })
     }
-  }, [currentIndex, locationStack, navigate])
+  }, [navigate])
 
   const goForward = useCallback(() => {
-    if (currentIndex < locationStack.length - 1) {
-      targetIndexRef.current = currentIndex + 1
-      const targetLocation = locationStack[currentIndex + 1]
+    if (currentIndexRef.current < locationStackRef.current.length - 1) {
+      targetIndexRef.current = currentIndexRef.current + 1
+      const targetLocation =
+        locationStackRef.current[currentIndexRef.current + 1]
       navigate(targetLocation, { replace: false })
     }
-  }, [currentIndex, locationStack, navigate])
+  }, [navigate])
 
   const removeEntriesForFile = useCallback(
     (filePath: string) => {
-      setLocationStack((prevStack) => {
-        // Filter out entries that reference this file
-        let newStack = prevStack.filter(
-          (location) =>
-            !location.includes(`file=${encodeURIComponent(filePath)}`),
-        )
+      // Filter out entries that reference this file
+      let newStack = locationStackRef.current.filter(
+        (location) =>
+          !location.includes(`file=${encodeURIComponent(filePath)}`),
+      )
 
-        newStack = deduplicateAdjacent(newStack)
+      newStack = deduplicateAdjacent(newStack)
 
-        // Adjust currentIndex if needed
-        const newIndex = Math.min(currentIndex, newStack.length - 1)
-        setCurrentIndex(newIndex)
+      // Adjust currentIndex if needed
+      const newIndex = Math.min(currentIndexRef.current, newStack.length - 1)
+      currentIndexRef.current = newIndex
 
-        return newStack
-      })
+      locationStackRef.current = newStack
+      updateButtonStates()
     },
-    [currentIndex],
+    [updateButtonStates],
   )
-
-  const canGoBack = currentIndex > 0
-  const canGoForward = currentIndex < locationStack.length - 1
 
   return (
     <LocationHistoryContext.Provider
       value={{
-        canGoBack,
-        canGoForward,
+        canGoBack: buttonStates.canGoBack,
+        canGoForward: buttonStates.canGoForward,
         goBack,
         goForward,
         removeEntriesForFile,

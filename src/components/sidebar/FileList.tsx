@@ -3,6 +3,7 @@ import { FileDeleteConfirmDialog } from '@/components/sidebar/FileDeleteConfirmD
 import { FileListItem } from '@/components/sidebar/FileListItem'
 import { FolderListItem } from '@/components/sidebar/FolderListItem'
 import { P } from '@/components/ui/typography'
+import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
@@ -16,6 +17,7 @@ export function FileList() {
   const [currentFilePath] = useCurrentFilePath()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { mutateAsync: createFile } = useCreateFile()
   const { mutateAsync: deleteFile, status: deleteFileStatus } = useDeleteFile()
   const { mutateAsync: deleteFolder, status: deleteFolderStatus } =
     useDeleteFolder()
@@ -91,6 +93,20 @@ export function FileList() {
     setIsDeleteDialogOpen(true)
   }
 
+  async function handleCreateFileInFolder(folderPath: string) {
+    try {
+      const { path } = await createFile({
+        targetFolder: folderPath,
+      })
+      navigate({
+        pathname: '/editor',
+        search: `?file=${encodeURIComponent(path)}&focus=true`,
+      })
+    } catch {
+      toast.error('Failed to create file')
+    }
+  }
+
   return (
     <>
       <FileDeleteConfirmDialog
@@ -117,6 +133,7 @@ export function FileList() {
                   folder={data}
                   isDeletingFile={deleteStatus === 'pending'}
                   onDelete={handleDeleteRequest}
+                  onCreateFile={handleCreateFileInFolder}
                 />
               )
             }

@@ -5,6 +5,7 @@ import { useCallback } from 'react'
 interface FolderContextMenuOptions {
   folderPath: string
   folderName: string
+  onCreateFile?: () => void
   onCopyPath: () => void
   onOpenInFolder: () => void
   onDelete: () => void
@@ -22,6 +23,13 @@ export function useFolderContextMenu() {
 
       try {
         // Create menu items
+        const createFileItem = await MenuItem.new({
+          text: 'New File',
+          action: () => {
+            options.onCreateFile?.()
+          },
+        })
+
         const copyPathItem = await MenuItem.new({
           text: 'Copy Path',
           action: () => {
@@ -50,7 +58,13 @@ export function useFolderContextMenu() {
 
         // Build the menu
         const menu = await Menu.new({
-          items: [copyPathItem, openInFolderItem, separator, deleteItem],
+          items: [
+            createFileItem,
+            copyPathItem,
+            openInFolderItem,
+            separator,
+            deleteItem,
+          ],
         })
 
         // Show the context menu at cursor position

@@ -18,6 +18,7 @@ export interface FolderListItemProps {
   folder: TreeItem
   isDeletingFile?: boolean
   onDelete: (path: string, name: string, type: 'file' | 'folder') => void
+  onCreateFile?: (folderPath: string) => void
   nested?: boolean
 }
 
@@ -25,6 +26,7 @@ export function FolderListItem({
   folder,
   isDeletingFile = false,
   onDelete,
+  onCreateFile,
   nested,
 }: FolderListItemProps) {
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)
@@ -66,6 +68,7 @@ export function FolderListItem({
               showContextMenu(e, {
                 folderPath: folder.path,
                 folderName: folder.name,
+                onCreateFile: onCreateFile && (() => onCreateFile(folder.path)),
                 onCopyPath: () => handleCopyFolderPath(folder.path),
                 onOpenInFolder: () => handleOpenFolderInFinder(folder.path),
                 onDelete: () => onDelete(folder.path, folder.name, 'folder'),
@@ -106,6 +109,7 @@ export function FolderListItem({
                     folder={child}
                     isDeletingFile={isDeletingFile}
                     onDelete={onDelete}
+                    onCreateFile={onCreateFile}
                     nested
                   />
                 )

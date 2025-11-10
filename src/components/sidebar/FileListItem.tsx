@@ -52,7 +52,7 @@ export function FileListItem({
           viewTransition
           to={{
             pathname: '/editor',
-            search: `?file=${file.path}`,
+            search: `?file=${encodeURIComponent(file.path)}`,
           }}
           aria-current={currentFilePath === file.path}
           className={cn(
@@ -69,7 +69,7 @@ export function FileListItem({
               onOpen: () =>
                 navigate({
                   pathname: '/editor',
-                  search: `?file=${file.path}`,
+                  search: `?file=${encodeURIComponent(file.path)}`,
                 }),
               onCopyPath: () => handleCopyFilePath(file.path),
               onOpenInFolder: () => handleOpenInFolder(file.path),

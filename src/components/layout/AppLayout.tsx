@@ -90,7 +90,7 @@ export function AppLayout() {
       navigate(
         {
           pathname: '/editor',
-          search: `?file=${fileContent.path}&focus=true`,
+          search: `?file=${encodeURIComponent(fileContent.path)}&focus=true`,
         },
         { viewTransition: true },
       )

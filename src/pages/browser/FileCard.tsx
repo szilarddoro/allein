@@ -43,7 +43,10 @@ export function FileCard({
       <Link
         viewTransition
         key={file.path}
-        to={{ pathname: '/editor', search: `?file=${file.path}` }}
+        to={{
+          pathname: '/editor',
+          search: `?file=${encodeURIComponent(file.path)}`,
+        }}
         className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
         onContextMenu={(e) =>
           onShowContextMenu(e, {
@@ -52,7 +55,7 @@ export function FileCard({
             onOpen: () =>
               navigate({
                 pathname: '/editor',
-                search: `?file=${file.path}`,
+                search: `?file=${encodeURIComponent(file.path)}`,
               }),
             onCopyPath: () => onCopyFilePath(file.path),
             onOpenInFolder: () => onOpenInFolder(file.path),

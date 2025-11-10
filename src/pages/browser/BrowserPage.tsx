@@ -54,7 +54,7 @@ export function BrowserPage() {
       })
       navigate({
         pathname: '/editor',
-        search: `?file=${path}&focus=true`,
+        search: `?file=${encodeURIComponent(path)}&focus=true`,
       })
     } catch {
       toast.error('Failed to create file')

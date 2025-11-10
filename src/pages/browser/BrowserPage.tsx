@@ -206,7 +206,7 @@ export function BrowserPage() {
 
       <nav
         aria-label="File browser"
-        className="scroll-mt-0"
+        className="scroll-mt-0 flex-1 min-h-0"
         onContextMenu={(e) =>
           showBackgroundContextMenu(e, {
             onCreateFile: () => handleCreateFile(),

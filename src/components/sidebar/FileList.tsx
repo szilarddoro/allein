@@ -14,7 +14,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 export function FileList() {
-  const { data: filesAndFolders, status, error } = useFilesAndFolders()
+  const { data: filesAndFolders, status, error, refetch } = useFilesAndFolders()
   const [currentFilePath] = useCurrentFilePath()
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -115,6 +115,7 @@ export function FileList() {
         targetFolder: folderPath,
       })
       toast.success('Folder created')
+      refetch()
     } catch {
       toast.error('Failed to create folder')
     }

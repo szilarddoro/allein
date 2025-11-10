@@ -14,21 +14,21 @@ import { Button } from '@/components/ui/button'
 import { H1, P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCreateFile } from '@/lib/files/useCreateFile'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
 import { FolderCard } from '@/pages/browser/FolderCard'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { CircleAlert, File, Plus } from 'lucide-react'
+import { CircleAlert } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
-import { FileCard } from './FileCard'
+import { useNavigate } from 'react-router'
 import { BrowserHeader } from './BrowserHeader'
+import { FileCard } from './FileCard'
 
 export function BrowserPage() {
-  const [searchParams] = useSearchParams()
-  const currentFolderPath = searchParams.get('folder') || undefined
+  const [currentFolderPath] = useCurrentFolderPath()
 
   const {
     data: filesAndFolders,
@@ -100,7 +100,9 @@ export function BrowserPage() {
   if (status === 'pending') {
     return (
       <div className="flex-1 overflow-hidden flex justify-center items-center">
-        <DelayedActivityIndicator>Loading files...</DelayedActivityIndicator>
+        <DelayedActivityIndicator>
+          Loading files and folders...
+        </DelayedActivityIndicator>
       </div>
     )
   }
@@ -110,35 +112,25 @@ export function BrowserPage() {
       <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
         <P className="text-destructive flex flex-row gap-1 items-center text-sm">
           <CircleAlert className="size-4" />
-          An error occurred while loading files.
+          An error occurred while loading files and folders.
         </P>
 
-        <Button onClick={() => reloadFiles()}>Reload files</Button>
+        <Button onClick={() => reloadFiles()}>Reload</Button>
       </div>
     )
   }
 
   if (filesAndFolders.length === 0) {
     return (
-      <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
-        <div className="p-2 rounded-lg bg-muted text-muted-foreground">
-          <File className="size-8" />
-        </div>
+      <>
+        <BrowserHeader onCreateFile={handleCreateFile} />
 
-        <div className="flex flex-col gap-1 mt-1 mb-4">
-          <H1 className="text-base text-muted-foreground px-2 text-center font-medium !my-0">
+        <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
+          <H1 className="text-sm text-muted-foreground px-2 text-center font-normal !my-0">
             This folder is empty
           </H1>
-
-          <P className="!my-0 text-muted-foreground text-sm">
-            Click the button below to take your first note.
-          </P>
         </div>
-
-        <Button size="sm" onClick={handleCreateFile}>
-          <Plus className="size-4" /> New file
-        </Button>
-      </div>
+      </>
     )
   }
 

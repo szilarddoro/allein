@@ -8,5 +8,8 @@ export function useCurrentFolderPath() {
     setSearchParams(searchParams)
   }
 
-  return [searchParams.get('folder') || '', updateCurrentFolder] as const
+  return [
+    decodeURIComponent(searchParams.get('folder') || ''),
+    updateCurrentFolder,
+  ] as const
 }

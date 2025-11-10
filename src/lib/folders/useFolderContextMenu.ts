@@ -6,6 +6,7 @@ interface FolderContextMenuOptions {
   folderPath: string
   folderName: string
   onCreateFile?: () => void
+  onCreateFolder?: () => void
   onCopyPath: () => void
   onOpenInFolder: () => void
   onDelete: () => void
@@ -27,6 +28,13 @@ export function useFolderContextMenu() {
           text: 'New File',
           action: () => {
             options.onCreateFile?.()
+          },
+        })
+
+        const createFolderItem = await MenuItem.new({
+          text: 'New Folder',
+          action: () => {
+            options.onCreateFolder?.()
           },
         })
 
@@ -60,6 +68,7 @@ export function useFolderContextMenu() {
         const menu = await Menu.new({
           items: [
             createFileItem,
+            createFolderItem,
             separator,
             copyPathItem,
             openInFolderItem,

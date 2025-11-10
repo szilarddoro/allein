@@ -188,7 +188,7 @@ export function FileNameEditor({
             >
               <TriangleAlert className="w-3 h-3" />
               {fileNameValidationErrorType === 'invalid'
-                ? 'File name is invalid.'
+                ? "File name can't contain these characters: \\ / :"
                 : 'File name is already taken.'}
             </div>
           )}

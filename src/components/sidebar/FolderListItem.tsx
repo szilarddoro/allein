@@ -19,6 +19,7 @@ export interface FolderListItemProps {
   isDeletingFile?: boolean
   onDelete: (path: string, name: string, type: 'file' | 'folder') => void
   onCreateFile?: (folderPath: string) => void
+  onCreateFolder?: (folderPath: string) => void
   nested?: boolean
 }
 
@@ -27,6 +28,7 @@ export function FolderListItem({
   isDeletingFile = false,
   onDelete,
   onCreateFile,
+  onCreateFolder,
   nested,
 }: FolderListItemProps) {
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)
@@ -69,6 +71,8 @@ export function FolderListItem({
                 folderPath: folder.path,
                 folderName: folder.name,
                 onCreateFile: onCreateFile && (() => onCreateFile(folder.path)),
+                onCreateFolder:
+                  onCreateFolder && (() => onCreateFolder(folder.path)),
                 onCopyPath: () => handleCopyFolderPath(folder.path),
                 onOpenInFolder: () => handleOpenFolderInFinder(folder.path),
                 onDelete: () => onDelete(folder.path, folder.name, 'folder'),
@@ -110,6 +114,7 @@ export function FolderListItem({
                     isDeletingFile={isDeletingFile}
                     onDelete={onDelete}
                     onCreateFile={onCreateFile}
+                    onCreateFolder={onCreateFolder}
                     nested
                   />
                 )

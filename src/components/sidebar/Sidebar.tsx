@@ -1,5 +1,6 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import { FileList } from '@/components/sidebar/FileList'
+import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
@@ -10,10 +11,9 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { H2 } from '@/components/ui/typography'
-import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { FileContent } from '@/lib/files/types'
 import { useToast } from '@/lib/useToast'
-import { FilePlus, Files, PanelLeftCloseIcon } from 'lucide-react'
+import { FilePlus, House, PanelLeftCloseIcon } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 
 interface SidebarProps {
@@ -39,7 +39,7 @@ export function Sidebar({
       const { path } = await onNewFile()
       navigate({
         pathname: '/editor',
-        search: `?file=${path}&focus=true`,
+        search: `?file=${encodeURIComponent(path)}&focus=true`,
       })
     } catch {
       toast.error('Failed to create file')
@@ -95,8 +95,8 @@ export function Sidebar({
             className="flex items-center gap-2 w-full text-left justify-start cursor-default hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
             aria-current={pathname === '/'}
           >
-            <Files className="size-4" />
-            <span aria-hidden="true">All Files</span>
+            <House className="size-4" />
+            <span aria-hidden="true">Home</span>
             <span className="sr-only">Go to the file list</span>
           </Link>
         </Button>

@@ -17,7 +17,11 @@ import {
 import { useLocationHistory } from '@/lib/useLocationHistory'
 import { useWindowState } from '@/lib/useWindowState'
 import { useAIFeatures } from '@/lib/ai/useAIFeatures'
-import { CURRENT_PLATFORM, NEW_FILE_MENU_EVENT } from '@/lib/constants'
+import {
+  CURRENT_PLATFORM,
+  NEW_FILE_MENU_EVENT,
+  NEW_FOLDER_MENU_EVENT,
+} from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
@@ -110,13 +114,22 @@ export function AppLayout() {
     [createFile, navigate, toast],
   )
 
-  const createNewFolder = useCallback(async () => {
-    try {
-      await createFolder({})
-    } catch {
-      toast.error('Failed to create folder.')
-    }
-  }, [createFolder, toast])
+  const createNewFolder = useCallback(
+    async (folderPath?: string) => {
+      try {
+        const targetFolder = folderPath || currentFolderPath || undefined
+        await createFolder({ targetFolder })
+        toast.success('Folder created')
+        // Reload files in browser after creating folder
+        if (pathname.startsWith('/')) {
+          window.location.reload()
+        }
+      } catch {
+        toast.error('Failed to create folder.')
+      }
+    },
+    [createFolder, toast, currentFolderPath, pathname],
+  )
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -138,11 +151,25 @@ export function AppLayout() {
         e.preventDefault()
         setSearchOpen(true)
       }
+
+      if (e.key === 'n' && (e.metaKey || e.ctrlKey) && e.shiftKey) {
+        e.preventDefault()
+        if (pathname.startsWith('/')) {
+          createNewFolder(currentFolderPath || undefined)
+        }
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [createNewFile, fileLength, navigate, pathname, currentFolderPath])
+  }, [
+    createNewFile,
+    createNewFolder,
+    fileLength,
+    navigate,
+    pathname,
+    currentFolderPath,
+  ])
 
   // Events are dispatched by the global Tauri menu item
   useEffect(() => {
@@ -154,6 +181,16 @@ export function AppLayout() {
     return () =>
       window.removeEventListener(NEW_FILE_MENU_EVENT, handleCreateNewFile)
   }, [createNewFile, currentFolderPath])
+
+  useEffect(() => {
+    const handleCreateNewFolder = async () => {
+      await createNewFolder(currentFolderPath || undefined)
+    }
+
+    window.addEventListener(NEW_FOLDER_MENU_EVENT, handleCreateNewFolder)
+    return () =>
+      window.removeEventListener(NEW_FOLDER_MENU_EVENT, handleCreateNewFolder)
+  }, [createNewFolder, currentFolderPath])
 
   function getSidebarDefaultSize() {
     if (isExtraLargeScreen) {

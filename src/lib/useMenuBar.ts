@@ -10,6 +10,7 @@ import { openUrl } from '@tauri-apps/plugin-opener'
 import { toast } from 'sonner'
 import {
   NEW_FILE_MENU_EVENT,
+  NEW_FOLDER_MENU_EVENT,
   REDO_MENU_EVENT,
   UNDO_MENU_EVENT,
 } from '@/lib/constants'
@@ -17,6 +18,7 @@ import { openFolderPicker } from '@/lib/folders/useOpenFolderPicker'
 import { useSetFolder } from '@/lib/folders/useSetFolder'
 
 const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
+const newFolderEvent = new CustomEvent(NEW_FOLDER_MENU_EVENT)
 const undoEvent = new CustomEvent(UNDO_MENU_EVENT)
 const redoEvent = new CustomEvent(REDO_MENU_EVENT)
 
@@ -84,6 +86,13 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
               accelerator: 'CmdOrCtrl+N',
               action() {
                 window.dispatchEvent(newFileEvent)
+              },
+            }),
+            await MenuItem.new({
+              text: 'New Folder',
+              accelerator: 'CmdOrCtrl+Shift+N',
+              action() {
+                window.dispatchEvent(newFolderEvent)
               },
             }),
             separator,

@@ -19,7 +19,7 @@ import { useLocation, useNavigate } from 'react-router'
 
 interface SidebarProps {
   onNewFile: (folderPath?: string) => Promise<FileContent>
-  onCreateFolder?: () => Promise<void>
+  onCreateFolder?: (folderPath?: string) => Promise<void>
   showIndexingProgress?: boolean
   onClose?: () => void
 }

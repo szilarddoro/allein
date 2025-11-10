@@ -236,6 +236,39 @@ async fn create_file(folder_path: Option<String>) -> Result<FileContent, String>
 }
 
 #[tauri::command]
+async fn create_folder(folder_path: Option<String>) -> Result<String, String> {
+    let target_dir = if let Some(path) = folder_path {
+        let path_buf = PathBuf::from(&path);
+
+        // Validate that the path exists and is a directory
+        if !path_buf.exists() || !path_buf.is_dir() {
+            return Err("Folder does not exist".to_string());
+        }
+
+        path_buf
+    } else {
+        get_docs_dir()?
+    };
+
+    // Find the next available untitled folder number
+    let mut counter = 1;
+    let mut new_folder_path;
+    loop {
+        new_folder_path = target_dir.join(format!("Untitled Folder {}", counter));
+        if !new_folder_path.exists() {
+            break;
+        }
+        counter += 1;
+    }
+
+    // Create folder
+    fs::create_dir(&new_folder_path)
+        .map_err(|e| format!("Failed to create folder: {}", e))?;
+
+    Ok(new_folder_path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
 async fn delete_file(file_path: String) -> Result<(), String> {
     fs::remove_file(&file_path).map_err(|e| format!("Failed to delete file: {}", e))?;
 

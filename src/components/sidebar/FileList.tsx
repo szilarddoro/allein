@@ -114,7 +114,6 @@ export function FileList() {
       await createFolder({
         targetFolder: folderPath,
       })
-      toast.success('Folder created')
       refetch()
     } catch {
       toast.error('Failed to create folder')

@@ -71,11 +71,17 @@ export function BrowserPage() {
 
   async function handleCreateFolder(folderPath?: string) {
     try {
-      await createFolder({
-        targetFolder: folderPath || currentFolderPath || undefined,
-      })
-      toast.success('Folder created')
+      const targetFolder = folderPath || currentFolderPath || undefined
+      await createFolder({ targetFolder })
+
       reloadFiles()
+
+      if (targetFolder) {
+        navigate({
+          pathname: '/',
+          search: `?folder=${encodeURIComponent(targetFolder)}`,
+        })
+      }
     } catch {
       toast.error('Failed to create folder')
     }

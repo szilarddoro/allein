@@ -113,7 +113,6 @@ export function AppLayout() {
   const createNewFolder = useCallback(async () => {
     try {
       await createFolder({})
-      toast.success('Folder created')
     } catch {
       toast.error('Failed to create folder.')
     }

@@ -11,7 +11,14 @@ interface UseFilesAndFoldersReturn {
 }
 
 // Query key for files and folders tree
-export const FILES_AND_FOLDERS_TREE_QUERY_KEY = () => ['files-and-folders-tree']
+export const FILES_AND_FOLDERS_TREE_QUERY_KEY = (
+  folderPath: string | undefined = undefined,
+) => {
+  if (folderPath) {
+    return ['files-and-folders-tree', folderPath]
+  }
+  return ['files-and-folders-tree']
+}
 
 /**
  * Flatten a tree structure to get all files (for backwards compatibility)
@@ -63,14 +70,19 @@ function sortTreeItems(items: TreeItem[]): TreeItem[] {
   })
 }
 
-/**
- * Unified hook for fetching both files and folders as a tree structure
- * @returns Files and folders in a nested tree structure with folders sorted first
- */
-export function useFilesAndFolders(): UseFilesAndFoldersReturn {
+export interface UseFilesAndFoldersProps {
+  currentFolderPath?: string
+}
+
+export function useFilesAndFolders({
+  currentFolderPath,
+}: UseFilesAndFoldersProps = {}): UseFilesAndFoldersReturn {
   const query = useQuery({
-    queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(),
-    queryFn: () => invoke<TreeItem[]>('list_files_and_folders_tree'),
+    queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(currentFolderPath),
+    queryFn: () =>
+      invoke<TreeItem[]>('list_files_and_folders_tree', {
+        folderPath: currentFolderPath || null,
+      }),
     retry: 3,
     refetchOnMount: 'always',
   })

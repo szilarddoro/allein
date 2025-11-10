@@ -22,16 +22,19 @@ import { cn } from '@/lib/utils'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { CircleAlert, File, NotebookPen, Plus } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { FileCard } from './FileCard'
 import { FolderCard } from '@/pages/browser/FolderCard'
 
 export function BrowserPage() {
+  const [searchParams] = useSearchParams()
+  const currentFolderPath = searchParams.get('folder') || undefined
+
   const {
     data: filesAndFolders,
     status,
     refetch: reloadFiles,
-  } = useFilesAndFolders()
+  } = useFilesAndFolders({ currentFolderPath })
   const { mutateAsync: createFile } = useCreateFile()
   const { mutateAsync: deleteFile, isPending: isDeletingFile } = useDeleteFile()
 

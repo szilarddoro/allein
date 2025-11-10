@@ -119,7 +119,6 @@ export function AppLayout() {
       try {
         const targetFolder = folderPath || currentFolderPath || undefined
         await createFolder({ targetFolder })
-        toast.success('Folder created')
       } catch {
         toast.error('Failed to create folder.')
       }
@@ -129,7 +128,7 @@ export function AppLayout() {
 
   // Global keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         navigate('/settings')
@@ -141,15 +140,6 @@ export function AppLayout() {
         if (pathname.startsWith('/editor')) {
           navigate('/')
         }
-      }
-
-      // Note: Normally, this would not be necessary, but there is a built-in handler
-      // for CMD+Shift+N that repaints the window.
-      if (e.key === 'n' && (e.metaKey || e.ctrlKey) && e.shiftKey) {
-        e.preventDefault()
-        await createFolder({
-          targetFolder: currentFolderPath || undefined,
-        })
       }
 
       if (fileLength > 0 && e.key === 'k' && (e.metaKey || e.ctrlKey)) {

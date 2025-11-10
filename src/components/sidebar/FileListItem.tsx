@@ -12,16 +12,16 @@ import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
 export interface FileListItemProps {
   file: FileInfo
-  deletePending?: boolean
-  onDelete: () => void
   className?: string
+  isDeletingFile?: boolean
+  onDelete: (path: string, name: string, type: 'file' | 'folder') => void
 }
 
 export function FileListItem({
   file,
-  deletePending = false,
-  onDelete,
   className,
+  isDeletingFile = false,
+  onDelete,
 }: FileListItemProps) {
   const [currentFilePath] = useCurrentFilePath()
   const { showContextMenu } = useFileContextMenu()
@@ -73,8 +73,8 @@ export function FileListItem({
                 }),
               onCopyPath: () => handleCopyFilePath(file.path),
               onOpenInFolder: () => handleOpenInFolder(file.path),
-              onDelete: () => onDelete(),
-              isDeletingFile: deletePending,
+              onDelete: () => onDelete(file.path, file.name, 'file'),
+              isDeletingFile,
             })
           }
         >

@@ -6,16 +6,24 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { TreeItem } from '@/lib/files/types'
+import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
 import { cn } from '@/lib/utils'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 
 export interface FolderListItemProps {
   folder: TreeItem
+  isDeletingFile?: boolean
+  onDelete: (path: string, name: string, type: 'file' | 'folder') => void
 }
 
-export function FolderListItem({ folder }: FolderListItemProps) {
+export function FolderListItem({
+  folder,
+  isDeletingFile = false,
+  onDelete,
+}: FolderListItemProps) {
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)
+  const { showContextMenu } = useFileContextMenu()
 
   if (folder.type !== 'folder') {
     return null
@@ -30,7 +38,18 @@ export function FolderListItem({ folder }: FolderListItemProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start flex items-center gap-2 !p-2 rounded-md cursor-default transition-colors"
+            className="w-full justify-start flex items-center gap-2 !p-2 rounded-md cursor-default transition-colors hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
+            onContextMenu={(e) =>
+              showContextMenu(e, {
+                filePath: folder.path,
+                fileName: folder.name,
+                onOpen: () => {},
+                onCopyPath: () => {},
+                onOpenInFolder: () => {},
+                onDelete: () => onDelete(folder.path, folder.name, 'folder'),
+                isDeletingFile,
+              })
+            }
           >
             {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
             {folder.name}
@@ -48,12 +67,20 @@ export function FolderListItem({ folder }: FolderListItemProps) {
                     <FileListItem
                       key={child.path}
                       file={child}
-                      onDelete={() => {}}
+                      isDeletingFile={isDeletingFile}
+                      onDelete={onDelete}
                     />
                   )
                 }
 
-                return <FolderListItem key={child.path} folder={child} />
+                return (
+                  <FolderListItem
+                    key={child.path}
+                    folder={child}
+                    isDeletingFile={isDeletingFile}
+                    onDelete={onDelete}
+                  />
+                )
               })}
             </ul>
           )}

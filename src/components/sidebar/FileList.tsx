@@ -19,6 +19,7 @@ export function FileList() {
   const [fileToDelete, setFileToDelete] = useState<{
     path: string
     name: string
+    type: 'file' | 'folder'
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
@@ -67,10 +68,19 @@ export function FileList() {
     )
   }
 
+  function handleDeleteRequest(
+    path: string,
+    name: string,
+    type: 'file' | 'folder',
+  ) {
+    setFileToDelete({ path, name, type })
+    setIsDeleteDialogOpen(true)
+  }
+
   return (
     <>
       <FileDeleteConfirmDialog
-        fileToDelete={fileToDelete}
+        itemToDelete={fileToDelete}
         open={isDeleteDialogOpen}
         onSubmit={confirmDeleteFile}
         deletePending={deleteStatus === 'pending'}
@@ -87,18 +97,22 @@ export function FileList() {
         <ul className="flex flex-col gap-2 w-full">
           {filesAndFolders.map((data) => {
             if (data.type === 'folder') {
-              return <FolderListItem key={data.path} folder={data} />
+              return (
+                <FolderListItem
+                  key={data.path}
+                  folder={data}
+                  isDeletingFile={deleteStatus === 'pending'}
+                  onDelete={handleDeleteRequest}
+                />
+              )
             }
 
             return (
               <FileListItem
                 key={data.path}
                 file={data}
-                deletePending={deleteStatus === 'pending'}
-                onDelete={() => {
-                  setFileToDelete({ path: data.path, name: data.name })
-                  setIsDeleteDialogOpen(true)
-                }}
+                isDeletingFile={deleteStatus === 'pending'}
+                onDelete={handleDeleteRequest}
               />
             )
           })}

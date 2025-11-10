@@ -20,6 +20,7 @@ import { useAIFeatures } from '@/lib/ai/useAIFeatures'
 import { CURRENT_PLATFORM, NEW_FILE_MENU_EVENT } from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
@@ -51,6 +52,7 @@ export function AppLayout() {
   const { isFullscreen } = useWindowState()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const [currentFolderPath] = useCurrentFolderPath()
   const { toast } = useToast()
   const { data: progress, status: progressStatus } = useOnboardingProgress()
   const { data: files, status: filesStatus } = useFilesAndFolders()
@@ -140,24 +142,26 @@ export function AppLayout() {
 
       if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
-        await createNewFile()
+        if (pathname.startsWith('/')) {
+          await createNewFile(currentFolderPath || undefined)
+        }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [createNewFile, fileLength, navigate, pathname])
+  }, [createNewFile, fileLength, navigate, pathname, currentFolderPath])
 
   // Events are dispatched by the global Tauri menu item
   useEffect(() => {
     const handleCreateNewFile = async () => {
-      await createNewFile()
+      await createNewFile(currentFolderPath || undefined)
     }
 
     window.addEventListener(NEW_FILE_MENU_EVENT, handleCreateNewFile)
     return () =>
       window.removeEventListener(NEW_FILE_MENU_EVENT, handleCreateNewFile)
-  }, [createNewFile, toast])
+  }, [createNewFile, currentFolderPath])
 
   function getSidebarDefaultSize() {
     if (isExtraLargeScreen) {

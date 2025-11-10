@@ -5,6 +5,7 @@ import { FolderListItem } from '@/components/sidebar/FolderListItem'
 import { P } from '@/components/ui/typography'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
+import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useToast } from '@/lib/useToast'
 import { useState } from 'react'
@@ -15,7 +16,9 @@ export function FileList() {
   const [currentFilePath] = useCurrentFilePath()
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { mutateAsync: deleteFile, status: deleteStatus } = useDeleteFile()
+  const { mutateAsync: deleteFile, status: deleteFileStatus } = useDeleteFile()
+  const { mutateAsync: deleteFolder, status: deleteFolderStatus } =
+    useDeleteFolder()
   const [fileToDelete, setFileToDelete] = useState<{
     path: string
     name: string
@@ -23,18 +26,33 @@ export function FileList() {
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  async function confirmDeleteFile() {
+  const deleteStatus =
+    deleteFileStatus === 'pending' || deleteFolderStatus === 'pending'
+      ? 'pending'
+      : 'idle'
+
+  async function confirmDeleteItem() {
     if (!fileToDelete) return
 
     try {
-      await deleteFile(fileToDelete.path)
+      if (fileToDelete.type === 'folder') {
+        await deleteFolder(fileToDelete.path)
+      } else {
+        await deleteFile(fileToDelete.path)
+      }
 
       // Navigate to home if deleting the currently edited file
       if (currentFilePath === fileToDelete.path) {
         navigate('/')
       }
+
+      toast.success(
+        `${fileToDelete.type === 'folder' ? 'Folder' : 'File'} deleted successfully`,
+      )
     } catch {
-      toast.error('Failed to delete file')
+      toast.error(
+        `Failed to delete ${fileToDelete.type === 'folder' ? 'folder' : 'file'}`,
+      )
     } finally {
       setIsDeleteDialogOpen(false)
 
@@ -82,7 +100,7 @@ export function FileList() {
       <FileDeleteConfirmDialog
         itemToDelete={fileToDelete}
         open={isDeleteDialogOpen}
-        onSubmit={confirmDeleteFile}
+        onSubmit={confirmDeleteItem}
         deletePending={deleteStatus === 'pending'}
         onOpenChange={(open) => {
           if (!open) {

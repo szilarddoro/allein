@@ -20,6 +20,9 @@ import {
   flattenTreeItems,
 } from '@/lib/files/useFilesAndFolders'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
+import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
+import { useNavigate } from 'react-router'
 
 export interface FolderListItemProps {
   folder: TreeItem
@@ -60,6 +63,9 @@ export function FolderListItem({
   const existingFiles = flattenTreeItems(filesAndFolders)
   const { removeEntriesForFolder } = useLocationHistory()
   const isEditing = editingFilePath === folder.path
+  const [currentFolderPath] = useCurrentFolderPath()
+  const [currentFilePath] = useCurrentFilePath()
+  const navigate = useNavigate()
 
   const handleSubmitNewName = useCallback(
     async (newName: string) => {
@@ -82,6 +88,21 @@ export function FolderListItem({
 
         if (oldPath) {
           removeEntriesForFolder(oldPath)
+
+          // Handle redirects if renaming affects current location
+          // Check if current folder is the renamed folder or a descendant
+          const isCurrentFolderAffected =
+            currentFolderPath === oldPath ||
+            (currentFolderPath?.startsWith(oldPath + '/') ?? false)
+
+          // Check if current file is in the renamed folder or its descendants
+          const isCurrentFileAffected =
+            currentFilePath?.startsWith(oldPath + '/') ?? false
+
+          if (isCurrentFolderAffected || isCurrentFileAffected) {
+            // Redirect to home if viewing renamed folder or editing a file in renamed folder
+            navigate('/')
+          }
         }
       } catch {
         // We're rendering the error on the UI
@@ -95,6 +116,9 @@ export function FolderListItem({
       existingFiles,
       removeEntriesForFolder,
       onCancelEdit,
+      currentFolderPath,
+      currentFilePath,
+      navigate,
     ],
   )
 

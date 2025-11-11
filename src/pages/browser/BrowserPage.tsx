@@ -16,6 +16,7 @@ import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
+import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
@@ -40,6 +41,7 @@ import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 export function BrowserPage() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
   const [currentFolderPath] = useCurrentFolderPath()
+  const [currentFilePath] = useCurrentFilePath()
   const {
     data: filesAndFolders,
     status,
@@ -205,6 +207,26 @@ export function BrowserPage() {
           }
         }
 
+        // Handle redirects if renaming affects current location
+        if (itemToRename.type === 'folder') {
+          // Check if current folder is the renamed folder or a descendant
+          const isCurrentFolderAffected =
+            currentFolderPath === oldPath ||
+            (currentFolderPath?.startsWith(oldPath + '/') ?? false)
+
+          // Check if current file is in the renamed folder or its descendants
+          const isCurrentFileAffected =
+            currentFilePath?.startsWith(oldPath + '/') ?? false
+
+          if (isCurrentFolderAffected) {
+            // Redirect browser to home if viewing renamed folder
+            navigate('/')
+          } else if (isCurrentFileAffected) {
+            // Redirect editor to home if editing a file in renamed folder
+            navigate('/')
+          }
+        }
+
         reloadFiles()
 
         setTimeout(() => setItemToRename(null), 150)
@@ -220,6 +242,9 @@ export function BrowserPage() {
       reloadFiles,
       removeEntriesForFile,
       removeEntriesForFolder,
+      currentFolderPath,
+      currentFilePath,
+      navigate,
     ],
   )
 

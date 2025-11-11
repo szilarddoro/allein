@@ -30,6 +30,7 @@ import { useNavigate } from 'react-router'
 import { BrowserHeader } from './BrowserHeader'
 import { FileCard } from './FileCard'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
 export function BrowserPage() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
@@ -90,7 +91,7 @@ export function BrowserPage() {
 
   async function handleCopyFilePath(filePath: string) {
     try {
-      await navigator.clipboard.writeText(filePath)
+      await writeText(filePath)
       toast.success('Copied to clipboard')
     } catch {
       toast.error('Failed to copy file path')

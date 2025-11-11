@@ -10,13 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { H1, P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
@@ -34,13 +27,13 @@ import { useRenameFile } from '@/lib/files/useRenameFile'
 import { useToast } from '@/lib/useToast'
 import { FolderCard } from '@/pages/browser/FolderCard'
 import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
-import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { CircleAlert } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { BrowserHeader } from './BrowserHeader'
 import { FileCard } from './FileCard'
+import { FileRenameDialog } from './FileRenameDialog'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
@@ -303,33 +296,13 @@ export function BrowserPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog
-        open={isRenameDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            handleCancelRename()
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Rename File</DialogTitle>
-            <DialogDescription>
-              Enter a new name for &quot;
-              {fileToRename ? getDisplayName(fileToRename.name) : ''}&quot;
-            </DialogDescription>
-          </DialogHeader>
-          {fileToRename && (
-            <ItemRenameInput
-              itemName={getDisplayName(fileToRename.name)}
-              onSubmit={handleSubmitRename}
-              onCancel={handleCancelRename}
-              editing={isRenameDialogOpen}
-              error={renameError}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      <FileRenameDialog
+        isOpen={isRenameDialogOpen}
+        fileName={fileToRename?.name ?? null}
+        error={renameError}
+        onSubmit={handleSubmitRename}
+        onCancel={handleCancelRename}
+      />
 
       <BrowserHeader onCreateFile={handleCreateFile} />
 

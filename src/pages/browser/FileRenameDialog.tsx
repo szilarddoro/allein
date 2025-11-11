@@ -8,12 +8,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { getDisplayName } from '@/lib/files/fileUtils'
 
 export interface FileRenameDialogProps {
@@ -91,12 +86,6 @@ export function FileRenameDialog({
               disabled={!isOpen}
               className="text-sm"
             />
-
-            {!error && (
-              <FieldDescription>
-                The .md extension will be added automatically
-              </FieldDescription>
-            )}
 
             {error && (
               <FieldError id="file-name-error">{error.message}</FieldError>

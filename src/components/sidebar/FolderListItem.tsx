@@ -176,7 +176,7 @@ export function FolderListItem({
       ref={setNodeRef}
       className={cn(
         'w-full motion-safe:transition-colors',
-        isOver && 'bg-accent/90 dark:bg-accent/70 rounded-md',
+        isOver && 'bg-neutral-200/40 dark:bg-neutral-700/40 rounded-md',
       )}
     >
       <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>

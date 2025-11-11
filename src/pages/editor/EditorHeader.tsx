@@ -56,6 +56,7 @@ export function EditorHeader({
             'size-9 flex items-center justify-center motion-safe:transition-opacity opacity-0',
             showIndicator && 'opacity-100',
           )}
+          aria-hidden={!showIndicator}
         >
           <ActivityIndicator srOnly>
             Inline completion loading

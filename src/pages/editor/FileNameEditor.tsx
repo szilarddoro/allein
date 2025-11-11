@@ -1,3 +1,4 @@
+import { AlertText } from '@/components/AlertText'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -15,7 +16,6 @@ import { useToast } from '@/lib/useToast'
 import { useFileNameContextMenu } from '@/pages/editor/useFileNameContextMenu'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { TriangleAlert } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -43,6 +43,7 @@ export function FileNameEditor({
   const [isEditingFileName, setIsEditingFileName] = useState(false)
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const fileNameInputRef = useRef<HTMLInputElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   // Sync file name when current file changes
   useEffect(() => {
@@ -108,6 +109,10 @@ export function FileNameEditor({
 
       setIsEditingFileName(false)
       onFileRenamed(newPath, oldPath)
+
+      requestAnimationFrame(() => {
+        buttonRef.current?.focus()
+      })
     } catch {
       // We're rendering the error on the UI
     }
@@ -142,10 +147,6 @@ export function FileNameEditor({
     <div className="relative flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto ml-1">
       {isEditingFileName ? (
         <>
-          <label className="sr-only" htmlFor="file-name">
-            File name
-          </label>
-
           <input
             ref={fileNameInputRef}
             id="file-name"
@@ -159,18 +160,17 @@ export function FileNameEditor({
             autoCorrect="off"
             aria-invalid={error != null}
             aria-describedby="file-name-error"
-            aria-label="File name"
+            aria-label="Edit file name"
             autoFocus
           />
 
           {error && (
-            <div
+            <AlertText
               id="file-name-error"
-              className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-950 dark:border-yellow-700 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-400 font-normal z-1000"
+              className="absolute -bottom-1 left-0 translate-y-full z-1000"
             >
-              <TriangleAlert className="w-3 h-3" />
               {error.message}
-            </div>
+            </AlertText>
           )}
         </>
       ) : (
@@ -184,6 +184,7 @@ export function FileNameEditor({
             className="cursor-pointer hover:text-foreground transition-colors focus:outline-none focus:ring-[3px] focus:ring-ring/50 rounded"
           >
             <Button
+              ref={buttonRef}
               variant="ghost"
               size="sm"
               onClick={handleFileNameClick}

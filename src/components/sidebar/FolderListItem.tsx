@@ -71,6 +71,12 @@ export function FolderListItem({
   const [currentFolderPath, updateCurrentFolderPath] = useCurrentFolderPath()
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
 
+  useEffect(() => {
+    if (isOver) {
+      setCollapsibleOpen(true)
+    }
+  }, [isOver])
+
   const handleSubmitNewName = useCallback(
     async (newName: string) => {
       if (newName.trim() === friendlyFolderName) {
@@ -168,7 +174,7 @@ export function FolderListItem({
       ref={setNodeRef}
       className={cn(
         'w-full motion-safe:transition-colors',
-        isOver && 'bg-accent/70 rounded-md',
+        isOver && 'bg-accent/90 dark:bg-accent/70 rounded-md',
       )}
     >
       <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>

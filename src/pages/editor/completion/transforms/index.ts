@@ -5,8 +5,6 @@
  * Licensed under Apache License 2.0
  */
 
-import { isRepetitive } from '../repetitionFilter'
-
 export type Transform = (
   text: string,
   context: TransformContext,
@@ -97,38 +95,6 @@ export const normalizeMarkdown: Transform = (text) => {
 }
 
 /**
- * Filter out very short completions
- */
-export const filterShortCompletions: Transform = (text) => {
-  if (!text) return null
-
-  const trimmed = text.trim()
-
-  // Reject if less than 2 characters or no alphanumeric content
-  if (trimmed.length < 2 || !/[a-zA-Z0-9]/.test(trimmed)) {
-    return null
-  }
-
-  // Validation passed, return original text with formatting preserved
-  return text
-}
-
-/**
- * Filter repetitive completions
- */
-export const filterRepetitiveText: Transform = (text, context) => {
-  if (!text) return null
-
-  const fullContext = context.prefix + context.suffix
-
-  if (isRepetitive(text, fullContext)) {
-    return null
-  }
-
-  return text
-}
-
-/**
  * Apply capitalization rules
  */
 export const applyCapitalization: Transform = (text, context) => {
@@ -201,8 +167,6 @@ export const defaultTransforms: Transform[] = [
   removeOutputPrefix,
   removeModelQuirks,
   normalizeMarkdown,
-  filterShortCompletions,
-  filterRepetitiveText,
   applyCapitalization,
 ]
 

@@ -330,7 +330,7 @@ export function BrowserPage() {
           })
         }
       >
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-16">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5 pb-16">
           {filesAndFolders.map((data) => {
             if (data.type === 'folder') {
               return (

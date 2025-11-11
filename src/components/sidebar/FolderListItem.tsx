@@ -22,6 +22,7 @@ import {
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
+import { useNavigate } from 'react-router'
 
 export interface FolderListItemProps {
   folder: TreeItem
@@ -52,6 +53,7 @@ export function FolderListItem({
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)
   const { showContextMenu } = useFolderContextMenu()
   const { toast } = useToast()
+  const navigate = useNavigate()
   const friendlyFolderName = folder.name
   const {
     error: renameError,
@@ -145,6 +147,13 @@ export function FolderListItem({
     }
   }
 
+  function handleOpen() {
+    navigate({
+      pathname: '/',
+      search: `?folder=${encodeURIComponent(folder.path)}`,
+    })
+  }
+
   function handleCancelNameEditing() {
     onCancelEdit()
     resetRenameState()
@@ -179,6 +188,7 @@ export function FolderListItem({
                     onCreateFile && (() => onCreateFile(folder.path)),
                   onCreateFolder:
                     onCreateFolder && (() => onCreateFolder(folder.path)),
+                  onOpen: handleOpen,
                   onCopyPath: () => handleCopyFolderPath(folder.path),
                   onOpenInFolder: () => handleOpenFolderInFinder(folder.path),
                   onRename: () => onRename(folder.path, folder.name, 'folder'),

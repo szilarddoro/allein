@@ -45,14 +45,19 @@ export function FileList() {
       if (itemToDelete.type === 'folder') {
         await deleteFolder(itemToDelete.path)
         removeEntriesForFolder(itemToDelete.path)
+
+        // Redirect if deleting a folder containing the currently edited file
+        if (currentFilePath?.startsWith(itemToDelete.path)) {
+          navigate('/')
+        }
       } else {
         await deleteFile(itemToDelete.path)
         removeEntriesForFile(itemToDelete.path)
-      }
 
-      // Navigate to home if deleting the currently edited file
-      if (currentFilePath === itemToDelete.path) {
-        navigate('/')
+        // Redirect if deleting the currently edited file
+        if (currentFilePath === itemToDelete.path) {
+          navigate('/')
+        }
       }
     } catch {
       toast.error(

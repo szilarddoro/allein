@@ -24,6 +24,7 @@ import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useNavigate } from 'react-router'
 import { useDroppable } from '@dnd-kit/core'
+import { useDebounceValue } from 'usehooks-ts'
 
 export interface FolderListItemProps {
   folder: TreeItem
@@ -70,12 +71,13 @@ export function FolderListItem({
   const isEditing = editingFilePath === folder.path
   const [currentFolderPath, updateCurrentFolderPath] = useCurrentFolderPath()
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
+  const [debouncedIsOver] = useDebounceValue(isOver, 500)
 
   useEffect(() => {
-    if (isOver) {
+    if (debouncedIsOver) {
       setCollapsibleOpen(true)
     }
-  }, [isOver])
+  }, [debouncedIsOver])
 
   const handleSubmitNewName = useCallback(
     async (newName: string) => {

@@ -16,9 +16,9 @@ export function ensureMdExtension(fileName: string): string {
 }
 
 /**
- * Removes .md extension from a filename for display purposes
+ * Gets the display name for a file (without .md extension)
  */
-export function removeMdExtension(fileName: string): string {
+export function getDisplayName(fileName: string): string {
   if (!fileName) return ''
 
   // Check if it ends with .md
@@ -34,13 +34,6 @@ export function removeMdExtension(fileName: string): string {
  */
 export function hasMdExtension(fileName: string): boolean {
   return fileName.toLowerCase().endsWith('.md')
-}
-
-/**
- * Gets the display name for a file (without .md extension)
- */
-export function getDisplayName(fileName: string): string {
-  return removeMdExtension(fileName)
 }
 
 /**

@@ -5,7 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { removeMdExtension } from '@/lib/files/fileUtils'
+import { getDisplayName } from '@/lib/files/fileUtils'
 import { FileContent } from '@/lib/files/types'
 import {
   flattenTreeItems,
@@ -48,7 +48,7 @@ export function FileNameEditor({
   // Sync file name when current file changes
   useEffect(() => {
     if (currentFile) {
-      setFileName(removeMdExtension(currentFile.name))
+      setFileName(getDisplayName(currentFile.name))
     } else {
       setFileName('')
     }
@@ -79,7 +79,7 @@ export function FileNameEditor({
     if (event.key === 'Escape') {
       // Reset to original name first
       if (currentFile) {
-        setFileName(removeMdExtension(currentFile.name))
+        setFileName(getDisplayName(currentFile.name))
       }
       setIsEditingFileName(false)
     }
@@ -92,7 +92,7 @@ export function FileNameEditor({
 
     if (
       inputValue.length === 0 ||
-      inputValue === removeMdExtension(currentFile.name)
+      inputValue === getDisplayName(currentFile.name)
     ) {
       setIsEditingFileName(false)
       return
@@ -154,7 +154,8 @@ export function FileNameEditor({
             onChange={handleFileNameChange}
             onBlur={handleFileNameBlur}
             onKeyDown={handleFileNameKeyDown}
-            className="w-full focus:outline-none px-1.5 py-0.5"
+            placeholder={getDisplayName(currentFile?.name || '')}
+            className="w-full focus:outline-none px-1.5 py-0.5 min-w-11"
             maxLength={255}
             spellCheck={false}
             autoCorrect="off"

@@ -15,7 +15,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 export function FileList() {
-  const { removeEntriesForFile } = useLocationHistory()
+  const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
   const { data: filesAndFolders, status, error, refetch } = useFilesAndFolders()
   const [currentFilePath] = useCurrentFilePath()
   const navigate = useNavigate()
@@ -43,6 +43,7 @@ export function FileList() {
     try {
       if (itemToDelete.type === 'folder') {
         await deleteFolder(itemToDelete.path)
+        removeEntriesForFolder(itemToDelete.path)
       } else {
         await deleteFile(itemToDelete.path)
         removeEntriesForFile(itemToDelete.path)

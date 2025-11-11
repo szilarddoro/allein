@@ -71,6 +71,7 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
       0,
       currentIndexRef.current + 1,
     )
+
     newStack.push(currentLocation)
 
     // Limit stack size to prevent unbounded growth
@@ -104,9 +105,12 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
   const removeEntriesForFile = useCallback(
     (filePath: string) => {
       // Filter out entries that reference this file
+      // Normalize + to %20 to handle different URL encoding formats
       let newStack = locationStackRef.current.filter(
         (location) =>
-          !location.includes(`file=${encodeURIComponent(filePath)}`),
+          !location
+            .replace(/\+/g, '%20')
+            .includes(`file=${encodeURIComponent(filePath)}`),
       )
 
       newStack = deduplicateAdjacent(newStack)
@@ -123,37 +127,14 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
 
   const removeEntriesForFolder = useCallback(
     (folderPath: string) => {
-      // Filter out entries that reference the folder or files inside it
-      let newStack = locationStackRef.current.filter((location) => {
-        // Check folder parameter: remove if it's the folder itself or a subfolder inside it
-        const folderParamMatch = location.match(/folder=([^&]+)/)
-        if (folderParamMatch) {
-          const locationFolderPath = decodeURIComponent(folderParamMatch[1])
-          // Remove if it's the same folder or a subfolder inside it
-          if (
-            locationFolderPath === folderPath ||
-            locationFolderPath.startsWith(folderPath + '/')
-          ) {
-            return false
-          }
-        }
-
-        // Check file parameter: remove if file is inside this folder
-        const fileParamMatch = location.match(/file=([^&]+)/)
-        if (fileParamMatch) {
-          const filePath = decodeURIComponent(fileParamMatch[1])
-          // Remove if file is the folder itself or inside the folder
-          if (
-            filePath === folderPath ||
-            filePath.startsWith(folderPath + '/')
-          ) {
-            return false
-          }
-        }
-
-        // Keep everything else
-        return true
-      })
+      // Filter out entries that reference this folder
+      // Normalize + to %20 to handle different URL encoding formats
+      let newStack = locationStackRef.current.filter(
+        (location) =>
+          !location
+            .replace(/\+/g, '%20')
+            .includes(encodeURIComponent(folderPath)),
+      )
 
       newStack = deduplicateAdjacent(newStack)
 

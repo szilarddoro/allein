@@ -166,7 +166,15 @@ export function BrowserPage() {
       <>
         <BrowserHeader onCreateFile={handleCreateFile} />
 
-        <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
+        <div
+          className="flex-1 overflow-hidden flex flex-col justify-center items-center"
+          onContextMenu={(e) =>
+            showBackgroundContextMenu(e, {
+              onCreateFile: () => handleCreateFile(),
+              onCreateFolder: () => handleCreateFolder(),
+            })
+          }
+        >
           <H1 className="text-sm text-muted-foreground px-2 text-center font-normal !my-0">
             This folder is empty
           </H1>

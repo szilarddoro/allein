@@ -22,7 +22,7 @@ import { useEffect, useRef, useState } from 'react'
 
 export interface FileNameEditorProps {
   currentFile: FileContent | null
-  onFileRenamed: (newPath: string) => void
+  onFileRenamed: (newPath: string, oldPath: string) => void
   sidebarOpen: boolean
 }
 
@@ -130,12 +130,13 @@ export function FileNameEditor({
     }
 
     try {
-      const newName = await renameFile({
-        oldPath: currentFile.path,
+      const oldPath = currentFile.path
+      const newPath = await renameFile({
+        oldPath,
         newName: inputValue,
       })
 
-      onFileRenamed(newName)
+      onFileRenamed(newPath, oldPath)
     } catch {
       toast.error('Failed to rename file')
     }

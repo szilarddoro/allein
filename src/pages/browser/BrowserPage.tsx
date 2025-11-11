@@ -29,10 +29,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { BrowserHeader } from './BrowserHeader'
 import { FileCard } from './FileCard'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 
 export function BrowserPage() {
+  const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
   const [currentFolderPath] = useCurrentFolderPath()
-
   const {
     data: filesAndFolders,
     status,
@@ -119,8 +120,10 @@ export function BrowserPage() {
     try {
       if (fileToDelete.type === 'folder') {
         await deleteFolder(fileToDelete.path)
+        removeEntriesForFolder(fileToDelete.path)
       } else {
         await deleteFile(fileToDelete.path)
+        removeEntriesForFile(fileToDelete.path)
       }
     } catch {
       toast.error(
@@ -163,7 +166,15 @@ export function BrowserPage() {
       <>
         <BrowserHeader onCreateFile={handleCreateFile} />
 
-        <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
+        <div
+          className="flex-1 overflow-hidden flex flex-col justify-center items-center"
+          onContextMenu={(e) =>
+            showBackgroundContextMenu(e, {
+              onCreateFile: () => handleCreateFile(),
+              onCreateFolder: () => handleCreateFolder(),
+            })
+          }
+        >
           <H1 className="text-sm text-muted-foreground px-2 text-center font-normal !my-0">
             This folder is empty
           </H1>

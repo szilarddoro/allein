@@ -117,7 +117,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
         ) {
           // If inline completion is showing, let Monaco handle Tab to accept it
           // @ts-expect-error - This is a workaround for the closure problem
-          if (editor.metadata.hasSuggestion) {
+          if (editor.metadata?.hasSuggestion) {
             return
           }
 

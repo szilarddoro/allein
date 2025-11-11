@@ -8,7 +8,7 @@ export interface EditorHeaderProps {
   currentFile: FileContent | null
   sidebarOpen: boolean
   inlineCompletionLoading?: boolean
-  onFileRenamed: (newPath: string) => void
+  onFileRenamed: (newPath: string, oldPath: string) => void
 }
 
 const INDICATOR_VISIBILITY_DELAY = 750

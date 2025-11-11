@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { LocationHistoryProvider } from '@/lib/locationHistory/LocationHistoryProvider'
 import { useInvalidateQueriesOnWindowFocus } from '@/lib/useInvalidateQueriesOnWindowFocus'
 import { useMenuBar } from '@/lib/useMenuBar'
 import { cn } from '@/lib/utils'
@@ -38,14 +39,16 @@ export function BaseLayout({ className, children }: BaseLayoutProps) {
         </DialogContent>
       </Dialog>
 
-      <div
-        className={cn(
-          'relative h-screen flex flex-col bg-gradient-to-br bg-neutral-100 dark:bg-neutral-900 overflow-hidden',
-          className,
-        )}
-      >
-        {children}
-      </div>
+      <LocationHistoryProvider>
+        <div
+          className={cn(
+            'relative h-screen flex flex-col bg-gradient-to-br bg-neutral-100 dark:bg-neutral-900 overflow-hidden',
+            className,
+          )}
+        >
+          {children}
+        </div>
+      </LocationHistoryProvider>
     </>
   )
 }

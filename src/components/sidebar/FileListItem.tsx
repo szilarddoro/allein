@@ -90,7 +90,10 @@ export function FileListItem({
           removeEntriesForFile(oldPath)
         }
 
-        updateCurrentFilePath(newPath)
+        // Only update current file path if we're currently editing this file
+        if (currentFilePath === oldPath) {
+          updateCurrentFilePath(newPath)
+        }
       } catch {
         // We're rendering the error on the UI
       }
@@ -104,6 +107,7 @@ export function FileListItem({
       updateCurrentFilePath,
       removeEntriesForFile,
       onCancelEdit,
+      currentFilePath,
     ],
   )
 

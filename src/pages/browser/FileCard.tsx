@@ -17,6 +17,7 @@ export interface FileCardProps {
       filePath: string
       fileName: string
       onOpen: () => void
+      onRename: () => void
       onCopyPath: () => void
       onOpenInFolder: () => void
       onDelete: () => void
@@ -25,6 +26,7 @@ export interface FileCardProps {
   ) => void
   onCopyFilePath: (filePath: string) => void
   onOpenInFolder: (filePath: string) => void
+  onRename: () => void
   onDelete: (filePath: string, fileName: string) => void
   navigate: NavigateFunction
 }
@@ -35,11 +37,12 @@ export function FileCard({
   onShowContextMenu,
   onCopyFilePath,
   onOpenInFolder,
+  onRename,
   onDelete,
   navigate,
 }: FileCardProps) {
   return (
-    <li>
+    <li className="relative scroll-mt-4">
       <Link
         viewTransition
         key={file.path}
@@ -47,7 +50,7 @@ export function FileCard({
           pathname: '/editor',
           search: `?file=${encodeURIComponent(file.path)}`,
         }}
-        className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
+        className="group motion-safe:transition-transform cursor-default block"
         onContextMenu={(e) =>
           onShowContextMenu(e, {
             filePath: file.path,
@@ -57,6 +60,7 @@ export function FileCard({
                 pathname: '/editor',
                 search: `?file=${encodeURIComponent(file.path)}`,
               }),
+            onRename,
             onCopyPath: () => onCopyFilePath(file.path),
             onOpenInFolder: () => onOpenInFolder(file.path),
             onDelete: () => onDelete(file.path, file.name),

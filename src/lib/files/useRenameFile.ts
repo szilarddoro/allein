@@ -3,49 +3,71 @@ import { invoke } from '@tauri-apps/api/core'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from './useFilesAndFolders'
 import { READ_FILE_QUERY_KEY } from '@/lib/files/useReadFile'
 import { ensureMdExtension } from './fileUtils'
+import { validateFileName, checkDuplicateFileName } from './validation'
+
+interface RenameFileParams {
+  oldPath: string
+  newName: string
+  existingFiles?: Array<{ name: string; path: string }>
+  itemType?: 'file' | 'folder'
+}
 
 export function useRenameFile() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       oldPath,
       newName,
-    }: {
-      oldPath: string
-      newName: string
-    }) => {
-      // Ensure the new name has .md extension
-      const fullFileName = ensureMdExtension(newName)
-      return invoke<string>('rename_file', { oldPath, newName: fullFileName })
-    },
-    onMutate: async ({ oldPath, newName }) => {
-      // Cancel outgoing refetches so they don't overwrite our optimistic update
-      await queryClient.cancelQueries({
-        queryKey: READ_FILE_QUERY_KEY(oldPath),
+      existingFiles,
+      itemType = 'file',
+    }: RenameFileParams) => {
+      // Validate the new file name
+      const { isValid, error } = validateFileName(newName)
+      const itemName = itemType === 'file' ? 'File' : 'Folder'
+      if (!isValid) {
+        const errorMessages: Record<string, string> = {
+          empty: `${itemName} name cannot be empty`,
+          'too-long': `${itemName} name is too long (max 255 characters)`,
+          invalid: `${itemName} name contains invalid characters: . < > : " / \\ | ? *`,
+          reserved: `${itemName} name is reserved by the operating system`,
+          'invalid-leading-trailing': `${itemName} name cannot start or end with spaces or dots`,
+          'consecutive-dots': `${itemName} name cannot contain consecutive dots`,
+          'control-characters': `${itemName} name contains control characters`,
+        }
+        throw new Error(errorMessages[error] || `Invalid ${itemType} name`)
+      }
+
+      // Only add .md extension for files, not folders
+      const fullName =
+        itemType === 'file' ? ensureMdExtension(newName) : newName
+
+      // Check for duplicate file names in the same directory
+      if (existingFiles) {
+        const { isDuplicate } = checkDuplicateFileName(
+          fullName,
+          oldPath,
+          existingFiles,
+          itemType,
+        )
+
+        if (isDuplicate) {
+          throw new Error(`${itemName} name is already taken`)
+        }
+      }
+
+      const newPath = await invoke<string>('rename_file', {
+        oldPath,
+        newName: fullName,
       })
 
-      // Snapshot the previous value
-      const previousFile = queryClient.getQueryData(
-        READ_FILE_QUERY_KEY(oldPath),
-      )
-
-      // Optimistically update the file path
-      const newPath = oldPath.replace(/[^/]+$/, ensureMdExtension(newName))
-      queryClient.setQueryData(READ_FILE_QUERY_KEY(newPath), previousFile)
-
-      return { previousFile, newPath }
-    },
-    onError: (_err, variables, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousFile) {
-        queryClient.setQueryData(
-          READ_FILE_QUERY_KEY(variables.oldPath),
-          context.previousFile,
-        )
+      return {
+        newPath,
+        oldPath,
+        itemType,
       }
     },
-    onSuccess: async (newPath) => {
+    onSuccess: async ({ newPath }) => {
       try {
         await Promise.all([
           queryClient.invalidateQueries({

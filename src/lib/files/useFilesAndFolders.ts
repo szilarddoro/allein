@@ -47,6 +47,37 @@ export function flattenTreeItems(items: TreeItem[]): FileInfoWithPreview[] {
 }
 
 /**
+ * Flatten a tree structure to get all files and folders with type information
+ * Useful for duplicate checking where files and folders need to be differentiated
+ */
+export function flattenTreeItemsWithType(
+  items: TreeItem[],
+): Array<{ name: string; path: string; type: 'file' | 'folder' }> {
+  const items_flattened: Array<{
+    name: string
+    path: string
+    type: 'file' | 'folder'
+  }> = []
+
+  function traverse(items: TreeItem[]) {
+    for (const item of items) {
+      items_flattened.push({
+        name: item.name,
+        path: item.path,
+        type: item.type,
+      })
+
+      if (item.type === 'folder' && item.children) {
+        traverse(item.children)
+      }
+    }
+  }
+
+  traverse(items)
+  return items_flattened
+}
+
+/**
  * Sort tree items with folders first, then files, both alphabetically
  */
 function sortTreeItems(items: TreeItem[]): TreeItem[] {
@@ -83,7 +114,7 @@ export function useFilesAndFolders({
       invoke<TreeItem[]>('list_files_and_folders_tree', {
         folderPath: currentFolderPath || null,
       }),
-    retry: 3,
+    retry: false,
     refetchOnMount: 'always',
   })
 

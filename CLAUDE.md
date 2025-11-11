@@ -60,6 +60,8 @@ gh release create v{VERSION} --notes "release notes"  # Create release after pus
 
 ### Git Commits
 
+**IMPORTANT**: Do NOT commit changes without explicit approval from the user. Always present changes for review first.
+
 Always include attribution in commit messages:
 ```bash
 git commit -m "$(cat <<'EOF'

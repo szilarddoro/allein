@@ -32,7 +32,7 @@ export function validateFileName(fileName: string) {
   }
 
   // Check for invalid characters
-  const invalidChars = /[<>:"/\\|?*]/
+  const invalidChars = /[<>:"/\\|?*.]/
   if (invalidChars.test(fileName)) {
     return {
       isValid: false,
@@ -105,7 +105,8 @@ export function validateFileName(fileName: string) {
 
   return {
     isValid: true,
-  }
+    error: null,
+  } as const
 }
 
 /**
@@ -170,5 +171,51 @@ export function sanitizeFileName(fileName: string): {
     sanitized: '',
     isValid: false,
     error: 'File name cannot be sanitized to a valid format',
+  }
+}
+
+/**
+ * Extract directory path from a full file path
+ */
+export function getFileDirectory(filePath: string): string {
+  return filePath.substring(0, filePath.lastIndexOf('/'))
+}
+
+/**
+ * Check if a file name already exists in the same directory
+ * When itemType is provided, only checks against items of the same type
+ */
+export function checkDuplicateFileName(
+  newFileName: string,
+  currentFilePath: string,
+  existingFiles: Array<{
+    name: string
+    path: string
+    type?: 'file' | 'folder'
+  }>,
+  itemType?: 'file' | 'folder',
+): { isDuplicate: boolean; conflictPath?: string } {
+  const currentDir = getFileDirectory(currentFilePath)
+  const nameWithoutExt = newFileName.replace(/\.md$/, '')
+
+  const duplicate = existingFiles.find((file) => {
+    // If itemType is provided and the file has type info, only match same type
+    if (itemType && file.type !== undefined && file.type !== itemType) {
+      return false
+    }
+
+    const fileNameWithoutExt = file.name.replace(/\.md$/, '')
+    const fileDir = getFileDirectory(file.path)
+
+    return (
+      fileNameWithoutExt === nameWithoutExt &&
+      fileDir === currentDir &&
+      file.path !== currentFilePath
+    )
+  })
+
+  return {
+    isDuplicate: !!duplicate,
+    conflictPath: duplicate?.path,
   }
 }

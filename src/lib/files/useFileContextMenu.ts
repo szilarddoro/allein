@@ -9,6 +9,7 @@ interface FileContextMenuOptions {
   onCopyPath: () => void
   onOpenInFolder: () => void
   onDelete: () => void
+  onRename: () => void
   isDeletingFile: boolean
 }
 
@@ -48,6 +49,13 @@ export function useFileContextMenu() {
           item: 'Separator',
         })
 
+        const renameItem = await MenuItem.new({
+          text: 'Rename...',
+          action: () => {
+            options.onRename()
+          },
+        })
+
         const deleteItem = await MenuItem.new({
           text: 'Delete',
           enabled: !options.isDeletingFile,
@@ -63,6 +71,7 @@ export function useFileContextMenu() {
             copyPathItem,
             openInFolderItem,
             separator,
+            renameItem,
             deleteItem,
           ],
         })

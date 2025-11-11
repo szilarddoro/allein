@@ -9,12 +9,23 @@ import { cn } from '@/lib/utils'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { useNavigate } from 'react-router'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
+import { useCallback, useEffect } from 'react'
+import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
+import { useRenameFile } from '@/lib/files/useRenameFile'
+import {
+  useFilesAndFolders,
+  flattenTreeItemsWithType,
+} from '@/lib/files/useFilesAndFolders'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 
 export interface FileListItemProps {
   file: FileInfo
   className?: string
   isDeletingFile?: boolean
   onDelete: (path: string, name: string, type: 'file' | 'folder') => void
+  editing: boolean
+  onStartEdit: (filePath: string) => void
+  onCancelEdit: () => void
 }
 
 export function FileListItem({
@@ -22,11 +33,23 @@ export function FileListItem({
   className,
   isDeletingFile = false,
   onDelete,
+  editing,
+  onStartEdit,
+  onCancelEdit,
 }: FileListItemProps) {
-  const [currentFilePath] = useCurrentFilePath()
+  const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const { showContextMenu } = useFileContextMenu()
   const { toast } = useToast()
   const navigate = useNavigate()
+  const friendlyFileName = getDisplayName(file.name)
+  const {
+    error: renameError,
+    mutateAsync: renameFile,
+    reset: resetRenameState,
+  } = useRenameFile()
+  const { data: filesAndFolders } = useFilesAndFolders()
+  const existingFiles = flattenTreeItemsWithType(filesAndFolders)
+  const { removeEntriesForFile } = useLocationHistory()
 
   async function handleCopyFilePath(filePath: string) {
     try {
@@ -43,6 +66,75 @@ export function FileListItem({
     } catch {
       toast.error('Failed to open in folder')
     }
+  }
+
+  const handleSubmitNewName = useCallback(
+    async (newName: string) => {
+      if (newName.trim() === friendlyFileName) {
+        onCancelEdit()
+        resetRenameState()
+        return
+      }
+
+      try {
+        const oldPath = file.path
+        const { newPath } = await renameFile({
+          oldPath: file.path,
+          newName,
+          existingFiles,
+          itemType: 'file',
+        })
+        onCancelEdit()
+        resetRenameState()
+
+        if (oldPath) {
+          removeEntriesForFile(oldPath)
+        }
+
+        // Only update current file path if we're currently editing this file
+        if (currentFilePath === oldPath) {
+          updateCurrentFilePath(newPath)
+        }
+      } catch {
+        // We're rendering the error on the UI
+      }
+    },
+    [
+      friendlyFileName,
+      resetRenameState,
+      file.path,
+      renameFile,
+      existingFiles,
+      updateCurrentFilePath,
+      removeEntriesForFile,
+      onCancelEdit,
+      currentFilePath,
+    ],
+  )
+
+  useEffect(() => {
+    if (!editing) {
+      resetRenameState()
+    }
+  }, [editing, resetRenameState])
+
+  function handleCancelNameEditing() {
+    onCancelEdit()
+    resetRenameState()
+  }
+
+  if (editing) {
+    return (
+      <li className="w-full">
+        <ItemRenameInput
+          itemName={friendlyFileName}
+          onSubmit={handleSubmitNewName}
+          onCancel={handleCancelNameEditing}
+          editing={editing}
+          error={renameError}
+        />
+      </li>
+    )
   }
 
   return (
@@ -74,15 +166,16 @@ export function FileListItem({
               onCopyPath: () => handleCopyFilePath(file.path),
               onOpenInFolder: () => handleOpenInFolder(file.path),
               onDelete: () => onDelete(file.path, file.name, 'file'),
+              onRename: () => onStartEdit(file.path),
               isDeletingFile,
             })
           }
         >
           <span aria-hidden="true" className="flex-1 text-sm truncate">
-            {getDisplayName(file.name)}
+            {friendlyFileName}
           </span>
 
-          <span className="sr-only">Open file {getDisplayName(file.name)}</span>
+          <span className="sr-only">Open file {friendlyFileName}</span>
         </Link>
       </Button>
     </li>

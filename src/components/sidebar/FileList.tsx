@@ -31,6 +31,7 @@ export function FileList() {
     type: 'file' | 'folder'
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [editingFilePath, setEditingFilePath] = useState<string | null>(null)
 
   const deleteStatus =
     deleteFileStatus === 'pending' || deleteFolderStatus === 'pending'
@@ -44,14 +45,19 @@ export function FileList() {
       if (itemToDelete.type === 'folder') {
         await deleteFolder(itemToDelete.path)
         removeEntriesForFolder(itemToDelete.path)
+
+        // Redirect if deleting a folder containing the currently edited file
+        if (currentFilePath?.startsWith(itemToDelete.path)) {
+          navigate('/')
+        }
       } else {
         await deleteFile(itemToDelete.path)
         removeEntriesForFile(itemToDelete.path)
-      }
 
-      // Navigate to home if deleting the currently edited file
-      if (currentFilePath === itemToDelete.path) {
-        navigate('/')
+        // Redirect if deleting the currently edited file
+        if (currentFilePath === itemToDelete.path) {
+          navigate('/')
+        }
       }
     } catch {
       toast.error(
@@ -97,6 +103,19 @@ export function FileList() {
   ) {
     setItemToDelete({ path, name, type })
     setIsDeleteDialogOpen(true)
+  }
+
+  function handleRenameRequest(
+    path: string,
+    _name: string,
+    type: 'file' | 'folder',
+  ) {
+    if (type === 'file') {
+      setEditingFilePath(path)
+    } else {
+      // For folders, we'll trigger the inline edit by setting editingFilePath to the folder path
+      setEditingFilePath(path)
+    }
   }
 
   async function handleCreateFileInFolder(folderPath: string) {
@@ -150,8 +169,12 @@ export function FileList() {
                   folder={data}
                   isDeletingFile={deleteStatus === 'pending'}
                   onDelete={handleDeleteRequest}
+                  onRename={handleRenameRequest}
                   onCreateFile={handleCreateFileInFolder}
                   onCreateFolder={handleCreateFolderInFolder}
+                  editingFilePath={editingFilePath}
+                  onStartEdit={setEditingFilePath}
+                  onCancelEdit={() => setEditingFilePath(null)}
                 />
               )
             }
@@ -162,6 +185,9 @@ export function FileList() {
                 file={data}
                 isDeletingFile={deleteStatus === 'pending'}
                 onDelete={handleDeleteRequest}
+                editing={editingFilePath === data.path}
+                onStartEdit={() => setEditingFilePath(data.path)}
+                onCancelEdit={() => setEditingFilePath(null)}
               />
             )
           })}

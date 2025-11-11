@@ -1,40 +1,37 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { FileDeleteConfirmDialog } from '@/components/sidebar/FileDeleteConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { H1, P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
+import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
-import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
+import {
+  useFilesAndFolders,
+  flattenTreeItemsWithType,
+} from '@/lib/files/useFilesAndFolders'
+import { useRenameFile } from '@/lib/files/useRenameFile'
 import { useToast } from '@/lib/useToast'
 import { FolderCard } from '@/pages/browser/FolderCard'
 import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { CircleAlert } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { BrowserHeader } from './BrowserHeader'
 import { FileCard } from './FileCard'
+import { ItemRenameDialog } from './FileRenameDialog'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
 export function BrowserPage() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
-  const [currentFolderPath] = useCurrentFolderPath()
+  const [currentFolderPath, updateCurrentFolderPath] = useCurrentFolderPath()
+  const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const {
     data: filesAndFolders,
     status,
@@ -50,12 +47,30 @@ export function BrowserPage() {
   const navigate = useNavigate()
   const { showContextMenu } = useFileContextMenu()
   const { showContextMenu: showBackgroundContextMenu } = useSidebarContextMenu()
-  const [fileToDelete, setFileToDelete] = useState<{
+  const [itemToDelete, setItemToDelete] = useState<{
     path: string
     name: string
     type: 'file' | 'folder'
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [itemToRename, setItemToRename] = useState<{
+    path: string
+    name: string
+    type: 'file' | 'folder'
+  } | null>(null)
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
+  const {
+    error: renameError,
+    mutateAsync: renameFile,
+    reset: resetRenameState,
+  } = useRenameFile()
+  const existingFiles = flattenTreeItemsWithType(filesAndFolders)
+
+  useEffect(() => {
+    if (!isRenameDialogOpen) {
+      resetRenameState()
+    }
+  }, [isRenameDialogOpen, resetRenameState])
 
   async function handleCreateFile(folderPath?: string) {
     try {
@@ -111,32 +126,124 @@ export function BrowserPage() {
     itemName: string,
     type: 'file' | 'folder',
   ) {
-    setFileToDelete({ path: itemPath, name: itemName, type })
+    setItemToDelete({ path: itemPath, name: itemName, type })
     setIsDeleteDialogOpen(true)
   }
 
   async function confirmDeleteItem() {
-    if (!fileToDelete) return
+    if (!itemToDelete) return
 
     try {
-      if (fileToDelete.type === 'folder') {
-        await deleteFolder(fileToDelete.path)
-        removeEntriesForFolder(fileToDelete.path)
+      if (itemToDelete.type === 'folder') {
+        await deleteFolder(itemToDelete.path)
+        removeEntriesForFolder(itemToDelete.path)
       } else {
-        await deleteFile(fileToDelete.path)
-        removeEntriesForFile(fileToDelete.path)
+        await deleteFile(itemToDelete.path)
+        removeEntriesForFile(itemToDelete.path)
       }
     } catch {
       toast.error(
-        `Failed to delete ${fileToDelete.type === 'folder' ? 'folder' : 'file'}`,
+        `Failed to delete ${itemToDelete.type === 'folder' ? 'folder' : 'file'}`,
       )
     } finally {
       setIsDeleteDialogOpen(false)
 
       setTimeout(() => {
-        setFileToDelete(null)
+        setItemToDelete(null)
       }, 150)
     }
+  }
+
+  function handleRenameItem(
+    itemPath: string,
+    itemName: string,
+    itemType: 'file' | 'folder',
+  ) {
+    setItemToRename({ path: itemPath, name: itemName, type: itemType })
+    setIsRenameDialogOpen(true)
+  }
+
+  const handleSubmitRename = useCallback(
+    async (newName: string) => {
+      if (!itemToRename) return
+
+      const friendlyName =
+        itemToRename.type === 'file'
+          ? getDisplayName(itemToRename.name)
+          : itemToRename.name
+      if (newName.trim() === friendlyName) {
+        setIsRenameDialogOpen(false)
+        resetRenameState()
+        setTimeout(() => setItemToRename(null), 150)
+        return
+      }
+
+      try {
+        const oldPath = itemToRename.path
+        const { newPath } = await renameFile({
+          oldPath: itemToRename.path,
+          newName,
+          existingFiles,
+          itemType: itemToRename.type,
+        })
+        setIsRenameDialogOpen(false)
+        resetRenameState()
+
+        if (oldPath) {
+          if (itemToRename.type === 'file') {
+            removeEntriesForFile(oldPath)
+          } else {
+            removeEntriesForFolder(oldPath)
+          }
+        }
+
+        // Handle path updates if renaming affects current location
+        if (itemToRename.type === 'folder') {
+          // Check if current folder is the renamed folder or a descendant
+          if (
+            currentFolderPath === oldPath ||
+            currentFolderPath?.startsWith(oldPath)
+          ) {
+            updateCurrentFolderPath(
+              currentFolderPath!.replace(oldPath, newPath),
+            )
+            reloadFiles()
+            setTimeout(() => setItemToRename(null), 150)
+            return
+          }
+
+          // Check if current file is in the renamed folder or its descendants
+          if (currentFilePath?.startsWith(oldPath)) {
+            updateCurrentFilePath(currentFilePath.replace(oldPath, newPath))
+          }
+        }
+
+        reloadFiles()
+
+        setTimeout(() => setItemToRename(null), 150)
+      } catch {
+        // Error is displayed in the dialog component
+      }
+    },
+    [
+      itemToRename,
+      existingFiles,
+      renameFile,
+      resetRenameState,
+      reloadFiles,
+      removeEntriesForFile,
+      removeEntriesForFolder,
+      currentFolderPath,
+      currentFilePath,
+      updateCurrentFolderPath,
+      updateCurrentFilePath,
+    ],
+  )
+
+  function handleCancelRename() {
+    setIsRenameDialogOpen(false)
+    resetRenameState()
+    setTimeout(() => setItemToRename(null), 150)
   }
 
   if (status === 'pending') {
@@ -151,13 +258,15 @@ export function BrowserPage() {
 
   if (status === 'error') {
     return (
-      <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
+      <div className="flex-1 overflow-hidden flex flex-col justify-center items-center animate-fade-in delay-200">
         <P className="text-destructive flex flex-row gap-1 items-center text-sm">
           <CircleAlert className="size-4" />
           An error occurred while loading files and folders.
         </P>
 
-        <Button onClick={() => reloadFiles()}>Reload</Button>
+        <Button size="sm" variant="destructive" onClick={() => reloadFiles()}>
+          Reload
+        </Button>
       </div>
     )
   }
@@ -186,39 +295,28 @@ export function BrowserPage() {
 
   return (
     <>
-      <AlertDialog
+      <FileDeleteConfirmDialog
+        itemToDelete={itemToDelete}
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
           if (!open) {
             setIsDeleteDialogOpen(false)
-            // Keep fileToDelete until dialog is fully closed to prevent text jump
-            setTimeout(() => setFileToDelete(null), 150)
+            // Keep itemToDelete until dialog is fully closed to prevent text jump
+            setTimeout(() => setItemToDelete(null), 150)
           }
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete {fileToDelete?.type === 'folder' ? 'Folder' : 'File'}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete &quot;
-              {fileToDelete ? getDisplayName(fileToDelete.name) : ''}&quot;?
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteItem}
-              disabled={isDeletingFile || isDeletingFolder}
-              variant="destructive"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onSubmit={confirmDeleteItem}
+        deletePending={isDeletingFile || isDeletingFolder}
+      />
+
+      <ItemRenameDialog
+        isOpen={isRenameDialogOpen}
+        itemName={itemToRename?.name ?? null}
+        itemType={itemToRename?.type ?? 'file'}
+        error={renameError}
+        onSubmit={handleSubmitRename}
+        onCancel={handleCancelRename}
+      />
 
       <BrowserHeader onCreateFile={handleCreateFile} />
 
@@ -241,6 +339,9 @@ export function BrowserPage() {
                   folder={data}
                   onCreateFile={handleCreateFile}
                   onCreateFolder={handleCreateFolder}
+                  onRename={() =>
+                    handleRenameItem(data.path, data.name, 'folder')
+                  }
                   onDelete={(path, name) =>
                     handleDeleteItem(path, name, 'folder')
                   }
@@ -256,6 +357,7 @@ export function BrowserPage() {
                 onShowContextMenu={showContextMenu}
                 onCopyFilePath={handleCopyFilePath}
                 onOpenInFolder={handleOpenInFolder}
+                onRename={() => handleRenameItem(data.path, data.name, 'file')}
                 onDelete={(filePath, fileName) =>
                   handleDeleteItem(filePath, fileName, 'file')
                 }

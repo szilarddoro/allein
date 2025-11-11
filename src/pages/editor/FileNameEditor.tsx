@@ -1,22 +1,21 @@
+import { AlertText } from '@/components/AlertText'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { removeMdExtension } from '@/lib/files/fileUtils'
+import { getDisplayName } from '@/lib/files/fileUtils'
 import { FileContent } from '@/lib/files/types'
 import {
-  useFilesAndFolders,
   flattenTreeItems,
+  useFilesAndFolders,
 } from '@/lib/files/useFilesAndFolders'
 import { useRenameFile } from '@/lib/files/useRenameFile'
-import { validateFileName } from '@/lib/files/validation'
 import { useToast } from '@/lib/useToast'
 import { useFileNameContextMenu } from '@/pages/editor/useFileNameContextMenu'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { TriangleAlert } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -24,14 +23,6 @@ export interface FileNameEditorProps {
   currentFile: FileContent | null
   onFileRenamed: (newPath: string, oldPath: string) => void
   sidebarOpen: boolean
-}
-
-/**
- * Extract directory path from a full file path.
- * Examples: "/path/to/folder/file.md" -> "/path/to/folder", "/file.md" -> "/"
- */
-function getFileDirectory(filePath: string): string {
-  return filePath.substring(0, filePath.lastIndexOf('/'))
 }
 
 /**
@@ -46,21 +37,22 @@ export function FileNameEditor({
   const { toast } = useToast()
   const { data } = useFilesAndFolders()
   const files = flattenTreeItems(data)
-  const { mutateAsync: renameFile } = useRenameFile()
+  const {
+    error,
+    mutateAsync: renameFile,
+    reset: resetRenameState,
+  } = useRenameFile()
   const { showContextMenu } = useFileNameContextMenu()
   const [fileName, setFileName] = useState('')
-  const [fileNameValidationErrorType, setFileNameValidationErrorType] =
-    useState<
-      ReturnType<typeof validateFileName>['error'] | 'duplicate' | 'none'
-    >('none')
   const [isEditingFileName, setIsEditingFileName] = useState(false)
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const fileNameInputRef = useRef<HTMLInputElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   // Sync file name when current file changes
   useEffect(() => {
     if (currentFile) {
-      setFileName(removeMdExtension(currentFile.name))
+      setFileName(getDisplayName(currentFile.name))
     } else {
       setFileName('')
     }
@@ -74,32 +66,8 @@ export function FileNameEditor({
     }
   }, [isEditingFileName])
 
-  function getErrorMessage() {
-    switch (fileNameValidationErrorType) {
-      case 'empty':
-        return 'File name cannot be empty'
-      case 'too-long':
-        return 'File name is too long (max 255 characters)'
-      case 'control-characters':
-        return 'File name contains control characters'
-      case 'duplicate':
-        return 'File name is already taken'
-      case 'invalid-leading-trailing':
-        return 'File name cannot start or end with spaces or dots'
-      case 'reserved':
-        return 'File name is reserved by the operating system'
-      case 'invalid':
-        return 'File name contains invalid characters: < > : " / \\ | ? *'
-      case 'consecutive-dots':
-        return 'File name cannot contain consecutive dots'
-      default:
-        return ''
-    }
-  }
-
   function handleFileNameClick() {
     setIsEditingFileName(true)
-    setFileNameValidationErrorType('none')
   }
 
   function handleFileNameKeyDown(event: React.KeyboardEvent) {
@@ -109,74 +77,60 @@ export function FileNameEditor({
     }
 
     if (event.key === 'Enter') {
-      handleFileNameBlur()
+      handleFileNameBlur(null, 'enter')
     }
 
     if (event.key === 'Escape') {
       // Reset to original name first
       if (currentFile) {
-        setFileName(removeMdExtension(currentFile.name))
+        setFileName(getDisplayName(currentFile.name))
       }
-      setFileNameValidationErrorType('none')
       setIsEditingFileName(false)
     }
   }
 
-  async function handleFileNameBlur() {
+  async function handleFileNameBlur(
+    _ev: React.FocusEvent<HTMLInputElement> | null,
+    trigger?: 'enter',
+  ) {
     if (!currentFile) return
 
     const inputValue = fileName.trim()
-    const { isValid, error } = validateFileName(inputValue)
-
-    if (!isValid) {
-      setFileNameValidationErrorType(error)
-      return
-    }
-
-    if (
-      files?.some((file) => {
-        const isSameName = removeMdExtension(file.name) === inputValue
-        const isDifferentFile = file.path !== currentFile?.path
-        const isInSameFolder =
-          getFileDirectory(file.path) === getFileDirectory(currentFile.path)
-
-        return isSameName && isDifferentFile && isInSameFolder
-      })
-    ) {
-      requestAnimationFrame(() => {
-        fileNameInputRef.current?.focus()
-        fileNameInputRef.current?.select()
-      })
-      setFileNameValidationErrorType('duplicate')
-      return
-    }
-
-    setFileNameValidationErrorType('none')
-    setIsEditingFileName(false)
 
     if (
       inputValue.length === 0 ||
-      inputValue === removeMdExtension(currentFile.name)
+      inputValue === getDisplayName(currentFile.name)
     ) {
+      setIsEditingFileName(false)
+      resetRenameState()
       return
     }
 
+    const oldPath = currentFile.path
+
     try {
-      const oldPath = currentFile.path
-      const newPath = await renameFile({
+      const { newPath } = await renameFile({
         oldPath,
         newName: inputValue,
+        existingFiles: files || [],
       })
 
+      setIsEditingFileName(false)
       onFileRenamed(newPath, oldPath)
+      resetRenameState()
+
+      if (trigger === 'enter') {
+        requestAnimationFrame(() => {
+          buttonRef.current?.focus()
+        })
+      }
     } catch {
-      toast.error('Failed to rename file')
+      // We're rendering the error on the UI
     }
   }
 
   function handleFileNameChange(event: React.ChangeEvent<HTMLInputElement>) {
     setFileName(event.target.value)
-    setFileNameValidationErrorType('none')
   }
 
   async function handleCopyFilePath() {
@@ -204,10 +158,6 @@ export function FileNameEditor({
     <div className="relative flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto ml-1">
       {isEditingFileName ? (
         <>
-          <label className="sr-only" htmlFor="file-name">
-            File name
-          </label>
-
           <input
             ref={fileNameInputRef}
             id="file-name"
@@ -215,26 +165,25 @@ export function FileNameEditor({
             onChange={handleFileNameChange}
             onBlur={handleFileNameBlur}
             onKeyDown={handleFileNameKeyDown}
-            className="w-full focus:outline-none px-1.5 py-0.5"
+            placeholder={getDisplayName(currentFile?.name || '')}
+            className="w-full focus:outline-none px-1.5 py-0.5 min-w-11"
             maxLength={255}
             spellCheck={false}
             autoCorrect="off"
-            aria-invalid={fileNameValidationErrorType !== 'none'}
+            aria-invalid={error != null}
             aria-describedby="file-name-error"
-            aria-label="File name"
+            aria-label="Edit file name"
             autoFocus
           />
 
-          {fileNameValidationErrorType &&
-            fileNameValidationErrorType !== 'none' && (
-              <div
-                id="file-name-error"
-                className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-950 dark:border-yellow-700 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-400 font-normal z-1000"
-              >
-                <TriangleAlert className="w-3 h-3" />
-                {getErrorMessage()}
-              </div>
-            )}
+          {error && (
+            <AlertText
+              id="file-name-error"
+              className="absolute -bottom-1 left-0 translate-y-full z-1000"
+            >
+              {error.message}
+            </AlertText>
+          )}
         </>
       ) : (
         <Tooltip
@@ -247,6 +196,7 @@ export function FileNameEditor({
             className="cursor-pointer hover:text-foreground transition-colors focus:outline-none focus:ring-[3px] focus:ring-ring/50 rounded"
           >
             <Button
+              ref={buttonRef}
               variant="ghost"
               size="sm"
               onClick={handleFileNameClick}

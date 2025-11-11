@@ -7,8 +7,10 @@ interface FolderContextMenuOptions {
   folderName: string
   onCreateFile?: () => void
   onCreateFolder?: () => void
+  onOpen?: () => void
   onCopyPath: () => void
   onOpenInFolder: () => void
+  onRename: () => void
   onDelete: () => void
   isDeletingFolder: boolean
 }
@@ -38,6 +40,13 @@ export function useFolderContextMenu() {
           },
         })
 
+        const openItem = await MenuItem.new({
+          text: 'Open',
+          action: () => {
+            options.onOpen?.()
+          },
+        })
+
         const copyPathItem = await MenuItem.new({
           text: 'Copy Path',
           action: () => {
@@ -49,6 +58,13 @@ export function useFolderContextMenu() {
           text: 'Show in Enclosing Folder',
           action: () => {
             options.onOpenInFolder()
+          },
+        })
+
+        const renameItem = await MenuItem.new({
+          text: 'Rename...',
+          action: () => {
+            options.onRename()
           },
         })
 
@@ -70,9 +86,11 @@ export function useFolderContextMenu() {
             createFileItem,
             createFolderItem,
             separator,
+            openItem,
             copyPathItem,
             openInFolderItem,
             separator,
+            renameItem,
             deleteItem,
           ],
         })

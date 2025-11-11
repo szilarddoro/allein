@@ -77,7 +77,7 @@ export function FileNameEditor({
     }
 
     if (event.key === 'Enter') {
-      handleFileNameBlur()
+      handleFileNameBlur(null, 'enter')
     }
 
     if (event.key === 'Escape') {
@@ -89,7 +89,10 @@ export function FileNameEditor({
     }
   }
 
-  async function handleFileNameBlur() {
+  async function handleFileNameBlur(
+    _ev: React.FocusEvent<HTMLInputElement> | null,
+    trigger?: 'enter',
+  ) {
     if (!currentFile) return
 
     const inputValue = fileName.trim()
@@ -116,9 +119,11 @@ export function FileNameEditor({
       onFileRenamed(newPath, oldPath)
       resetRenameState()
 
-      requestAnimationFrame(() => {
-        buttonRef.current?.focus()
-      })
+      if (trigger === 'enter') {
+        requestAnimationFrame(() => {
+          buttonRef.current?.focus()
+        })
+      }
     } catch {
       // We're rendering the error on the UI
     }

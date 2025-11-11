@@ -336,7 +336,7 @@ export function EditorPage() {
 
           <ResizableHandle
             onDoubleClick={handleResetResizablePanels}
-            className={cn('px-2.5', !showPreview && 'hidden')}
+            className={cn('px-[5px]', !showPreview && 'hidden')}
           />
 
           <ResizablePanel

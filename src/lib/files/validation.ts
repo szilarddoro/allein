@@ -14,24 +14,21 @@ function hasControlCharacters(str: string): boolean {
 /**
  * Validates a file name according to common file system rules
  */
-export function validateFileName(fileName: string): {
-  isValid: boolean
-  error?: string
-} {
+export function validateFileName(fileName: string) {
   // Check if empty
   if (!fileName || fileName.trim().length === 0) {
     return {
       isValid: false,
-      error: 'File name cannot be empty',
-    }
+      error: 'empty',
+    } as const
   }
 
   // Check length (most file systems have limits)
   if (fileName.length > 255) {
     return {
       isValid: false,
-      error: 'File name is too long (maximum 255 characters)',
-    }
+      error: 'too-long',
+    } as const
   }
 
   // Check for invalid characters
@@ -39,8 +36,8 @@ export function validateFileName(fileName: string): {
   if (invalidChars.test(fileName)) {
     return {
       isValid: false,
-      error: 'File name contains invalid characters: < > : " / \\ | ? *',
-    }
+      error: 'invalid',
+    } as const
   }
 
   // Check for reserved names (Windows)
@@ -73,8 +70,8 @@ export function validateFileName(fileName: string): {
   if (reservedNames.includes(nameWithoutExtension)) {
     return {
       isValid: false,
-      error: 'File name is reserved by the operating system',
-    }
+      error: 'reserved',
+    } as const
   }
 
   // Check for leading/trailing spaces or dots
@@ -86,24 +83,24 @@ export function validateFileName(fileName: string): {
   ) {
     return {
       isValid: false,
-      error: 'File name cannot start or end with spaces or dots',
-    }
+      error: 'invalid-leading-trailing',
+    } as const
   }
 
   // Check for consecutive dots
   if (fileName.includes('..')) {
     return {
       isValid: false,
-      error: 'File name cannot contain consecutive dots',
-    }
+      error: 'consecutive-dots',
+    } as const
   }
 
   // Check for control characters
   if (hasControlCharacters(fileName)) {
     return {
       isValid: false,
-      error: 'File name contains control characters',
-    }
+      error: 'control-characters',
+    } as const
   }
 
   return {

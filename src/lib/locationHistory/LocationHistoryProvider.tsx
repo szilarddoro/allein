@@ -123,18 +123,36 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
 
   const removeEntriesForFolder = useCallback(
     (folderPath: string) => {
-      // Filter out entries that reference files inside this folder
-      // A file is inside a folder if its path starts with folderPath + '/'
+      // Filter out entries that reference the folder or files inside it
       let newStack = locationStackRef.current.filter((location) => {
-        // Check if location contains a file parameter that's inside this folder
-        const fileParamMatch = location.match(/file=([^&]+)/)
-        if (!fileParamMatch) return true // Keep non-file entries (like folders)
+        // Check folder parameter: remove if it's the folder itself or a subfolder inside it
+        const folderParamMatch = location.match(/folder=([^&]+)/)
+        if (folderParamMatch) {
+          const locationFolderPath = decodeURIComponent(folderParamMatch[1])
+          // Remove if it's the same folder or a subfolder inside it
+          if (
+            locationFolderPath === folderPath ||
+            locationFolderPath.startsWith(folderPath + '/')
+          ) {
+            return false
+          }
+        }
 
-        const filePath = decodeURIComponent(fileParamMatch[1])
-        // Remove if file is the folder itself or inside the folder
-        return !(
-          filePath === folderPath || filePath.startsWith(folderPath + '/')
-        )
+        // Check file parameter: remove if file is inside this folder
+        const fileParamMatch = location.match(/file=([^&]+)/)
+        if (fileParamMatch) {
+          const filePath = decodeURIComponent(fileParamMatch[1])
+          // Remove if file is the folder itself or inside the folder
+          if (
+            filePath === folderPath ||
+            filePath.startsWith(folderPath + '/')
+          ) {
+            return false
+          }
+        }
+
+        // Keep everything else
+        return true
       })
 
       newStack = deduplicateAdjacent(newStack)

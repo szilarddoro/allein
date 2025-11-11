@@ -63,7 +63,7 @@ export function FileRenameDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Rename File</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="sr-only">
             Enter a new name for &quot;{displayName}&quot;
           </DialogDescription>
         </DialogHeader>
@@ -79,8 +79,8 @@ export function FileRenameDialog({
               id="file-name"
               ref={inputRef}
               value={inputValue}
+              placeholder={displayName}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Enter file name"
               aria-invalid={error != null}
               aria-describedby={error ? 'file-name-error' : undefined}
               disabled={!isOpen}

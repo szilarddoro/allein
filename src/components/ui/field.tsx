@@ -4,6 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { AlertCircle } from 'lucide-react'
 
 function FieldSet({ className, ...props }: React.ComponentProps<'fieldset'>) {
   return (
@@ -220,9 +221,14 @@ function FieldError({
     <div
       role="alert"
       data-slot="field-error"
-      className={cn('text-destructive text-sm font-normal', className)}
+      className={cn(
+        'flex flex-row gap-1.5 items-center [&_svg]:size-4 text-destructive text-sm font-normal',
+        className,
+      )}
       {...props}
     >
+      <AlertCircle />
+
       {content}
     </div>
   )

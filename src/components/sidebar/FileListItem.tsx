@@ -16,6 +16,7 @@ import {
   useFilesAndFolders,
   flattenTreeItems,
 } from '@/lib/files/useFilesAndFolders'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 
 export interface FileListItemProps {
   file: FileInfo
@@ -33,7 +34,7 @@ export function FileListItem({
   editing: externalEditing = false,
 }: FileListItemProps) {
   const [editing, setEditing] = useState(false)
-  const [currentFilePath] = useCurrentFilePath()
+  const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const { showContextMenu } = useFileContextMenu()
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -45,6 +46,7 @@ export function FileListItem({
   } = useRenameFile()
   const { data: filesAndFolders } = useFilesAndFolders()
   const existingFiles = flattenTreeItems(filesAndFolders)
+  const { removeEntriesForFile } = useLocationHistory()
 
   useEffect(() => {
     setEditing(externalEditing)
@@ -80,14 +82,33 @@ export function FileListItem({
       }
 
       try {
-        await renameFile({ oldPath: file.path, newName, existingFiles })
+        const oldPath = file.path
+        const newPath = await renameFile({
+          oldPath: file.path,
+          newName,
+          existingFiles,
+        })
         setEditing(false)
         resetRenameState()
+
+        if (oldPath) {
+          removeEntriesForFile(oldPath)
+        }
+
+        updateCurrentFilePath(newPath)
       } catch {
         // We're rendering the error on the UI
       }
     },
-    [friendlyFileName, renameFile, file.path, existingFiles, resetRenameState],
+    [
+      friendlyFileName,
+      resetRenameState,
+      file.path,
+      renameFile,
+      existingFiles,
+      updateCurrentFilePath,
+      removeEntriesForFile,
+    ],
   )
 
   if (editing) {

@@ -1,15 +1,5 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { FileDeleteConfirmDialog } from '@/components/sidebar/FileDeleteConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { H1, P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
@@ -305,7 +295,8 @@ export function BrowserPage() {
 
   return (
     <>
-      <AlertDialog
+      <FileDeleteConfirmDialog
+        itemToDelete={fileToDelete}
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
           if (!open) {
@@ -314,30 +305,9 @@ export function BrowserPage() {
             setTimeout(() => setFileToDelete(null), 150)
           }
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete {fileToDelete?.type === 'folder' ? 'Folder' : 'File'}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete &quot;
-              {fileToDelete ? getDisplayName(fileToDelete.name) : ''}&quot;?
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteItem}
-              disabled={isDeletingFile || isDeletingFolder}
-              variant="destructive"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onSubmit={confirmDeleteItem}
+        deletePending={isDeletingFile || isDeletingFolder}
+      />
 
       <ItemRenameDialog
         isOpen={isRenameDialogOpen}

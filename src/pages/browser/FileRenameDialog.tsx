@@ -33,7 +33,8 @@ export function ItemRenameDialog({
 
   useEffect(() => {
     if (isOpen && itemName) {
-      const displayName = getDisplayName(itemName)
+      const displayName =
+        itemType === 'file' ? getDisplayName(itemName) : itemName
       setInputValue(displayName)
       // Focus and select the input after a brief delay to ensure it's rendered
       setTimeout(() => {
@@ -41,7 +42,7 @@ export function ItemRenameDialog({
         inputRef.current?.select()
       }, 0)
     }
-  }, [isOpen, itemName])
+  }, [isOpen, itemName, itemType])
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()

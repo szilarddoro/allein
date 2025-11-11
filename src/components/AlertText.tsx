@@ -16,11 +16,11 @@ export function AlertText({
     <div
       id={id}
       className={cn(
-        'flex flex-row gap-1 items-center rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-950 dark:border-yellow-700 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-400 font-normal z-1000',
+        'flex flex-row gap-1.5 items-center rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-950 dark:border-yellow-700 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-400 font-normal z-1000',
         className,
       )}
     >
-      <TriangleAlert className="size-3" />
+      <TriangleAlert className="size-3 shrink-0" />
       {children}
     </div>
   )

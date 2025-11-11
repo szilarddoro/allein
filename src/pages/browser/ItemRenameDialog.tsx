@@ -110,7 +110,3 @@ export function ItemRenameDialog({
     </Dialog>
   )
 }
-
-// Backwards compatibility alias
-export const FileRenameDialog = ItemRenameDialog
-export type FileRenameDialogProps = ItemRenameDialogProps

@@ -24,7 +24,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { BrowserHeader } from './BrowserHeader'
 import { FileCard } from './FileCard'
-import { ItemRenameDialog } from './FileRenameDialog'
+import { ItemRenameDialog } from './ItemRenameDialog'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 

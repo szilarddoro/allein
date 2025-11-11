@@ -14,7 +14,7 @@ import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import {
   useFilesAndFolders,
-  flattenTreeItems,
+  flattenTreeItemsWithType,
 } from '@/lib/files/useFilesAndFolders'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 
@@ -48,7 +48,7 @@ export function FileListItem({
     reset: resetRenameState,
   } = useRenameFile()
   const { data: filesAndFolders } = useFilesAndFolders()
-  const existingFiles = flattenTreeItems(filesAndFolders)
+  const existingFiles = flattenTreeItemsWithType(filesAndFolders)
   const { removeEntriesForFile } = useLocationHistory()
 
   async function handleCopyFilePath(filePath: string) {
@@ -82,6 +82,7 @@ export function FileListItem({
           oldPath: file.path,
           newName,
           existingFiles,
+          itemType: 'file',
         })
         onCancelEdit()
         resetRenameState()

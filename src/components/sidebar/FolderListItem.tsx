@@ -17,7 +17,7 @@ import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import {
   useFilesAndFolders,
-  flattenTreeItems,
+  flattenTreeItemsWithType,
 } from '@/lib/files/useFilesAndFolders'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
@@ -59,7 +59,7 @@ export function FolderListItem({
     reset: resetRenameState,
   } = useRenameFile()
   const { data: filesAndFolders } = useFilesAndFolders()
-  const existingFiles = flattenTreeItems(filesAndFolders)
+  const existingFiles = flattenTreeItemsWithType(filesAndFolders)
   const { removeEntriesForFolder } = useLocationHistory()
   const isEditing = editingFilePath === folder.path
   const [currentFolderPath, updateCurrentFolderPath] = useCurrentFolderPath()
@@ -153,16 +153,20 @@ export function FolderListItem({
   return (
     <li className="w-full">
       <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
-        {isEditing ? (
-          <ItemRenameInput
-            itemName={friendlyFolderName}
-            onSubmit={handleSubmitNewName}
-            onCancel={handleCancelNameEditing}
-            editing={isEditing}
-            error={renameError}
-          />
-        ) : (
-          <CollapsibleTrigger asChild>
+        <CollapsibleTrigger asChild>
+          {isEditing ? (
+            <div className="flex items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0 px-2">
+              {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
+              <ItemRenameInput
+                itemName={friendlyFolderName}
+                onSubmit={handleSubmitNewName}
+                onCancel={handleCancelNameEditing}
+                editing={isEditing}
+                error={renameError}
+                className="-translate-x-2"
+              />
+            </div>
+          ) : (
             <Button
               variant="ghost"
               size="sm"
@@ -186,8 +190,8 @@ export function FolderListItem({
               {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
               {folder.name}
             </Button>
-          </CollapsibleTrigger>
-        )}
+          )}
+        </CollapsibleTrigger>
 
         <CollapsibleContent
           className={cn('pl-[17px]', folderChildren.length > 0 && 'py-px')}

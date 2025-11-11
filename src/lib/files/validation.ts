@@ -183,16 +183,27 @@ export function getFileDirectory(filePath: string): string {
 
 /**
  * Check if a file name already exists in the same directory
+ * When itemType is provided, only checks against items of the same type
  */
 export function checkDuplicateFileName(
   newFileName: string,
   currentFilePath: string,
-  existingFiles: Array<{ name: string; path: string }>,
+  existingFiles: Array<{
+    name: string
+    path: string
+    type?: 'file' | 'folder'
+  }>,
+  itemType?: 'file' | 'folder',
 ): { isDuplicate: boolean; conflictPath?: string } {
   const currentDir = getFileDirectory(currentFilePath)
   const nameWithoutExt = newFileName.replace(/\.md$/, '')
 
   const duplicate = existingFiles.find((file) => {
+    // If itemType is provided and the file has type info, only match same type
+    if (itemType && file.type !== undefined && file.type !== itemType) {
+      return false
+    }
+
     const fileNameWithoutExt = file.name.replace(/\.md$/, '')
     const fileDir = getFileDirectory(file.path)
 

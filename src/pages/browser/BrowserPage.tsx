@@ -22,7 +22,7 @@ import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
 import {
   useFilesAndFolders,
-  flattenTreeItems,
+  flattenTreeItemsWithType,
 } from '@/lib/files/useFilesAndFolders'
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import { useToast } from '@/lib/useToast'
@@ -74,7 +74,7 @@ export function BrowserPage() {
     mutateAsync: renameFile,
     reset: resetRenameState,
   } = useRenameFile()
-  const existingFiles = flattenTreeItems(filesAndFolders)
+  const existingFiles = flattenTreeItemsWithType(filesAndFolders)
 
   useEffect(() => {
     if (!isRenameDialogOpen) {

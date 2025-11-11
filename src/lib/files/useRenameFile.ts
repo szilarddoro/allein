@@ -49,6 +49,7 @@ export function useRenameFile() {
           fullName,
           oldPath,
           existingFiles,
+          itemType,
         )
 
         if (isDuplicate) {

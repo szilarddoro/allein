@@ -8,6 +8,7 @@ export interface ItemRenameInputProps {
   onSubmit: (value: string) => void
   onCancel: () => void
   error?: Error | null
+  editing?: boolean
 }
 
 export function ItemRenameInput({
@@ -15,6 +16,7 @@ export function ItemRenameInput({
   onSubmit,
   onCancel,
   error,
+  editing,
 }: ItemRenameInputProps) {
   const [value, setValue] = useState(itemName)
   const ref = useRef<HTMLInputElement>(null)
@@ -24,11 +26,11 @@ export function ItemRenameInput({
   }, [])
 
   useEffect(() => {
-    if (error != null) {
+    if (error != null || editing) {
       ref.current?.focus()
       ref.current?.select()
     }
-  }, [error])
+  }, [error, editing])
 
   function handleBlur() {
     onSubmit(value)
@@ -51,9 +53,9 @@ export function ItemRenameInput({
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <Popover open={error != null}>
-        <PopoverAnchor>
+        <PopoverAnchor className="w-full">
           <Input
             id="item-name"
             autoFocus
@@ -65,7 +67,7 @@ export function ItemRenameInput({
             onChange={handleChange}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            className="h-8 p-2 ring-0 focus:ring-0 focus-visible:ring-0 border-2 !border-blue-500 bg-secondary font-medium"
+            className="h-8 p-2 ring-0 focus:ring-0 focus-visible:ring-0 border-2 !border-blue-500 bg-secondary font-medium cursor-text"
             ref={ref}
           />
         </PopoverAnchor>
@@ -75,7 +77,9 @@ export function ItemRenameInput({
           side="bottom"
         >
           {error != null && (
-            <AlertText id="item-name-error">{error.message}</AlertText>
+            <AlertText className="w-full" id="item-name-error">
+              {error.message}
+            </AlertText>
           )}
         </PopoverContent>
       </Popover>

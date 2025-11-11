@@ -10,11 +10,11 @@ import type { TreeItem } from '@/lib/files/types'
 import { useCallback, useState } from 'react'
 import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { useRenameFile } from '@/lib/files/useRenameFile'
-import { useToast } from '@/lib/useToast'
 import {
   useFilesAndFolders,
   flattenTreeItems,
 } from '@/lib/files/useFilesAndFolders'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 
 export interface FileCardProps {
   file: TreeItem & { type: 'file' }
@@ -49,37 +49,49 @@ export function FileCard({
   onDelete,
   navigate,
 }: FileCardProps) {
+  const { removeEntriesForFile } = useLocationHistory()
   const [editing, setEditing] = useState(false)
-  const { mutate: renameFile } = useRenameFile()
-  const { toast } = useToast()
+  const {
+    mutateAsync: renameFile,
+    error: renameError,
+    reset: resetRenameState,
+  } = useRenameFile()
   const friendlyFileName = getDisplayName(file.name)
   const { data: filesAndFolders } = useFilesAndFolders()
   const existingFiles = flattenTreeItems(filesAndFolders)
 
   const handleSubmitNewName = useCallback(
-    (newName: string) => {
+    async (newName: string) => {
       if (newName.trim() === friendlyFileName) {
         setEditing(false)
+        resetRenameState()
         return
       }
 
-      renameFile(
-        { oldPath: file.path, newName, existingFiles },
-        {
-          onSuccess: () => {
-            setEditing(false)
-            toast.success('File renamed successfully')
-            onRename(file.path, file.path)
-          },
-          onError: (error) => {
-            toast.error(
-              error instanceof Error ? error.message : 'Failed to rename file',
-            )
-          },
-        },
-      )
+      try {
+        const oldPath = file.path
+        const newPath = await renameFile({
+          oldPath: file.path,
+          newName,
+          existingFiles,
+        })
+        setEditing(false)
+        onRename(newPath, oldPath)
+        resetRenameState()
+        removeEntriesForFile(oldPath)
+      } catch {
+        // We're rendering the error on the UI
+      }
     },
-    [file.path, friendlyFileName, renameFile, toast, onRename, existingFiles],
+    [
+      friendlyFileName,
+      resetRenameState,
+      file.path,
+      renameFile,
+      existingFiles,
+      onRename,
+      removeEntriesForFile,
+    ],
   )
 
   return (
@@ -155,17 +167,23 @@ export function FileCard({
         </Card>
       </Link>
 
-      {editing && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-md z-50">
-          <div className="w-full px-2">
-            <ItemRenameInput
-              itemName={friendlyFileName}
-              onSubmit={handleSubmitNewName}
-              onCancel={() => setEditing(false)}
-            />
-          </div>
+      <div
+        className={cn(
+          'absolute inset-0 border-border border p-4 flex items-center justify-center bg-background/30 backdrop-blur-xs rounded-md z-50',
+          'opacity-0 motion-safe:transition-all pointer-events-none',
+          editing && 'opacity-100 pointer-events-auto',
+        )}
+      >
+        <div className="w-full px-2">
+          <ItemRenameInput
+            itemName={friendlyFileName}
+            onSubmit={handleSubmitNewName}
+            onCancel={() => setEditing(false)}
+            editing={editing}
+            error={renameError}
+          />
         </div>
-      )}
+      </div>
     </li>
   )
 }

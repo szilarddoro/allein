@@ -82,20 +82,10 @@ export function FileCard({
     [file.path, friendlyFileName, renameFile, toast, onRename, existingFiles],
   )
 
-  if (editing) {
-    return (
-      <li className="flex items-center">
-        <ItemRenameInput
-          itemName={friendlyFileName}
-          onSubmit={handleSubmitNewName}
-          onCancel={() => setEditing(false)}
-        />
-      </li>
-    )
-  }
-
   return (
-    <li>
+    <li
+      className={cn('relative scroll-mt-4', editing && 'pointer-events-none')}
+    >
       <Link
         viewTransition
         key={file.path}
@@ -103,7 +93,10 @@ export function FileCard({
           pathname: '/editor',
           search: `?file=${encodeURIComponent(file.path)}`,
         }}
-        className="group scroll-mt-4 motion-safe:transition-transform cursor-default"
+        className={cn(
+          'group motion-safe:transition-transform cursor-default block',
+          editing && 'opacity-50',
+        )}
         onContextMenu={(e) =>
           onShowContextMenu(e, {
             filePath: file.path,
@@ -161,6 +154,18 @@ export function FileCard({
           </CardContent>
         </Card>
       </Link>
+
+      {editing && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-md z-50">
+          <div className="w-full px-2">
+            <ItemRenameInput
+              itemName={friendlyFileName}
+              onSubmit={handleSubmitNewName}
+              onCancel={() => setEditing(false)}
+            />
+          </div>
+        </div>
+      )}
     </li>
   )
 }

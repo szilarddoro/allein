@@ -9,6 +9,7 @@ interface FolderContextMenuOptions {
   onCreateFolder?: () => void
   onCopyPath: () => void
   onOpenInFolder: () => void
+  onRename: () => void
   onDelete: () => void
   isDeletingFolder: boolean
 }
@@ -52,6 +53,13 @@ export function useFolderContextMenu() {
           },
         })
 
+        const renameItem = await MenuItem.new({
+          text: 'Rename',
+          action: () => {
+            options.onRename()
+          },
+        })
+
         const separator = await PredefinedMenuItem.new({
           item: 'Separator',
         })
@@ -72,6 +80,7 @@ export function useFolderContextMenu() {
             separator,
             copyPathItem,
             openInFolderItem,
+            renameItem,
             separator,
             deleteItem,
           ],

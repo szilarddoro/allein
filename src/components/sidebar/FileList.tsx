@@ -100,6 +100,19 @@ export function FileList() {
     setIsDeleteDialogOpen(true)
   }
 
+  function handleRenameRequest(
+    path: string,
+    _name: string,
+    type: 'file' | 'folder',
+  ) {
+    if (type === 'file') {
+      setEditingFilePath(path)
+    } else {
+      // For folders, we'll trigger the inline edit by setting editingFilePath to the folder path
+      setEditingFilePath(path)
+    }
+  }
+
   async function handleCreateFileInFolder(folderPath: string) {
     try {
       const { path } = await createFile({
@@ -151,6 +164,7 @@ export function FileList() {
                   folder={data}
                   isDeletingFile={deleteStatus === 'pending'}
                   onDelete={handleDeleteRequest}
+                  onRename={handleRenameRequest}
                   onCreateFile={handleCreateFileInFolder}
                   onCreateFolder={handleCreateFolderInFolder}
                   editingFilePath={editingFilePath}

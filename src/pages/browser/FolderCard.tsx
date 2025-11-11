@@ -14,6 +14,7 @@ export interface FolderCardProps {
   folder: TreeItem & { type: 'folder' }
   onCreateFile?: (folderPath: string) => void
   onCreateFolder?: (folderPath: string) => void
+  onRename?: () => void
   onDelete?: (path: string, name: string) => void
 }
 
@@ -21,6 +22,7 @@ export function FolderCard({
   folder,
   onCreateFile,
   onCreateFolder,
+  onRename,
   onDelete,
 }: FolderCardProps) {
   const folderChildren = folder.children || []
@@ -52,6 +54,7 @@ export function FolderCard({
       onCreateFolder: onCreateFolder && (() => onCreateFolder(folder.path)),
       onCopyPath: handleCopyFolderPath,
       onOpenInFolder: handleOpenFolderInFinder,
+      onRename: onRename ? onRename : () => {},
       onDelete: onDelete ? () => onDelete(folder.path, folder.name) : () => {},
       isDeletingFolder: false,
     })

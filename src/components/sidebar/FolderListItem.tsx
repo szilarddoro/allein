@@ -1,4 +1,5 @@
 import { FileListItem } from '@/components/sidebar/FileListItem'
+import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -11,13 +12,21 @@ import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
+import { useRenameFile } from '@/lib/files/useRenameFile'
+import { getDisplayName } from '@/lib/files/fileUtils'
+import {
+  useFilesAndFolders,
+  flattenTreeItems,
+} from '@/lib/files/useFilesAndFolders'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 
 export interface FolderListItemProps {
   folder: TreeItem
   isDeletingFile?: boolean
   onDelete: (path: string, name: string, type: 'file' | 'folder') => void
+  onRename: (path: string, name: string, type: 'file' | 'folder') => void
   onCreateFile?: (folderPath: string) => void
   onCreateFolder?: (folderPath: string) => void
   nested?: boolean
@@ -30,6 +39,7 @@ export function FolderListItem({
   folder,
   isDeletingFile = false,
   onDelete,
+  onRename,
   onCreateFile,
   onCreateFolder,
   nested,
@@ -37,9 +47,62 @@ export function FolderListItem({
   onStartEdit,
   onCancelEdit,
 }: FolderListItemProps) {
+  // All hooks must be called before any early returns
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)
   const { showContextMenu } = useFolderContextMenu()
   const { toast } = useToast()
+  const friendlyFolderName = getDisplayName(folder.name)
+  const {
+    error: renameError,
+    mutateAsync: renameFile,
+    reset: resetRenameState,
+  } = useRenameFile()
+  const { data: filesAndFolders } = useFilesAndFolders()
+  const existingFiles = flattenTreeItems(filesAndFolders)
+  const { removeEntriesForFolder } = useLocationHistory()
+  const isEditing = editingFilePath === folder.path
+
+  const handleSubmitNewName = useCallback(
+    async (newName: string) => {
+      if (newName.trim() === friendlyFolderName) {
+        onCancelEdit()
+        resetRenameState()
+        return
+      }
+
+      try {
+        const oldPath = folder.path
+        await renameFile({
+          oldPath: folder.path,
+          newName,
+          existingFiles,
+        })
+        onCancelEdit()
+        resetRenameState()
+
+        if (oldPath) {
+          removeEntriesForFolder(oldPath)
+        }
+      } catch {
+        // We're rendering the error on the UI
+      }
+    },
+    [
+      friendlyFolderName,
+      resetRenameState,
+      folder.path,
+      renameFile,
+      existingFiles,
+      removeEntriesForFolder,
+      onCancelEdit,
+    ],
+  )
+
+  useEffect(() => {
+    if (!isEditing) {
+      resetRenameState()
+    }
+  }, [isEditing, resetRenameState])
 
   if (folder.type !== 'folder') {
     return null
@@ -64,6 +127,25 @@ export function FolderListItem({
     }
   }
 
+  function handleCancelNameEditing() {
+    onCancelEdit()
+    resetRenameState()
+  }
+
+  if (isEditing) {
+    return (
+      <li className="w-full">
+        <ItemRenameInput
+          itemName={friendlyFolderName}
+          onSubmit={handleSubmitNewName}
+          onCancel={handleCancelNameEditing}
+          editing={isEditing}
+          error={renameError}
+        />
+      </li>
+    )
+  }
+
   return (
     <li className="w-full">
       <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
@@ -81,6 +163,7 @@ export function FolderListItem({
                   onCreateFolder && (() => onCreateFolder(folder.path)),
                 onCopyPath: () => handleCopyFolderPath(folder.path),
                 onOpenInFolder: () => handleOpenFolderInFinder(folder.path),
+                onRename: () => onRename(folder.path, folder.name, 'folder'),
                 onDelete: () => onDelete(folder.path, folder.name, 'folder'),
                 isDeletingFolder: isDeletingFile,
               })
@@ -122,6 +205,7 @@ export function FolderListItem({
                     folder={child}
                     isDeletingFile={isDeletingFile}
                     onDelete={onDelete}
+                    onRename={onRename}
                     onCreateFile={onCreateFile}
                     onCreateFolder={onCreateFolder}
                     nested

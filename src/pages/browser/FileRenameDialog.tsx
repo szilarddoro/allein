@@ -11,27 +11,29 @@ import { Input } from '@/components/ui/input'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { getDisplayName } from '@/lib/files/fileUtils'
 
-export interface FileRenameDialogProps {
+export interface ItemRenameDialogProps {
   isOpen: boolean
-  fileName: string | null
+  itemName: string | null
+  itemType: 'file' | 'folder'
   error: Error | null
   onSubmit: (newName: string) => void
   onCancel: () => void
 }
 
-export function FileRenameDialog({
+export function ItemRenameDialog({
   isOpen,
-  fileName,
+  itemName,
+  itemType,
   error,
   onSubmit,
   onCancel,
-}: FileRenameDialogProps) {
+}: ItemRenameDialogProps) {
   const [inputValue, setInputValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (isOpen && fileName) {
-      const displayName = getDisplayName(fileName)
+    if (isOpen && itemName) {
+      const displayName = getDisplayName(itemName)
       setInputValue(displayName)
       // Focus and select the input after a brief delay to ensure it's rendered
       setTimeout(() => {
@@ -39,7 +41,7 @@ export function FileRenameDialog({
         inputRef.current?.select()
       }, 0)
     }
-  }, [isOpen, fileName])
+  }, [isOpen, itemName])
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -52,17 +54,19 @@ export function FileRenameDialog({
     }
   }
 
-  if (!fileName) {
+  if (!itemName) {
     return null
   }
 
-  const displayName = getDisplayName(fileName)
+  const displayName = getDisplayName(itemName)
+  const itemTypeCapitalized = itemType === 'file' ? 'File' : 'Folder'
+  const itemLabel = itemType === 'file' ? 'File name' : 'Folder name'
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Rename File</DialogTitle>
+          <DialogTitle>Rename {itemTypeCapitalized}</DialogTitle>
           <DialogDescription className="sr-only">
             Enter a new name for &quot;{displayName}&quot;
           </DialogDescription>
@@ -70,25 +74,25 @@ export function FileRenameDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Field data-invalid={error != null}>
-            <FieldLabel htmlFor="file-name">
-              File name
+            <FieldLabel htmlFor="item-name">
+              {itemLabel}
               <span className="sr-only"> (required)</span>
             </FieldLabel>
 
             <Input
-              id="file-name"
+              id="item-name"
               ref={inputRef}
               value={inputValue}
               placeholder={displayName}
               onChange={(e) => setInputValue(e.target.value)}
               aria-invalid={error != null}
-              aria-describedby={error ? 'file-name-error' : undefined}
+              aria-describedby={error ? 'item-name-error' : undefined}
               disabled={!isOpen}
               className="text-sm"
             />
 
             {error && (
-              <FieldError id="file-name-error">{error.message}</FieldError>
+              <FieldError id="item-name-error">{error.message}</FieldError>
             )}
           </Field>
 
@@ -105,3 +109,7 @@ export function FileRenameDialog({
     </Dialog>
   )
 }
+
+// Backwards compatibility alias
+export const FileRenameDialog = ItemRenameDialog
+export type FileRenameDialogProps = ItemRenameDialogProps

@@ -33,7 +33,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { BrowserHeader } from './BrowserHeader'
 import { FileCard } from './FileCard'
-import { FileRenameDialog } from './FileRenameDialog'
+import { ItemRenameDialog } from './FileRenameDialog'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
@@ -61,9 +61,10 @@ export function BrowserPage() {
     type: 'file' | 'folder'
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [fileToRename, setFileToRename] = useState<{
+  const [itemToRename, setItemToRename] = useState<{
     path: string
     name: string
+    type: 'file' | 'folder'
   } | null>(null)
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const {
@@ -161,27 +162,31 @@ export function BrowserPage() {
     }
   }
 
-  function handleRenameFile(filePath: string, fileName: string) {
-    setFileToRename({ path: filePath, name: fileName })
+  function handleRenameItem(
+    itemPath: string,
+    itemName: string,
+    itemType: 'file' | 'folder',
+  ) {
+    setItemToRename({ path: itemPath, name: itemName, type: itemType })
     setIsRenameDialogOpen(true)
   }
 
   const handleSubmitRename = useCallback(
     async (newName: string) => {
-      if (!fileToRename) return
+      if (!itemToRename) return
 
-      const friendlyFileName = getDisplayName(fileToRename.name)
+      const friendlyFileName = getDisplayName(itemToRename.name)
       if (newName.trim() === friendlyFileName) {
         setIsRenameDialogOpen(false)
         resetRenameState()
-        setTimeout(() => setFileToRename(null), 150)
+        setTimeout(() => setItemToRename(null), 150)
         return
       }
 
       try {
-        const oldPath = fileToRename.path
+        const oldPath = itemToRename.path
         await renameFile({
-          oldPath: fileToRename.path,
+          oldPath: itemToRename.path,
           newName,
           existingFiles,
         })
@@ -189,30 +194,35 @@ export function BrowserPage() {
         resetRenameState()
 
         if (oldPath) {
-          removeEntriesForFile(oldPath)
+          if (itemToRename.type === 'file') {
+            removeEntriesForFile(oldPath)
+          } else {
+            removeEntriesForFolder(oldPath)
+          }
         }
 
         reloadFiles()
 
-        setTimeout(() => setFileToRename(null), 150)
+        setTimeout(() => setItemToRename(null), 150)
       } catch {
-        // Error is displayed in the input component
+        // Error is displayed in the dialog component
       }
     },
     [
-      fileToRename,
+      itemToRename,
       existingFiles,
       renameFile,
       resetRenameState,
       reloadFiles,
       removeEntriesForFile,
+      removeEntriesForFolder,
     ],
   )
 
   function handleCancelRename() {
     setIsRenameDialogOpen(false)
     resetRenameState()
-    setTimeout(() => setFileToRename(null), 150)
+    setTimeout(() => setItemToRename(null), 150)
   }
 
   if (status === 'pending') {
@@ -296,9 +306,10 @@ export function BrowserPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <FileRenameDialog
+      <ItemRenameDialog
         isOpen={isRenameDialogOpen}
-        fileName={fileToRename?.name ?? null}
+        itemName={itemToRename?.name ?? null}
+        itemType={itemToRename?.type ?? 'file'}
         error={renameError}
         onSubmit={handleSubmitRename}
         onCancel={handleCancelRename}
@@ -325,6 +336,9 @@ export function BrowserPage() {
                   folder={data}
                   onCreateFile={handleCreateFile}
                   onCreateFolder={handleCreateFolder}
+                  onRename={() =>
+                    handleRenameItem(data.path, data.name, 'folder')
+                  }
                   onDelete={(path, name) =>
                     handleDeleteItem(path, name, 'folder')
                   }
@@ -340,7 +354,7 @@ export function BrowserPage() {
                 onShowContextMenu={showContextMenu}
                 onCopyFilePath={handleCopyFilePath}
                 onOpenInFolder={handleOpenInFolder}
-                onRename={() => handleRenameFile(data.path, data.name)}
+                onRename={() => handleRenameItem(data.path, data.name, 'file')}
                 onDelete={(filePath, fileName) =>
                   handleDeleteItem(filePath, fileName, 'file')
                 }

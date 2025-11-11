@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { useNavigate } from 'react-router'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import {
@@ -110,6 +110,12 @@ export function FileListItem({
       currentFilePath,
     ],
   )
+
+  useEffect(() => {
+    if (!editing) {
+      resetRenameState()
+    }
+  }, [editing, resetRenameState])
 
   function handleCancelNameEditing() {
     onCancelEdit()

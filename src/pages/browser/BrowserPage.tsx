@@ -56,6 +56,7 @@ export function BrowserPage() {
     type: 'file' | 'folder'
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [editingFilePath, setEditingFilePath] = useState<string | null>(null)
 
   async function handleCreateFile(folderPath?: string) {
     try {
@@ -263,6 +264,9 @@ export function BrowserPage() {
                   handleDeleteItem(filePath, fileName, 'file')
                 }
                 navigate={navigate}
+                editing={editingFilePath === data.path}
+                onStartEdit={() => setEditingFilePath(data.path)}
+                onCancelEdit={() => setEditingFilePath(null)}
               />
             )
           })}

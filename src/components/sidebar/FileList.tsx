@@ -31,6 +31,7 @@ export function FileList() {
     type: 'file' | 'folder'
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [editingFilePath, setEditingFilePath] = useState<string | null>(null)
 
   const deleteStatus =
     deleteFileStatus === 'pending' || deleteFolderStatus === 'pending'
@@ -152,6 +153,9 @@ export function FileList() {
                   onDelete={handleDeleteRequest}
                   onCreateFile={handleCreateFileInFolder}
                   onCreateFolder={handleCreateFolderInFolder}
+                  editingFilePath={editingFilePath}
+                  onStartEdit={setEditingFilePath}
+                  onCancelEdit={() => setEditingFilePath(null)}
                 />
               )
             }
@@ -162,6 +166,9 @@ export function FileList() {
                 file={data}
                 isDeletingFile={deleteStatus === 'pending'}
                 onDelete={handleDeleteRequest}
+                editing={editingFilePath === data.path}
+                onStartEdit={() => setEditingFilePath(data.path)}
+                onCancelEdit={() => setEditingFilePath(null)}
               />
             )
           })}

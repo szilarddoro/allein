@@ -21,6 +21,9 @@ export interface FolderListItemProps {
   onCreateFile?: (folderPath: string) => void
   onCreateFolder?: (folderPath: string) => void
   nested?: boolean
+  editingFilePath: string | null
+  onStartEdit: (filePath: string) => void
+  onCancelEdit: () => void
 }
 
 export function FolderListItem({
@@ -30,6 +33,9 @@ export function FolderListItem({
   onCreateFile,
   onCreateFolder,
   nested,
+  editingFilePath,
+  onStartEdit,
+  onCancelEdit,
 }: FolderListItemProps) {
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)
   const { showContextMenu } = useFolderContextMenu()
@@ -103,6 +109,9 @@ export function FolderListItem({
                       file={child}
                       isDeletingFile={isDeletingFile}
                       onDelete={onDelete}
+                      editing={editingFilePath === child.path}
+                      onStartEdit={onStartEdit}
+                      onCancelEdit={onCancelEdit}
                     />
                   )
                 }
@@ -116,6 +125,9 @@ export function FolderListItem({
                     onCreateFile={onCreateFile}
                     onCreateFolder={onCreateFolder}
                     nested
+                    editingFilePath={editingFilePath}
+                    onStartEdit={onStartEdit}
+                    onCancelEdit={onCancelEdit}
                   />
                 )
               })}

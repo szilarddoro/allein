@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { useNavigate } from 'react-router'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import {
@@ -23,7 +23,9 @@ export interface FileListItemProps {
   className?: string
   isDeletingFile?: boolean
   onDelete: (path: string, name: string, type: 'file' | 'folder') => void
-  editing?: boolean
+  editing: boolean
+  onStartEdit: (filePath: string) => void
+  onCancelEdit: () => void
 }
 
 export function FileListItem({
@@ -31,9 +33,10 @@ export function FileListItem({
   className,
   isDeletingFile = false,
   onDelete,
-  editing: externalEditing = false,
+  editing,
+  onStartEdit,
+  onCancelEdit,
 }: FileListItemProps) {
-  const [editing, setEditing] = useState(false)
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const { showContextMenu } = useFileContextMenu()
   const { toast } = useToast()
@@ -47,10 +50,6 @@ export function FileListItem({
   const { data: filesAndFolders } = useFilesAndFolders()
   const existingFiles = flattenTreeItems(filesAndFolders)
   const { removeEntriesForFile } = useLocationHistory()
-
-  useEffect(() => {
-    setEditing(externalEditing)
-  }, [externalEditing])
 
   async function handleCopyFilePath(filePath: string) {
     try {
@@ -69,14 +68,10 @@ export function FileListItem({
     }
   }
 
-  function handleStartRename() {
-    setEditing(true)
-  }
-
   const handleSubmitNewName = useCallback(
     async (newName: string) => {
       if (newName.trim() === friendlyFileName) {
-        setEditing(false)
+        onCancelEdit()
         resetRenameState()
         return
       }
@@ -88,7 +83,7 @@ export function FileListItem({
           newName,
           existingFiles,
         })
-        setEditing(false)
+        onCancelEdit()
         resetRenameState()
 
         if (oldPath) {
@@ -108,11 +103,12 @@ export function FileListItem({
       existingFiles,
       updateCurrentFilePath,
       removeEntriesForFile,
+      onCancelEdit,
     ],
   )
 
   function handleCancelNameEditing() {
-    setEditing(false)
+    onCancelEdit()
     resetRenameState()
   }
 
@@ -159,7 +155,7 @@ export function FileListItem({
               onCopyPath: () => handleCopyFilePath(file.path),
               onOpenInFolder: () => handleOpenInFolder(file.path),
               onDelete: () => onDelete(file.path, file.name, 'file'),
-              onRename: handleStartRename,
+              onRename: () => onStartEdit(file.path),
               isDeletingFile,
             })
           }

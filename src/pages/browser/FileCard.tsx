@@ -7,7 +7,7 @@ import { MarkdownPreview } from '@/pages/editor/MarkdownPreview'
 import type React from 'react'
 import type { NavigateFunction } from 'react-router'
 import type { TreeItem } from '@/lib/files/types'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import {
@@ -37,6 +37,9 @@ export interface FileCardProps {
   onRename: (newPath: string, oldPath: string) => void
   onDelete: (filePath: string, fileName: string) => void
   navigate: NavigateFunction
+  editing: boolean
+  onStartEdit: () => void
+  onCancelEdit: () => void
 }
 
 export function FileCard({
@@ -48,9 +51,11 @@ export function FileCard({
   onRename,
   onDelete,
   navigate,
+  editing,
+  onStartEdit,
+  onCancelEdit,
 }: FileCardProps) {
   const { removeEntriesForFile } = useLocationHistory()
-  const [editing, setEditing] = useState(false)
   const {
     mutateAsync: renameFile,
     error: renameError,
@@ -63,7 +68,7 @@ export function FileCard({
   const handleSubmitNewName = useCallback(
     async (newName: string) => {
       if (newName.trim() === friendlyFileName) {
-        setEditing(false)
+        onCancelEdit()
         resetRenameState()
         return
       }
@@ -75,7 +80,7 @@ export function FileCard({
           newName,
           existingFiles,
         })
-        setEditing(false)
+        onCancelEdit()
         onRename(newPath, oldPath)
         resetRenameState()
         removeEntriesForFile(oldPath)
@@ -91,11 +96,12 @@ export function FileCard({
       existingFiles,
       onRename,
       removeEntriesForFile,
+      onCancelEdit,
     ],
   )
 
   function handleCancelNameEditing() {
-    setEditing(false)
+    onCancelEdit()
     resetRenameState()
   }
 
@@ -123,7 +129,7 @@ export function FileCard({
                 pathname: '/editor',
                 search: `?file=${encodeURIComponent(file.path)}`,
               }),
-            onRename: () => setEditing(true),
+            onRename: onStartEdit,
             onCopyPath: () => onCopyFilePath(file.path),
             onOpenInFolder: () => onOpenInFolder(file.path),
             onDelete: () => onDelete(file.path, file.name),

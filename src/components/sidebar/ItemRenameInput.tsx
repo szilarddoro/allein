@@ -30,6 +30,7 @@ export function ItemRenameInput({
   const [value, setValue] = useState(itemName)
   const ref = useRef<HTMLInputElement>(null)
 
+  // Treat outside click while a warning is visible as a cancel operation
   useOnClickOutside(ref as RefObject<HTMLInputElement>, () => {
     if (!editing) {
       return

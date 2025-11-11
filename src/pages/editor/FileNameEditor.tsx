@@ -37,7 +37,11 @@ export function FileNameEditor({
   const { toast } = useToast()
   const { data } = useFilesAndFolders()
   const files = flattenTreeItems(data)
-  const { error, mutateAsync: renameFile } = useRenameFile()
+  const {
+    error,
+    mutateAsync: renameFile,
+    reset: resetRenameState,
+  } = useRenameFile()
   const { showContextMenu } = useFileNameContextMenu()
   const [fileName, setFileName] = useState('')
   const [isEditingFileName, setIsEditingFileName] = useState(false)
@@ -95,6 +99,7 @@ export function FileNameEditor({
       inputValue === getDisplayName(currentFile.name)
     ) {
       setIsEditingFileName(false)
+      resetRenameState()
       return
     }
 
@@ -109,6 +114,7 @@ export function FileNameEditor({
 
       setIsEditingFileName(false)
       onFileRenamed(newPath, oldPath)
+      resetRenameState()
 
       requestAnimationFrame(() => {
         buttonRef.current?.focus()

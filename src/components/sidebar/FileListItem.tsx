@@ -38,7 +38,11 @@ export function FileListItem({
   const { toast } = useToast()
   const navigate = useNavigate()
   const friendlyFileName = getDisplayName(file.name)
-  const { error: renameError, mutateAsync: renameFile, reset } = useRenameFile()
+  const {
+    error: renameError,
+    mutateAsync: renameFile,
+    reset: resetRenameState,
+  } = useRenameFile()
   const { data: filesAndFolders } = useFilesAndFolders()
   const existingFiles = flattenTreeItems(filesAndFolders)
 
@@ -71,19 +75,19 @@ export function FileListItem({
     async (newName: string) => {
       if (newName.trim() === friendlyFileName) {
         setEditing(false)
-        reset()
+        resetRenameState()
         return
       }
 
       try {
         await renameFile({ oldPath: file.path, newName, existingFiles })
         setEditing(false)
-        reset()
+        resetRenameState()
       } catch {
         // We're rendering the error on the UI
       }
     },
-    [friendlyFileName, renameFile, file.path, existingFiles, reset],
+    [friendlyFileName, renameFile, file.path, existingFiles, resetRenameState],
   )
 
   if (editing) {

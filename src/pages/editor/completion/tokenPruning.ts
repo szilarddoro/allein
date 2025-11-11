@@ -13,7 +13,7 @@ const PREFIX_RATIO = 0.7 // 70% tokens for prefix, 30% for suffix
  * Estimate token count from text length
  * This is a simple heuristic - real tokenization would be more accurate
  */
-export function estimateTokenCount(text: string): number {
+function estimateTokenCount(text: string): number {
   return Math.ceil(text.length / CHARS_PER_TOKEN_ESTIMATE)
 }
 

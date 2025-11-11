@@ -8,7 +8,7 @@ import {
 } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
-export const MAX_STACK_SIZE = 30
+const MAX_STACK_SIZE = 30
 
 // Normalize location by removing 'focus' and 'line' query params
 function normalizeLocation(location: string): string {

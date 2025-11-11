@@ -28,17 +28,3 @@ export function getDisplayName(fileName: string): string {
 
   return fileName
 }
-
-/**
- * Checks if a filename has the .md extension
- */
-export function hasMdExtension(fileName: string): boolean {
-  return fileName.toLowerCase().endsWith('.md')
-}
-
-/**
- * Gets the full filename with .md extension for storage/API calls
- */
-export function getFullFileName(displayName: string): string {
-  return ensureMdExtension(displayName)
-}

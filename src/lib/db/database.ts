@@ -55,14 +55,6 @@ export async function updateConfig({
   await invoke('set_config', { key, value })
 }
 
-export async function getConfig(key: ConfigKey): Promise<string | null> {
-  return invoke<string | null>('get_config', { key })
-}
-
-export async function deleteConfig(key: ConfigKey): Promise<void> {
-  await invoke('delete_config', { key })
-}
-
 // Onboarding operations
 export async function getOnboardingStatus(): Promise<OnboardingModel> {
   return invoke<OnboardingModel>('get_onboarding_status')

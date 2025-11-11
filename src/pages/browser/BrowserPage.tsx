@@ -175,8 +175,11 @@ export function BrowserPage() {
     async (newName: string) => {
       if (!itemToRename) return
 
-      const friendlyFileName = getDisplayName(itemToRename.name)
-      if (newName.trim() === friendlyFileName) {
+      const friendlyName =
+        itemToRename.type === 'file'
+          ? getDisplayName(itemToRename.name)
+          : itemToRename.name
+      if (newName.trim() === friendlyName) {
         setIsRenameDialogOpen(false)
         resetRenameState()
         setTimeout(() => setItemToRename(null), 150)

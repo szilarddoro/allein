@@ -58,7 +58,7 @@ export function ItemRenameDialog({
     return null
   }
 
-  const displayName = getDisplayName(itemName)
+  const displayName = itemType === 'file' ? getDisplayName(itemName) : itemName
   const itemTypeCapitalized = itemType === 'file' ? 'File' : 'Folder'
   const itemLabel = itemType === 'file' ? 'File name' : 'Folder name'
 

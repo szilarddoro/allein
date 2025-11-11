@@ -15,7 +15,6 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState, useCallback, useEffect } from 'react'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { useRenameFile } from '@/lib/files/useRenameFile'
-import { getDisplayName } from '@/lib/files/fileUtils'
 import {
   useFilesAndFolders,
   flattenTreeItems,
@@ -51,7 +50,7 @@ export function FolderListItem({
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)
   const { showContextMenu } = useFolderContextMenu()
   const { toast } = useToast()
-  const friendlyFolderName = getDisplayName(folder.name)
+  const friendlyFolderName = folder.name
   const {
     error: renameError,
     mutateAsync: renameFile,

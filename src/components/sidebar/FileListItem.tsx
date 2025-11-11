@@ -1,22 +1,24 @@
+import { DraggableListItem } from '@/components/sidebar/DraggableListItem'
+import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { FileInfo } from '@/lib/files/types'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
+import {
+  flattenTreeItemsWithType,
+  useFilesAndFolders,
+} from '@/lib/files/useFilesAndFolders'
+import { useRenameFile } from '@/lib/files/useRenameFile'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
-import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { useNavigate } from 'react-router'
+import { useDndMonitor } from '@dnd-kit/core'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { useCallback, useEffect } from 'react'
-import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
-import { useRenameFile } from '@/lib/files/useRenameFile'
-import {
-  useFilesAndFolders,
-  flattenTreeItemsWithType,
-} from '@/lib/files/useFilesAndFolders'
-import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
+import { revealItemInDir } from '@tauri-apps/plugin-opener'
+import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 
 export interface FileListItemProps {
   file: FileInfo
@@ -37,6 +39,7 @@ export function FileListItem({
   onStartEdit,
   onCancelEdit,
 }: FileListItemProps) {
+  const [draggingActive, setDraggingActive] = useState(false)
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const { showContextMenu } = useFileContextMenu()
   const { toast } = useToast()
@@ -50,6 +53,11 @@ export function FileListItem({
   const { data: filesAndFolders } = useFilesAndFolders()
   const existingFiles = flattenTreeItemsWithType(filesAndFolders)
   const { removeEntriesForFile } = useLocationHistory()
+
+  useDndMonitor({
+    onDragStart: () => setDraggingActive(true),
+    onDragEnd: () => setDraggingActive(false),
+  })
 
   async function handleCopyFilePath(filePath: string) {
     try {
@@ -138,7 +146,7 @@ export function FileListItem({
   }
 
   return (
-    <li className="w-full">
+    <DraggableListItem id={encodeURIComponent(file.path)}>
       <Button asChild variant="ghost" size="sm" className="w-full">
         <Link
           viewTransition
@@ -152,6 +160,7 @@ export function FileListItem({
             currentFilePath === file.path
               ? 'bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/90'
               : 'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40',
+            draggingActive && 'hover:!bg-transparent',
             className,
           )}
           onContextMenu={(e) =>
@@ -178,6 +187,6 @@ export function FileListItem({
           <span className="sr-only">Open file {friendlyFileName}</span>
         </Link>
       </Button>
-    </li>
+    </DraggableListItem>
   )
 }

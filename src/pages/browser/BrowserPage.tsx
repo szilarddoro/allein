@@ -47,7 +47,7 @@ export function BrowserPage() {
   const navigate = useNavigate()
   const { showContextMenu } = useFileContextMenu()
   const { showContextMenu: showBackgroundContextMenu } = useSidebarContextMenu()
-  const [fileToDelete, setFileToDelete] = useState<{
+  const [itemToDelete, setItemToDelete] = useState<{
     path: string
     name: string
     type: 'file' | 'folder'
@@ -126,30 +126,30 @@ export function BrowserPage() {
     itemName: string,
     type: 'file' | 'folder',
   ) {
-    setFileToDelete({ path: itemPath, name: itemName, type })
+    setItemToDelete({ path: itemPath, name: itemName, type })
     setIsDeleteDialogOpen(true)
   }
 
   async function confirmDeleteItem() {
-    if (!fileToDelete) return
+    if (!itemToDelete) return
 
     try {
-      if (fileToDelete.type === 'folder') {
-        await deleteFolder(fileToDelete.path)
-        removeEntriesForFolder(fileToDelete.path)
+      if (itemToDelete.type === 'folder') {
+        await deleteFolder(itemToDelete.path)
+        removeEntriesForFolder(itemToDelete.path)
       } else {
-        await deleteFile(fileToDelete.path)
-        removeEntriesForFile(fileToDelete.path)
+        await deleteFile(itemToDelete.path)
+        removeEntriesForFile(itemToDelete.path)
       }
     } catch {
       toast.error(
-        `Failed to delete ${fileToDelete.type === 'folder' ? 'folder' : 'file'}`,
+        `Failed to delete ${itemToDelete.type === 'folder' ? 'folder' : 'file'}`,
       )
     } finally {
       setIsDeleteDialogOpen(false)
 
       setTimeout(() => {
-        setFileToDelete(null)
+        setItemToDelete(null)
       }, 150)
     }
   }
@@ -296,13 +296,13 @@ export function BrowserPage() {
   return (
     <>
       <FileDeleteConfirmDialog
-        itemToDelete={fileToDelete}
+        itemToDelete={itemToDelete}
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
           if (!open) {
             setIsDeleteDialogOpen(false)
-            // Keep fileToDelete until dialog is fully closed to prevent text jump
-            setTimeout(() => setFileToDelete(null), 150)
+            // Keep itemToDelete until dialog is fully closed to prevent text jump
+            setTimeout(() => setItemToDelete(null), 150)
           }
         }}
         onSubmit={confirmDeleteItem}

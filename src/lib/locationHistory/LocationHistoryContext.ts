@@ -6,6 +6,7 @@ export interface LocationHistoryContextProps {
   goBack: () => void
   goForward: () => void
   removeEntriesForFile: (filePath: string) => void
+  removeEntriesForFolder: (folderPath: string) => void
 }
 
 export const LocationHistoryContext =
@@ -15,4 +16,5 @@ export const LocationHistoryContext =
     goBack: () => {},
     goForward: () => {},
     removeEntriesForFile: () => {},
+    removeEntriesForFolder: () => {},
   })

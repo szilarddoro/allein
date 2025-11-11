@@ -121,6 +121,34 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
     [updateButtonStates],
   )
 
+  const removeEntriesForFolder = useCallback(
+    (folderPath: string) => {
+      // Filter out entries that reference files inside this folder
+      // A file is inside a folder if its path starts with folderPath + '/'
+      let newStack = locationStackRef.current.filter((location) => {
+        // Check if location contains a file parameter that's inside this folder
+        const fileParamMatch = location.match(/file=([^&]+)/)
+        if (!fileParamMatch) return true // Keep non-file entries (like folders)
+
+        const filePath = decodeURIComponent(fileParamMatch[1])
+        // Remove if file is the folder itself or inside the folder
+        return !(
+          filePath === folderPath || filePath.startsWith(folderPath + '/')
+        )
+      })
+
+      newStack = deduplicateAdjacent(newStack)
+
+      // Adjust currentIndex if needed
+      const newIndex = Math.min(currentIndexRef.current, newStack.length - 1)
+      currentIndexRef.current = newIndex
+
+      locationStackRef.current = newStack
+      updateButtonStates()
+    },
+    [updateButtonStates],
+  )
+
   return (
     <LocationHistoryContext.Provider
       value={{
@@ -129,6 +157,7 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
         goBack,
         goForward,
         removeEntriesForFile,
+        removeEntriesForFolder,
       }}
     >
       {children}

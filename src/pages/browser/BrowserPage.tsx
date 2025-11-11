@@ -32,7 +32,7 @@ import { FileCard } from './FileCard'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 
 export function BrowserPage() {
-  const { removeEntriesForFile } = useLocationHistory()
+  const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
   const [currentFolderPath] = useCurrentFolderPath()
   const {
     data: filesAndFolders,
@@ -120,6 +120,7 @@ export function BrowserPage() {
     try {
       if (fileToDelete.type === 'folder') {
         await deleteFolder(fileToDelete.path)
+        removeEntriesForFolder(fileToDelete.path)
       } else {
         await deleteFile(fileToDelete.path)
         removeEntriesForFile(fileToDelete.path)

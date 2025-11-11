@@ -95,7 +95,7 @@ export function ItemRenameInput({
             onChange={handleChange}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            className="h-8 p-2 ring-0 focus:ring-0 focus-visible:ring-0 border-2 !border-blue-500 bg-neutral-200/70 dark:bg-neutral-900/70 selection:bg-blue-300 dark:selection:bg-blue-500 font-medium cursor-text"
+            className="h-8 p-2 text-sm border-none !ring-2 !ring-blue-500 bg-neutral-200/70 dark:bg-neutral-900/70 selection:bg-blue-300 dark:selection:bg-blue-500 font-medium cursor-text"
             ref={ref}
           />
         </PopoverAnchor>

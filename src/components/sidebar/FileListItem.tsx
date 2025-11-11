@@ -111,13 +111,19 @@ export function FileListItem({
     ],
   )
 
+  function handleCancelNameEditing() {
+    setEditing(false)
+    resetRenameState()
+  }
+
   if (editing) {
     return (
       <li className="w-full">
         <ItemRenameInput
           itemName={friendlyFileName}
           onSubmit={handleSubmitNewName}
-          onCancel={() => setEditing(false)}
+          onCancel={handleCancelNameEditing}
+          editing={editing}
           error={renameError}
         />
       </li>

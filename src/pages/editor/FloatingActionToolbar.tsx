@@ -72,7 +72,7 @@ export function FloatingActionToolbar({
 
           <TooltipContent align="center" side="top" sideOffset={10}>
             <span>Improve writing</span>{' '}
-            <Hotkey modifiers={['meta']} keyCode="R" />
+            <Hotkey modifiers={['meta']} keyCode="I" />
           </TooltipContent>
         </Tooltip>
 

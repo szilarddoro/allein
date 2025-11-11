@@ -34,6 +34,8 @@ interface MarkdownPreviewProps {
   content: string
   placeholder?: string
   className?: string
+  cardClassName?: string
+  previewClassName?: string
   renderType?: 'embedded' | 'standalone'
   'aria-hidden'?: 'true' | 'false'
 }
@@ -42,6 +44,8 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
   content,
   placeholder,
   className,
+  cardClassName,
+  previewClassName,
   renderType = 'standalone',
   ...props
 }) => {
@@ -56,6 +60,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         className={cn(
           'flex-1 overflow-auto p-4 pb-24',
           renderType === 'embedded' && 'border-0 p-0',
+          cardClassName,
         )}
       >
         <div
@@ -63,6 +68,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
           className={cn(
             'prose prose-sm max-w-none prose-headings:text-neutral-900 prose-p:text-neutral-700 prose-strong:text-neutral-900 prose-blockquote:border-l-4 prose-blockquote:border-neutral-300 prose-blockquote:text-neutral-600 [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_li_ul]:ml-4 [&_li_ol]:ml-4 select-auto cursor-auto',
             renderType === 'embedded' && 'overflow-hidden w-full',
+            previewClassName,
           )}
         >
           <ReactMarkdown

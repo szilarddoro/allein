@@ -7,11 +7,10 @@ import {
 import { removeMdExtension } from '@/lib/files/fileUtils'
 import { FileContent } from '@/lib/files/types'
 import {
-  useFilesAndFolders,
   flattenTreeItems,
+  useFilesAndFolders,
 } from '@/lib/files/useFilesAndFolders'
 import { useRenameFile } from '@/lib/files/useRenameFile'
-import { validateFileName } from '@/lib/files/validation'
 import { useToast } from '@/lib/useToast'
 import { useFileNameContextMenu } from '@/pages/editor/useFileNameContextMenu'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
@@ -38,13 +37,9 @@ export function FileNameEditor({
   const { toast } = useToast()
   const { data } = useFilesAndFolders()
   const files = flattenTreeItems(data)
-  const { mutateAsync: renameFile } = useRenameFile()
+  const { error, mutateAsync: renameFile } = useRenameFile()
   const { showContextMenu } = useFileNameContextMenu()
   const [fileName, setFileName] = useState('')
-  const [fileNameValidationErrorType, setFileNameValidationErrorType] =
-    useState<
-      ReturnType<typeof validateFileName>['error'] | 'duplicate' | 'none'
-    >('none')
   const [isEditingFileName, setIsEditingFileName] = useState(false)
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const fileNameInputRef = useRef<HTMLInputElement>(null)
@@ -66,32 +61,8 @@ export function FileNameEditor({
     }
   }, [isEditingFileName])
 
-  function getErrorMessage() {
-    switch (fileNameValidationErrorType) {
-      case 'empty':
-        return 'File name cannot be empty'
-      case 'too-long':
-        return 'File name is too long (max 255 characters)'
-      case 'control-characters':
-        return 'File name contains control characters'
-      case 'duplicate':
-        return 'File name is already taken'
-      case 'invalid-leading-trailing':
-        return 'File name cannot start or end with spaces or dots'
-      case 'reserved':
-        return 'File name is reserved by the operating system'
-      case 'invalid':
-        return 'File name contains invalid characters: < > : " / \\ | ? *'
-      case 'consecutive-dots':
-        return 'File name cannot contain consecutive dots'
-      default:
-        return ''
-    }
-  }
-
   function handleFileNameClick() {
     setIsEditingFileName(true)
-    setFileNameValidationErrorType('none')
   }
 
   function handleFileNameKeyDown(event: React.KeyboardEvent) {
@@ -109,7 +80,6 @@ export function FileNameEditor({
       if (currentFile) {
         setFileName(removeMdExtension(currentFile.name))
       }
-      setFileNameValidationErrorType('none')
       setIsEditingFileName(false)
     }
   }
@@ -123,56 +93,28 @@ export function FileNameEditor({
       inputValue.length === 0 ||
       inputValue === removeMdExtension(currentFile.name)
     ) {
-      setFileNameValidationErrorType('none')
       setIsEditingFileName(false)
       return
     }
 
+    const oldPath = currentFile.path
+
     try {
-      const oldPath = currentFile.path
       const newPath = await renameFile({
         oldPath,
         newName: inputValue,
         existingFiles: files || [],
       })
 
-      setFileNameValidationErrorType('none')
       setIsEditingFileName(false)
       onFileRenamed(newPath, oldPath)
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Failed to rename file'
-
-      // Map error messages to validation error types for UI display
-      if (errorMessage.includes('already exists')) {
-        requestAnimationFrame(() => {
-          fileNameInputRef.current?.focus()
-          fileNameInputRef.current?.select()
-        })
-        setFileNameValidationErrorType('duplicate')
-      } else if (errorMessage.includes('empty')) {
-        setFileNameValidationErrorType('empty')
-      } else if (errorMessage.includes('too long')) {
-        setFileNameValidationErrorType('too-long')
-      } else if (errorMessage.includes('invalid characters')) {
-        setFileNameValidationErrorType('invalid')
-      } else if (errorMessage.includes('reserved')) {
-        setFileNameValidationErrorType('reserved')
-      } else if (errorMessage.includes('start or end')) {
-        setFileNameValidationErrorType('invalid-leading-trailing')
-      } else if (errorMessage.includes('consecutive dots')) {
-        setFileNameValidationErrorType('consecutive-dots')
-      } else if (errorMessage.includes('control characters')) {
-        setFileNameValidationErrorType('control-characters')
-      } else {
-        toast.error(errorMessage)
-      }
+    } catch {
+      // We're rendering the error on the UI
     }
   }
 
   function handleFileNameChange(event: React.ChangeEvent<HTMLInputElement>) {
     setFileName(event.target.value)
-    setFileNameValidationErrorType('none')
   }
 
   async function handleCopyFilePath() {
@@ -215,22 +157,21 @@ export function FileNameEditor({
             maxLength={255}
             spellCheck={false}
             autoCorrect="off"
-            aria-invalid={fileNameValidationErrorType !== 'none'}
+            aria-invalid={error != null}
             aria-describedby="file-name-error"
             aria-label="File name"
             autoFocus
           />
 
-          {fileNameValidationErrorType &&
-            fileNameValidationErrorType !== 'none' && (
-              <div
-                id="file-name-error"
-                className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-950 dark:border-yellow-700 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-400 font-normal z-1000"
-              >
-                <TriangleAlert className="w-3 h-3" />
-                {getErrorMessage()}
-              </div>
-            )}
+          {error && (
+            <div
+              id="file-name-error"
+              className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-950 dark:border-yellow-700 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-400 font-normal z-1000"
+            >
+              <TriangleAlert className="w-3 h-3" />
+              {error.message}
+            </div>
+          )}
         </>
       ) : (
         <Tooltip

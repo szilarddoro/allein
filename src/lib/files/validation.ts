@@ -105,7 +105,8 @@ export function validateFileName(fileName: string) {
 
   return {
     isValid: true,
-  }
+    error: null,
+  } as const
 }
 
 /**

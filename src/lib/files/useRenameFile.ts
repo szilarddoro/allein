@@ -17,20 +17,19 @@ export function useRenameFile() {
   return useMutation({
     mutationFn: ({ oldPath, newName, existingFiles }: RenameFileParams) => {
       // Validate the new file name
-      const validation = validateFileName(newName)
-      if (!validation.isValid) {
-        const errorKey = (validation as { error: string }).error
+      const { isValid, error } = validateFileName(newName)
+      if (!isValid) {
         const errorMessages: Record<string, string> = {
-          empty: 'Name cannot be empty',
-          'too-long': 'Name is too long (max 255 characters)',
-          invalid: 'Name contains invalid characters',
-          reserved: 'Name is reserved by the system',
+          empty: 'File name cannot be empty',
+          'too-long': 'File name is too long (max 255 characters)',
+          invalid: 'File name contains invalid characters: < > : " / \\ | ? *',
+          reserved: 'File name is reserved by the operating system',
           'invalid-leading-trailing':
-            'Name cannot start or end with spaces or dots',
-          'consecutive-dots': 'Name cannot contain consecutive dots',
-          'control-characters': 'Name contains invalid characters',
+            'File name cannot start or end with spaces or dots',
+          'consecutive-dots': 'File name cannot contain consecutive dots',
+          'control-characters': 'File name contains control characters',
         }
-        throw new Error(errorMessages[errorKey] || 'Invalid file name')
+        throw new Error(errorMessages[error] || 'Invalid file name')
       }
 
       // Check for duplicate file names in the same directory
@@ -41,8 +40,9 @@ export function useRenameFile() {
           oldPath,
           existingFiles,
         )
+
         if (isDuplicate) {
-          throw new Error('A file with this name already exists in this folder')
+          throw new Error('File name is already taken')
         }
       }
 

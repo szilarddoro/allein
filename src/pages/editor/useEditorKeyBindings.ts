@@ -30,18 +30,21 @@ export function useEditorKeyBindings({
         onTogglePreview()
       })
 
-      // Override CMD+I for italic formatting
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => {
-        applyItalicFormatting(editor)
-      })
+      // Override CMD+Shift+I for italic formatting
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyI,
+        () => {
+          applyItalicFormatting(editor)
+        },
+      )
 
       // Override CMD+B for bold formatting
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyB, () => {
         applyBoldFormatting(editor)
       })
 
-      // Override CMD+R to open writing improvement modal
-      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR, () => {
+      // Override CMD+I to open writing improvement modal
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => {
         onOpenImproveWritingModal()
       })
 

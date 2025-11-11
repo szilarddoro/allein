@@ -16,7 +16,7 @@ export function useRenameFile() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       oldPath,
       newName,
       existingFiles,
@@ -40,13 +40,13 @@ export function useRenameFile() {
       }
 
       // Only add .md extension for files, not folders
-      const fullFileName =
+      const fullName =
         itemType === 'file' ? ensureMdExtension(newName) : newName
 
       // Check for duplicate file names in the same directory
       if (existingFiles) {
         const { isDuplicate } = checkDuplicateFileName(
-          fullFileName,
+          fullName,
           oldPath,
           existingFiles,
         )
@@ -56,37 +56,18 @@ export function useRenameFile() {
         }
       }
 
-      return invoke<string>('rename_file', { oldPath, newName: fullFileName })
-    },
-    onMutate: async ({ oldPath, newName, itemType = 'file' }) => {
-      // Cancel outgoing refetches so they don't overwrite our optimistic update
-      await queryClient.cancelQueries({
-        queryKey: READ_FILE_QUERY_KEY(oldPath),
+      const newPath = await invoke<string>('rename_file', {
+        oldPath,
+        newName: fullName,
       })
 
-      // Snapshot the previous value
-      const previousFile = queryClient.getQueryData(
-        READ_FILE_QUERY_KEY(oldPath),
-      )
-
-      // Optimistically update the file path
-      const fullFileName =
-        itemType === 'file' ? ensureMdExtension(newName) : newName
-      const newPath = oldPath.replace(/[^/]+$/, fullFileName)
-      queryClient.setQueryData(READ_FILE_QUERY_KEY(newPath), previousFile)
-
-      return { previousFile, newPath }
-    },
-    onError: (_err, variables, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousFile) {
-        queryClient.setQueryData(
-          READ_FILE_QUERY_KEY(variables.oldPath),
-          context.previousFile,
-        )
+      return {
+        newPath,
+        oldPath,
+        itemType,
       }
     },
-    onSuccess: async (newPath) => {
+    onSuccess: async ({ newPath }) => {
       try {
         await Promise.all([
           queryClient.invalidateQueries({

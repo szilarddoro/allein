@@ -40,8 +40,8 @@ import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 
 export function BrowserPage() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
-  const [currentFolderPath] = useCurrentFolderPath()
-  const [currentFilePath] = useCurrentFilePath()
+  const [currentFolderPath, updateCurrentFolderPath] = useCurrentFolderPath()
+  const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const {
     data: filesAndFolders,
     status,
@@ -190,7 +190,7 @@ export function BrowserPage() {
 
       try {
         const oldPath = itemToRename.path
-        await renameFile({
+        const { newPath } = await renameFile({
           oldPath: itemToRename.path,
           newName,
           existingFiles,
@@ -207,23 +207,24 @@ export function BrowserPage() {
           }
         }
 
-        // Handle redirects if renaming affects current location
+        // Handle path updates if renaming affects current location
         if (itemToRename.type === 'folder') {
           // Check if current folder is the renamed folder or a descendant
-          const isCurrentFolderAffected =
+          if (
             currentFolderPath === oldPath ||
-            (currentFolderPath?.startsWith(oldPath + '/') ?? false)
+            currentFolderPath?.startsWith(oldPath)
+          ) {
+            updateCurrentFolderPath(
+              currentFolderPath!.replace(oldPath, newPath),
+            )
+            reloadFiles()
+            setTimeout(() => setItemToRename(null), 150)
+            return
+          }
 
           // Check if current file is in the renamed folder or its descendants
-          const isCurrentFileAffected =
-            currentFilePath?.startsWith(oldPath + '/') ?? false
-
-          if (isCurrentFolderAffected) {
-            // Redirect browser to home if viewing renamed folder
-            navigate('/')
-          } else if (isCurrentFileAffected) {
-            // Redirect editor to home if editing a file in renamed folder
-            navigate('/')
+          if (currentFilePath?.startsWith(oldPath)) {
+            updateCurrentFilePath(currentFilePath.replace(oldPath, newPath))
           }
         }
 
@@ -244,7 +245,8 @@ export function BrowserPage() {
       removeEntriesForFolder,
       currentFolderPath,
       currentFilePath,
-      navigate,
+      updateCurrentFolderPath,
+      updateCurrentFilePath,
     ],
   )
 
@@ -266,7 +268,7 @@ export function BrowserPage() {
 
   if (status === 'error') {
     return (
-      <div className="flex-1 overflow-hidden flex flex-col justify-center items-center">
+      <div className="flex-1 overflow-hidden flex flex-col justify-center items-center animate-fade-in delay-200">
         <P className="text-destructive flex flex-row gap-1 items-center text-sm">
           <CircleAlert className="size-4" />
           An error occurred while loading files and folders.

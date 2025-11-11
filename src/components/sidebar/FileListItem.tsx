@@ -78,7 +78,7 @@ export function FileListItem({
 
       try {
         const oldPath = file.path
-        const newPath = await renameFile({
+        const { newPath } = await renameFile({
           oldPath: file.path,
           newName,
           existingFiles,

@@ -83,7 +83,7 @@ export function useFilesAndFolders({
       invoke<TreeItem[]>('list_files_and_folders_tree', {
         folderPath: currentFolderPath || null,
       }),
-    retry: 3,
+    retry: false,
     refetchOnMount: 'always',
   })
 

@@ -106,7 +106,7 @@ export function FileNameEditor({
     const oldPath = currentFile.path
 
     try {
-      const newPath = await renameFile({
+      const { newPath } = await renameFile({
         oldPath,
         newName: inputValue,
         existingFiles: files || [],

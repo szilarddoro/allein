@@ -38,7 +38,7 @@ export function FileListItem({
   const { toast } = useToast()
   const navigate = useNavigate()
   const friendlyFileName = getDisplayName(file.name)
-  const { mutate: renameFile } = useRenameFile()
+  const { error: renameError, mutateAsync: renameFile, reset } = useRenameFile()
   const { data: filesAndFolders } = useFilesAndFolders()
   const existingFiles = flattenTreeItems(filesAndFolders)
 
@@ -68,28 +68,22 @@ export function FileListItem({
   }
 
   const handleSubmitNewName = useCallback(
-    (newName: string) => {
+    async (newName: string) => {
       if (newName.trim() === friendlyFileName) {
         setEditing(false)
+        reset()
         return
       }
 
-      renameFile(
-        { oldPath: file.path, newName, existingFiles },
-        {
-          onSuccess: () => {
-            setEditing(false)
-            toast.success('File renamed successfully')
-          },
-          onError: (error) => {
-            toast.error(
-              error instanceof Error ? error.message : 'Failed to rename file',
-            )
-          },
-        },
-      )
+      try {
+        await renameFile({ oldPath: file.path, newName, existingFiles })
+        setEditing(false)
+        reset()
+      } catch {
+        // We're rendering the error on the UI
+      }
     },
-    [file.path, friendlyFileName, renameFile, toast, existingFiles],
+    [friendlyFileName, renameFile, file.path, existingFiles, reset],
   )
 
   if (editing) {
@@ -99,6 +93,7 @@ export function FileListItem({
           itemName={friendlyFileName}
           onSubmit={handleSubmitNewName}
           onCancel={() => setEditing(false)}
+          error={renameError}
         />
       </li>
     )

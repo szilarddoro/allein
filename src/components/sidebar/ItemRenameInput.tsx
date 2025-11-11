@@ -1,16 +1,20 @@
+import { AlertText } from '@/components/AlertText'
 import { Input } from '@/components/ui/input'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
 
 export interface ItemRenameInputProps {
   itemName: string
   onSubmit: (value: string) => void
   onCancel: () => void
+  error?: Error | null
 }
 
 export function ItemRenameInput({
   itemName,
   onSubmit,
   onCancel,
+  error,
 }: ItemRenameInputProps) {
   const [value, setValue] = useState(itemName)
   const ref = useRef<HTMLInputElement>(null)
@@ -19,31 +23,62 @@ export function ItemRenameInput({
     ref.current?.select()
   }, [])
 
-  const handleSubmit = useCallback(() => {
+  useEffect(() => {
+    if (error != null) {
+      ref.current?.focus()
+      ref.current?.select()
+    }
+  }, [error])
+
+  function handleBlur() {
     onSubmit(value)
-  }, [onSubmit, value])
+  }
+
+  function handleChange(ev: ChangeEvent<HTMLInputElement>) {
+    setValue(ev.target.value)
+  }
+
+  function handleKeyDown(ev: KeyboardEvent<HTMLInputElement>) {
+    if (ev.key === 'Enter') {
+      ev.stopPropagation()
+      onSubmit(value)
+    }
+
+    if (ev.key === 'Escape') {
+      ev.stopPropagation()
+      onCancel()
+    }
+  }
 
   return (
-    <Input
-      autoFocus
-      placeholder={itemName}
-      defaultValue={itemName}
-      aria-label={`Rename ${itemName}`}
-      onChange={(ev) => setValue(ev.target.value)}
-      onBlur={handleSubmit}
-      className="h-8 p-2 ring-0 focus:ring-0 focus-visible:ring-0 border-2 !border-blue-500 bg-secondary font-medium"
-      onKeyDown={(ev) => {
-        if (ev.key === 'Enter') {
-          ev.stopPropagation()
-          handleSubmit()
-        }
-
-        if (ev.key === 'Escape') {
-          ev.stopPropagation()
-          onCancel()
-        }
-      }}
-      ref={ref}
-    />
+    <div className="relative">
+      <Popover open={error != null}>
+        <PopoverAnchor>
+          <Input
+            id="item-name"
+            autoFocus
+            placeholder={itemName}
+            defaultValue={itemName}
+            aria-invalid={error != null}
+            aria-label="Edit file name"
+            aria-describedby="item-name-error"
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            className="h-8 p-2 ring-0 focus:ring-0 focus-visible:ring-0 border-2 !border-blue-500 bg-secondary font-medium"
+            ref={ref}
+          />
+        </PopoverAnchor>
+        <PopoverContent
+          className="p-0 border-0 shadow-sm"
+          align="start"
+          side="bottom"
+        >
+          {error != null && (
+            <AlertText id="item-name-error">{error.message}</AlertText>
+          )}
+        </PopoverContent>
+      </Popover>
+    </div>
   )
 }

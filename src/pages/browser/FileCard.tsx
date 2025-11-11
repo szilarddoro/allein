@@ -94,6 +94,11 @@ export function FileCard({
     ],
   )
 
+  function handleCancelNameEditing() {
+    setEditing(false)
+    resetRenameState()
+  }
+
   return (
     <li
       className={cn('relative scroll-mt-4', editing && 'pointer-events-none')}
@@ -178,7 +183,7 @@ export function FileCard({
           <ItemRenameInput
             itemName={friendlyFileName}
             onSubmit={handleSubmitNewName}
-            onCancel={() => setEditing(false)}
+            onCancel={handleCancelNameEditing}
             editing={editing}
             error={renameError}
           />

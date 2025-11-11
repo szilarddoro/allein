@@ -1,7 +1,15 @@
 import { AlertText } from '@/components/AlertText'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
-import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react'
+import {
+  ChangeEvent,
+  KeyboardEvent,
+  RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
+import { useOnClickOutside } from 'usehooks-ts'
 
 export interface ItemRenameInputProps {
   itemName: string
@@ -18,22 +26,38 @@ export function ItemRenameInput({
   error,
   editing,
 }: ItemRenameInputProps) {
+  const valueAtPreviousSubmitRef = useRef<string>(null)
   const [value, setValue] = useState(itemName)
   const ref = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    ref.current?.select()
-  }, [])
+  useOnClickOutside(ref as RefObject<HTMLInputElement>, () => {
+    if (!editing) {
+      return
+    }
+
+    if (error != null && valueAtPreviousSubmitRef.current === value) {
+      setValue(itemName)
+      onCancel()
+    }
+  })
 
   useEffect(() => {
-    if (error != null || editing) {
+    if (error != null) {
       ref.current?.focus()
       ref.current?.select()
     }
-  }, [error, editing])
+  }, [error])
+
+  useEffect(() => {
+    if (editing) {
+      ref.current?.focus()
+      ref.current?.select()
+    }
+  }, [editing])
 
   function handleBlur() {
     onSubmit(value)
+    valueAtPreviousSubmitRef.current = value
   }
 
   function handleChange(ev: ChangeEvent<HTMLInputElement>) {
@@ -42,12 +66,14 @@ export function ItemRenameInput({
 
   function handleKeyDown(ev: KeyboardEvent<HTMLInputElement>) {
     if (ev.key === 'Enter') {
+      ev.preventDefault()
       ev.stopPropagation()
-      onSubmit(value)
+      ref.current?.blur()
     }
 
     if (ev.key === 'Escape') {
       ev.stopPropagation()
+      setValue(itemName)
       onCancel()
     }
   }
@@ -57,10 +83,11 @@ export function ItemRenameInput({
       <Popover open={error != null}>
         <PopoverAnchor className="w-full">
           <Input
+            disabled={!editing}
             id="item-name"
             autoFocus
             placeholder={itemName}
-            defaultValue={itemName}
+            value={value}
             aria-invalid={error != null}
             aria-label="Edit file name"
             aria-describedby="item-name-error"

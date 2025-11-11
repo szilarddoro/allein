@@ -247,7 +247,9 @@ export function BrowserPage() {
           An error occurred while loading files and folders.
         </P>
 
-        <Button onClick={() => reloadFiles()}>Reload</Button>
+        <Button size="sm" variant="destructive" onClick={() => reloadFiles()}>
+          Reload
+        </Button>
       </div>
     )
   }

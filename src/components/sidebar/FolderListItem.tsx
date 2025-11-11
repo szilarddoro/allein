@@ -132,47 +132,44 @@ export function FolderListItem({
     resetRenameState()
   }
 
-  if (isEditing) {
-    return (
-      <li className="w-full">
-        <ItemRenameInput
-          itemName={friendlyFolderName}
-          onSubmit={handleSubmitNewName}
-          onCancel={handleCancelNameEditing}
-          editing={isEditing}
-          error={renameError}
-        />
-      </li>
-    )
-  }
-
   return (
     <li className="w-full">
       <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
-        <CollapsibleTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start flex items-center gap-2 !p-2 rounded-md cursor-default transition-colors hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
-            onContextMenu={(e) =>
-              showContextMenu(e, {
-                folderPath: folder.path,
-                folderName: folder.name,
-                onCreateFile: onCreateFile && (() => onCreateFile(folder.path)),
-                onCreateFolder:
-                  onCreateFolder && (() => onCreateFolder(folder.path)),
-                onCopyPath: () => handleCopyFolderPath(folder.path),
-                onOpenInFolder: () => handleOpenFolderInFinder(folder.path),
-                onRename: () => onRename(folder.path, folder.name, 'folder'),
-                onDelete: () => onDelete(folder.path, folder.name, 'folder'),
-                isDeletingFolder: isDeletingFile,
-              })
-            }
-          >
-            {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
-            {folder.name}
-          </Button>
-        </CollapsibleTrigger>
+        {isEditing ? (
+          <ItemRenameInput
+            itemName={friendlyFolderName}
+            onSubmit={handleSubmitNewName}
+            onCancel={handleCancelNameEditing}
+            editing={isEditing}
+            error={renameError}
+          />
+        ) : (
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start flex items-center gap-2 !p-2 rounded-md cursor-default transition-colors hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
+              onContextMenu={(e) =>
+                showContextMenu(e, {
+                  folderPath: folder.path,
+                  folderName: folder.name,
+                  onCreateFile:
+                    onCreateFile && (() => onCreateFile(folder.path)),
+                  onCreateFolder:
+                    onCreateFolder && (() => onCreateFolder(folder.path)),
+                  onCopyPath: () => handleCopyFolderPath(folder.path),
+                  onOpenInFolder: () => handleOpenFolderInFinder(folder.path),
+                  onRename: () => onRename(folder.path, folder.name, 'folder'),
+                  onDelete: () => onDelete(folder.path, folder.name, 'folder'),
+                  isDeletingFolder: isDeletingFile,
+                })
+              }
+            >
+              {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
+              {folder.name}
+            </Button>
+          </CollapsibleTrigger>
+        )}
 
         <CollapsibleContent
           className={cn('pl-[17px]', folderChildren.length > 0 && 'py-px')}

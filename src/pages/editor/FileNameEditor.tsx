@@ -50,7 +50,9 @@ export function FileNameEditor({
   const { showContextMenu } = useFileNameContextMenu()
   const [fileName, setFileName] = useState('')
   const [fileNameValidationErrorType, setFileNameValidationErrorType] =
-    useState<'invalid' | 'duplicate' | 'none'>('none')
+    useState<
+      ReturnType<typeof validateFileName>['error'] | 'duplicate' | 'none'
+    >('none')
   const [isEditingFileName, setIsEditingFileName] = useState(false)
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const fileNameInputRef = useRef<HTMLInputElement>(null)
@@ -72,15 +74,45 @@ export function FileNameEditor({
     }
   }, [isEditingFileName])
 
+  function getErrorMessage() {
+    switch (fileNameValidationErrorType) {
+      case 'empty':
+        return 'File name cannot be empty'
+      case 'too-long':
+        return 'File name is too long (max 255 characters)'
+      case 'control-characters':
+        return 'File name contains control characters'
+      case 'duplicate':
+        return 'File name is already taken'
+      case 'invalid-leading-trailing':
+        return 'File name cannot start or end with spaces or dots'
+      case 'reserved':
+        return 'File name is reserved by the operating system'
+      case 'invalid':
+        return 'File name contains invalid characters: < > : " / \\ | ? *'
+      case 'consecutive-dots':
+        return 'File name cannot contain consecutive dots'
+      default:
+        return ''
+    }
+  }
+
   function handleFileNameClick() {
     setIsEditingFileName(true)
     setFileNameValidationErrorType('none')
   }
 
   function handleFileNameKeyDown(event: React.KeyboardEvent) {
+    if (event.key === 'a' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault()
+      ;(event.target as HTMLInputElement).select()
+    }
+
     if (event.key === 'Enter') {
       handleFileNameBlur()
-    } else if (event.key === 'Escape') {
+    }
+
+    if (event.key === 'Escape') {
       // Reset to original name first
       if (currentFile) {
         setFileName(removeMdExtension(currentFile.name))
@@ -94,10 +126,10 @@ export function FileNameEditor({
     if (!currentFile) return
 
     const inputValue = fileName.trim()
-    const { isValid } = validateFileName(inputValue)
+    const { isValid, error } = validateFileName(inputValue)
 
     if (!isValid) {
-      setFileNameValidationErrorType('invalid')
+      setFileNameValidationErrorType(error)
       return
     }
 
@@ -193,17 +225,16 @@ export function FileNameEditor({
             autoFocus
           />
 
-          {fileNameValidationErrorType !== 'none' && (
-            <div
-              id="file-name-error"
-              className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-950 dark:border-yellow-700 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-400 font-normal z-1000"
-            >
-              <TriangleAlert className="w-3 h-3" />
-              {fileNameValidationErrorType === 'invalid'
-                ? "File name can't contain these characters: \\ / :"
-                : 'File name is already taken.'}
-            </div>
-          )}
+          {fileNameValidationErrorType &&
+            fileNameValidationErrorType !== 'none' && (
+              <div
+                id="file-name-error"
+                className="flex flex-row gap-1 items-center absolute -bottom-1 left-0 translate-y-full rounded-sm border border-yellow-300 bg-yellow-100 dark:bg-yellow-950 dark:border-yellow-700 text-xs py-1 px-2 text-yellow-700 dark:text-yellow-400 font-normal z-1000"
+              >
+                <TriangleAlert className="w-3 h-3" />
+                {getErrorMessage()}
+              </div>
+            )}
         </>
       ) : (
         <Tooltip

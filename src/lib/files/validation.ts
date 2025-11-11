@@ -172,3 +172,38 @@ export function sanitizeFileName(fileName: string): {
     error: 'File name cannot be sanitized to a valid format',
   }
 }
+
+/**
+ * Extract directory path from a full file path
+ */
+export function getFileDirectory(filePath: string): string {
+  return filePath.substring(0, filePath.lastIndexOf('/'))
+}
+
+/**
+ * Check if a file name already exists in the same directory
+ */
+export function checkDuplicateFileName(
+  newFileName: string,
+  currentFilePath: string,
+  existingFiles: Array<{ name: string; path: string }>,
+): { isDuplicate: boolean; conflictPath?: string } {
+  const currentDir = getFileDirectory(currentFilePath)
+  const nameWithoutExt = newFileName.replace(/\.md$/, '')
+
+  const duplicate = existingFiles.find((file) => {
+    const fileNameWithoutExt = file.name.replace(/\.md$/, '')
+    const fileDir = getFileDirectory(file.path)
+
+    return (
+      fileNameWithoutExt === nameWithoutExt &&
+      fileDir === currentDir &&
+      file.path !== currentFilePath
+    )
+  })
+
+  return {
+    isDuplicate: !!duplicate,
+    conflictPath: duplicate?.path,
+  }
+}

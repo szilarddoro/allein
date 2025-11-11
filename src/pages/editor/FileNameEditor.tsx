@@ -27,14 +27,6 @@ export interface FileNameEditorProps {
 }
 
 /**
- * Extract directory path from a full file path.
- * Examples: "/path/to/folder/file.md" -> "/path/to/folder", "/file.md" -> "/"
- */
-function getFileDirectory(filePath: string): string {
-  return filePath.substring(0, filePath.lastIndexOf('/'))
-}
-
-/**
  * Inline file name editor with validation.
  * Allows users to click and edit the file name with real-time validation.
  */
@@ -126,38 +118,13 @@ export function FileNameEditor({
     if (!currentFile) return
 
     const inputValue = fileName.trim()
-    const { isValid, error } = validateFileName(inputValue)
-
-    if (!isValid) {
-      setFileNameValidationErrorType(error)
-      return
-    }
-
-    if (
-      files?.some((file) => {
-        const isSameName = removeMdExtension(file.name) === inputValue
-        const isDifferentFile = file.path !== currentFile?.path
-        const isInSameFolder =
-          getFileDirectory(file.path) === getFileDirectory(currentFile.path)
-
-        return isSameName && isDifferentFile && isInSameFolder
-      })
-    ) {
-      requestAnimationFrame(() => {
-        fileNameInputRef.current?.focus()
-        fileNameInputRef.current?.select()
-      })
-      setFileNameValidationErrorType('duplicate')
-      return
-    }
-
-    setFileNameValidationErrorType('none')
-    setIsEditingFileName(false)
 
     if (
       inputValue.length === 0 ||
       inputValue === removeMdExtension(currentFile.name)
     ) {
+      setFileNameValidationErrorType('none')
+      setIsEditingFileName(false)
       return
     }
 
@@ -166,11 +133,40 @@ export function FileNameEditor({
       const newPath = await renameFile({
         oldPath,
         newName: inputValue,
+        existingFiles: files || [],
       })
 
+      setFileNameValidationErrorType('none')
+      setIsEditingFileName(false)
       onFileRenamed(newPath, oldPath)
-    } catch {
-      toast.error('Failed to rename file')
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to rename file'
+
+      // Map error messages to validation error types for UI display
+      if (errorMessage.includes('already exists')) {
+        requestAnimationFrame(() => {
+          fileNameInputRef.current?.focus()
+          fileNameInputRef.current?.select()
+        })
+        setFileNameValidationErrorType('duplicate')
+      } else if (errorMessage.includes('empty')) {
+        setFileNameValidationErrorType('empty')
+      } else if (errorMessage.includes('too long')) {
+        setFileNameValidationErrorType('too-long')
+      } else if (errorMessage.includes('invalid characters')) {
+        setFileNameValidationErrorType('invalid')
+      } else if (errorMessage.includes('reserved')) {
+        setFileNameValidationErrorType('reserved')
+      } else if (errorMessage.includes('start or end')) {
+        setFileNameValidationErrorType('invalid-leading-trailing')
+      } else if (errorMessage.includes('consecutive dots')) {
+        setFileNameValidationErrorType('consecutive-dots')
+      } else if (errorMessage.includes('control characters')) {
+        setFileNameValidationErrorType('control-characters')
+      } else {
+        toast.error(errorMessage)
+      }
     }
   }
 

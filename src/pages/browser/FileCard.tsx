@@ -7,6 +7,14 @@ import { MarkdownPreview } from '@/pages/editor/MarkdownPreview'
 import type React from 'react'
 import type { NavigateFunction } from 'react-router'
 import type { TreeItem } from '@/lib/files/types'
+import { useCallback, useState } from 'react'
+import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
+import { useRenameFile } from '@/lib/files/useRenameFile'
+import { useToast } from '@/lib/useToast'
+import {
+  useFilesAndFolders,
+  flattenTreeItems,
+} from '@/lib/files/useFilesAndFolders'
 
 export interface FileCardProps {
   file: TreeItem & { type: 'file' }
@@ -41,6 +49,51 @@ export function FileCard({
   onDelete,
   navigate,
 }: FileCardProps) {
+  const [editing, setEditing] = useState(false)
+  const { mutate: renameFile } = useRenameFile()
+  const { toast } = useToast()
+  const friendlyFileName = getDisplayName(file.name)
+  const { data: filesAndFolders } = useFilesAndFolders()
+  const existingFiles = flattenTreeItems(filesAndFolders)
+
+  const handleSubmitNewName = useCallback(
+    (newName: string) => {
+      if (newName.trim() === friendlyFileName) {
+        setEditing(false)
+        return
+      }
+
+      renameFile(
+        { oldPath: file.path, newName, existingFiles },
+        {
+          onSuccess: () => {
+            setEditing(false)
+            toast.success('File renamed successfully')
+            onRename(file.path, file.path)
+          },
+          onError: (error) => {
+            toast.error(
+              error instanceof Error ? error.message : 'Failed to rename file',
+            )
+          },
+        },
+      )
+    },
+    [file.path, friendlyFileName, renameFile, toast, onRename, existingFiles],
+  )
+
+  if (editing) {
+    return (
+      <li className="flex items-center">
+        <ItemRenameInput
+          itemName={friendlyFileName}
+          onSubmit={handleSubmitNewName}
+          onCancel={() => setEditing(false)}
+        />
+      </li>
+    )
+  }
+
   return (
     <li>
       <Link
@@ -60,8 +113,7 @@ export function FileCard({
                 pathname: '/editor',
                 search: `?file=${encodeURIComponent(file.path)}`,
               }),
-            // TODO: Implement file renaming via the file card
-            onRename: () => onRename(file.path, file.path),
+            onRename: () => setEditing(true),
             onCopyPath: () => onCopyFilePath(file.path),
             onOpenInFolder: () => onOpenInFolder(file.path),
             onDelete: () => onDelete(file.path, file.name),

@@ -11,6 +11,11 @@ import { useNavigate } from 'react-router'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { useCallback, useEffect, useState } from 'react'
 import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
+import { useRenameFile } from '@/lib/files/useRenameFile'
+import {
+  useFilesAndFolders,
+  flattenTreeItems,
+} from '@/lib/files/useFilesAndFolders'
 
 export interface FileListItemProps {
   file: FileInfo
@@ -33,6 +38,9 @@ export function FileListItem({
   const { toast } = useToast()
   const navigate = useNavigate()
   const friendlyFileName = getDisplayName(file.name)
+  const { mutate: renameFile } = useRenameFile()
+  const { data: filesAndFolders } = useFilesAndFolders()
+  const existingFiles = flattenTreeItems(filesAndFolders)
 
   useEffect(() => {
     setEditing(externalEditing)
@@ -59,10 +67,30 @@ export function FileListItem({
     setEditing(true)
   }
 
-  const handleSubmitNewName = useCallback((name: string) => {
-    console.log(name)
-    setEditing(false)
-  }, [])
+  const handleSubmitNewName = useCallback(
+    (newName: string) => {
+      if (newName.trim() === friendlyFileName) {
+        setEditing(false)
+        return
+      }
+
+      renameFile(
+        { oldPath: file.path, newName, existingFiles },
+        {
+          onSuccess: () => {
+            setEditing(false)
+            toast.success('File renamed successfully')
+          },
+          onError: (error) => {
+            toast.error(
+              error instanceof Error ? error.message : 'Failed to rename file',
+            )
+          },
+        },
+      )
+    },
+    [file.path, friendlyFileName, renameFile, toast, existingFiles],
+  )
 
   if (editing) {
     return (

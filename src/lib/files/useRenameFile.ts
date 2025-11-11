@@ -3,18 +3,49 @@ import { invoke } from '@tauri-apps/api/core'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from './useFilesAndFolders'
 import { READ_FILE_QUERY_KEY } from '@/lib/files/useReadFile'
 import { ensureMdExtension } from './fileUtils'
+import { validateFileName, checkDuplicateFileName } from './validation'
+
+interface RenameFileParams {
+  oldPath: string
+  newName: string
+  existingFiles?: Array<{ name: string; path: string }>
+}
 
 export function useRenameFile() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
-      oldPath,
-      newName,
-    }: {
-      oldPath: string
-      newName: string
-    }) => {
+    mutationFn: ({ oldPath, newName, existingFiles }: RenameFileParams) => {
+      // Validate the new file name
+      const validation = validateFileName(newName)
+      if (!validation.isValid) {
+        const errorKey = (validation as { error: string }).error
+        const errorMessages: Record<string, string> = {
+          empty: 'Name cannot be empty',
+          'too-long': 'Name is too long (max 255 characters)',
+          invalid: 'Name contains invalid characters',
+          reserved: 'Name is reserved by the system',
+          'invalid-leading-trailing':
+            'Name cannot start or end with spaces or dots',
+          'consecutive-dots': 'Name cannot contain consecutive dots',
+          'control-characters': 'Name contains invalid characters',
+        }
+        throw new Error(errorMessages[errorKey] || 'Invalid file name')
+      }
+
+      // Check for duplicate file names in the same directory
+      if (existingFiles) {
+        const fullFileName = ensureMdExtension(newName)
+        const { isDuplicate } = checkDuplicateFileName(
+          fullFileName,
+          oldPath,
+          existingFiles,
+        )
+        if (isDuplicate) {
+          throw new Error('A file with this name already exists in this folder')
+        }
+      }
+
       // Ensure the new name has .md extension
       const fullFileName = ensureMdExtension(newName)
       return invoke<string>('rename_file', { oldPath, newName: fullFileName })

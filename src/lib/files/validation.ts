@@ -32,7 +32,7 @@ export function validateFileName(fileName: string) {
   }
 
   // Check for invalid characters
-  const invalidChars = /[<>:"/\\|?*]/
+  const invalidChars = /[<>:"/\\|?*.]/
   if (invalidChars.test(fileName)) {
     return {
       isValid: false,

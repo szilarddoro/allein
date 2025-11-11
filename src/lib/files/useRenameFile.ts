@@ -22,7 +22,8 @@ export function useRenameFile() {
         const errorMessages: Record<string, string> = {
           empty: 'File name cannot be empty',
           'too-long': 'File name is too long (max 255 characters)',
-          invalid: 'File name contains invalid characters: < > : " / \\ | ? *',
+          invalid:
+            'File name contains invalid characters: . < > : " / \\ | ? *',
           reserved: 'File name is reserved by the operating system',
           'invalid-leading-trailing':
             'File name cannot start or end with spaces or dots',

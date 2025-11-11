@@ -21,8 +21,8 @@ export function DraggableListItem({
       {...listeners}
       {...attributes}
       className={cn(
-        'motion-safe:transition-opacity',
-        isDragging && 'opacity-50 pointer-events-none',
+        'motion-safe:transition-all rounded-md',
+        isDragging && 'opacity-80 bg-blue-500/40 pointer-events-none',
         className,
       )}
     >

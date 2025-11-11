@@ -7,14 +7,6 @@ import { MarkdownPreview } from '@/pages/editor/MarkdownPreview'
 import type React from 'react'
 import type { NavigateFunction } from 'react-router'
 import type { TreeItem } from '@/lib/files/types'
-import { useCallback } from 'react'
-import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
-import { useRenameFile } from '@/lib/files/useRenameFile'
-import {
-  useFilesAndFolders,
-  flattenTreeItems,
-} from '@/lib/files/useFilesAndFolders'
-import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 
 export interface FileCardProps {
   file: TreeItem & { type: 'file' }
@@ -34,12 +26,9 @@ export interface FileCardProps {
   ) => void
   onCopyFilePath: (filePath: string) => void
   onOpenInFolder: (filePath: string) => void
-  onRename: (newPath: string, oldPath: string) => void
+  onRename: () => void
   onDelete: (filePath: string, fileName: string) => void
   navigate: NavigateFunction
-  editing: boolean
-  onStartEdit: () => void
-  onCancelEdit: () => void
 }
 
 export function FileCard({
@@ -51,64 +40,9 @@ export function FileCard({
   onRename,
   onDelete,
   navigate,
-  editing,
-  onStartEdit,
-  onCancelEdit,
 }: FileCardProps) {
-  const { removeEntriesForFile } = useLocationHistory()
-  const {
-    mutateAsync: renameFile,
-    error: renameError,
-    reset: resetRenameState,
-  } = useRenameFile()
-  const friendlyFileName = getDisplayName(file.name)
-  const { data: filesAndFolders } = useFilesAndFolders()
-  const existingFiles = flattenTreeItems(filesAndFolders)
-
-  const handleSubmitNewName = useCallback(
-    async (newName: string) => {
-      if (newName.trim() === friendlyFileName) {
-        onCancelEdit()
-        resetRenameState()
-        return
-      }
-
-      try {
-        const oldPath = file.path
-        const newPath = await renameFile({
-          oldPath: file.path,
-          newName,
-          existingFiles,
-        })
-        onCancelEdit()
-        onRename(newPath, oldPath)
-        resetRenameState()
-        removeEntriesForFile(oldPath)
-      } catch {
-        // We're rendering the error on the UI
-      }
-    },
-    [
-      friendlyFileName,
-      resetRenameState,
-      file.path,
-      renameFile,
-      existingFiles,
-      onRename,
-      removeEntriesForFile,
-      onCancelEdit,
-    ],
-  )
-
-  function handleCancelNameEditing() {
-    onCancelEdit()
-    resetRenameState()
-  }
-
   return (
-    <li
-      className={cn('relative scroll-mt-4', editing && 'pointer-events-none')}
-    >
+    <li className="relative scroll-mt-4">
       <Link
         viewTransition
         key={file.path}
@@ -116,10 +50,7 @@ export function FileCard({
           pathname: '/editor',
           search: `?file=${encodeURIComponent(file.path)}`,
         }}
-        className={cn(
-          'group motion-safe:transition-transform cursor-default block',
-          editing && 'opacity-50',
-        )}
+        className="group motion-safe:transition-transform cursor-default block"
         onContextMenu={(e) =>
           onShowContextMenu(e, {
             filePath: file.path,
@@ -129,7 +60,7 @@ export function FileCard({
                 pathname: '/editor',
                 search: `?file=${encodeURIComponent(file.path)}`,
               }),
-            onRename: onStartEdit,
+            onRename,
             onCopyPath: () => onCopyFilePath(file.path),
             onOpenInFolder: () => onOpenInFolder(file.path),
             onDelete: () => onDelete(file.path, file.name),
@@ -177,24 +108,6 @@ export function FileCard({
           </CardContent>
         </Card>
       </Link>
-
-      <div
-        className={cn(
-          'absolute inset-0 border-border border p-4 flex items-center justify-center bg-background/30 backdrop-blur-xs rounded-md z-50',
-          'opacity-0 motion-safe:transition-all pointer-events-none',
-          editing && 'opacity-100 pointer-events-auto',
-        )}
-      >
-        <div className="w-full px-2">
-          <ItemRenameInput
-            itemName={friendlyFileName}
-            onSubmit={handleSubmitNewName}
-            onCancel={handleCancelNameEditing}
-            editing={editing}
-            error={renameError}
-          />
-        </div>
-      </div>
     </li>
   )
 }

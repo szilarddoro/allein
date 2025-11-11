@@ -137,8 +137,9 @@ export function PageLayout({
         <div
           className={cn(
             'flex flex-col flex-1 grow shrink-0 relative gap-6 pr-2.5 w-full min-h-0 pl-1',
-            !fullWidth &&
-              'max-w-7xl 3xl:max-w-4/5 4xl:max-w-3/5 mx-auto pr-3.5',
+            !fullWidth
+              ? 'max-w-7xl 3xl:max-w-4/5 4xl:max-w-3/5 mx-auto pr-3.5'
+              : 'pl-0 pr-3',
             !sidebarOpen && 'pl-1.5',
           )}
         >

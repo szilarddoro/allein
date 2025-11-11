@@ -1,6 +1,7 @@
 import { AlertText } from '@/components/AlertText'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
 import {
   ChangeEvent,
   KeyboardEvent,
@@ -17,6 +18,7 @@ export interface ItemRenameInputProps {
   onCancel: () => void
   error?: Error | null
   editing?: boolean
+  className?: string
 }
 
 export function ItemRenameInput({
@@ -25,6 +27,7 @@ export function ItemRenameInput({
   onCancel,
   error,
   editing,
+  className,
 }: ItemRenameInputProps) {
   const valueAtPreviousSubmitRef = useRef<string>(null)
   const [value, setValue] = useState(itemName)
@@ -80,7 +83,10 @@ export function ItemRenameInput({
   }
 
   return (
-    <div className="relative w-full">
+    <div
+      className={cn('relative w-full', className)}
+      onClick={(ev) => ev.stopPropagation()}
+    >
       <Popover open={error != null}>
         <PopoverAnchor className="w-full">
           <Input

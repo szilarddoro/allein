@@ -24,19 +24,18 @@ export function useRenameFile() {
     }: RenameFileParams) => {
       // Validate the new file name
       const { isValid, error } = validateFileName(newName)
+      const itemName = itemType === 'file' ? 'File' : 'Folder'
       if (!isValid) {
         const errorMessages: Record<string, string> = {
-          empty: 'File name cannot be empty',
-          'too-long': 'File name is too long (max 255 characters)',
-          invalid:
-            'File name contains invalid characters: . < > : " / \\ | ? *',
-          reserved: 'File name is reserved by the operating system',
-          'invalid-leading-trailing':
-            'File name cannot start or end with spaces or dots',
-          'consecutive-dots': 'File name cannot contain consecutive dots',
-          'control-characters': 'File name contains control characters',
+          empty: `${itemName} name cannot be empty`,
+          'too-long': `${itemName} name is too long (max 255 characters)`,
+          invalid: `${itemName} name contains invalid characters: . < > : " / \\ | ? *`,
+          reserved: `${itemName} name is reserved by the operating system`,
+          'invalid-leading-trailing': `${itemName} name cannot start or end with spaces or dots`,
+          'consecutive-dots': `${itemName} name cannot contain consecutive dots`,
+          'control-characters': `${itemName} name contains control characters`,
         }
-        throw new Error(errorMessages[error] || 'Invalid file name')
+        throw new Error(errorMessages[error] || `Invalid ${itemType} name`)
       }
 
       // Only add .md extension for files, not folders
@@ -53,7 +52,7 @@ export function useRenameFile() {
         )
 
         if (isDuplicate) {
-          throw new Error('File name is already taken')
+          throw new Error(`${itemName} name is already taken`)
         }
       }
 

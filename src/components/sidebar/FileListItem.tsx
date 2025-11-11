@@ -157,10 +157,11 @@ export function FileListItem({
           aria-current={currentFilePath === file.path}
           className={cn(
             'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
-            currentFilePath === file.path
-              ? 'bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/90'
-              : 'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40',
-            draggingActive && 'pointer-events-none',
+            !draggingActive
+              ? currentFilePath === file.path
+                ? 'bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/90'
+                : 'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40'
+              : 'pointer-events-none',
             className,
           )}
           onContextMenu={(e) =>

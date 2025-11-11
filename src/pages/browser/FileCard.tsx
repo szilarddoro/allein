@@ -17,6 +17,7 @@ export interface FileCardProps {
       filePath: string
       fileName: string
       onOpen: () => void
+      onRename: () => void
       onCopyPath: () => void
       onOpenInFolder: () => void
       onDelete: () => void
@@ -25,6 +26,7 @@ export interface FileCardProps {
   ) => void
   onCopyFilePath: (filePath: string) => void
   onOpenInFolder: (filePath: string) => void
+  onRename: (newPath: string, oldPath: string) => void
   onDelete: (filePath: string, fileName: string) => void
   navigate: NavigateFunction
 }
@@ -35,6 +37,7 @@ export function FileCard({
   onShowContextMenu,
   onCopyFilePath,
   onOpenInFolder,
+  onRename,
   onDelete,
   navigate,
 }: FileCardProps) {
@@ -57,6 +60,8 @@ export function FileCard({
                 pathname: '/editor',
                 search: `?file=${encodeURIComponent(file.path)}`,
               }),
+            // TODO: Implement file renaming via the file card
+            onRename: () => onRename(file.path, file.path),
             onCopyPath: () => onCopyFilePath(file.path),
             onOpenInFolder: () => onOpenInFolder(file.path),
             onDelete: () => onDelete(file.path, file.name),

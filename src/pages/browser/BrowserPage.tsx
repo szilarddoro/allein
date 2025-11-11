@@ -256,6 +256,8 @@ export function BrowserPage() {
                 onShowContextMenu={showContextMenu}
                 onCopyFilePath={handleCopyFilePath}
                 onOpenInFolder={handleOpenInFolder}
+                // TODO: Implement file renaming via the file card
+                onRename={() => {}}
                 onDelete={(filePath, fileName) =>
                   handleDeleteItem(filePath, fileName, 'file')
                 }

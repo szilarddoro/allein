@@ -9,12 +9,15 @@ import { cn } from '@/lib/utils'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { useNavigate } from 'react-router'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
+import { useCallback, useEffect, useState } from 'react'
+import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 
 export interface FileListItemProps {
   file: FileInfo
   className?: string
   isDeletingFile?: boolean
   onDelete: (path: string, name: string, type: 'file' | 'folder') => void
+  editing?: boolean
 }
 
 export function FileListItem({
@@ -22,11 +25,18 @@ export function FileListItem({
   className,
   isDeletingFile = false,
   onDelete,
+  editing: externalEditing = false,
 }: FileListItemProps) {
+  const [editing, setEditing] = useState(false)
   const [currentFilePath] = useCurrentFilePath()
   const { showContextMenu } = useFileContextMenu()
   const { toast } = useToast()
   const navigate = useNavigate()
+  const friendlyFileName = getDisplayName(file.name)
+
+  useEffect(() => {
+    setEditing(externalEditing)
+  }, [externalEditing])
 
   async function handleCopyFilePath(filePath: string) {
     try {
@@ -43,6 +53,27 @@ export function FileListItem({
     } catch {
       toast.error('Failed to open in folder')
     }
+  }
+
+  function handleStartRename() {
+    setEditing(true)
+  }
+
+  const handleSubmitNewName = useCallback((name: string) => {
+    console.log(name)
+    setEditing(false)
+  }, [])
+
+  if (editing) {
+    return (
+      <li className="w-full">
+        <ItemRenameInput
+          itemName={friendlyFileName}
+          onSubmit={handleSubmitNewName}
+          onCancel={() => setEditing(false)}
+        />
+      </li>
+    )
   }
 
   return (
@@ -74,15 +105,16 @@ export function FileListItem({
               onCopyPath: () => handleCopyFilePath(file.path),
               onOpenInFolder: () => handleOpenInFolder(file.path),
               onDelete: () => onDelete(file.path, file.name, 'file'),
+              onRename: handleStartRename,
               isDeletingFile,
             })
           }
         >
           <span aria-hidden="true" className="flex-1 text-sm truncate">
-            {getDisplayName(file.name)}
+            {friendlyFileName}
           </span>
 
-          <span className="sr-only">Open file {getDisplayName(file.name)}</span>
+          <span className="sr-only">Open file {friendlyFileName}</span>
         </Link>
       </Button>
     </li>

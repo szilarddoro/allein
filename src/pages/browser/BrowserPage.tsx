@@ -10,6 +10,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { H1, P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
@@ -19,13 +26,18 @@ import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
-import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
+import {
+  useFilesAndFolders,
+  flattenTreeItems,
+} from '@/lib/files/useFilesAndFolders'
+import { useRenameFile } from '@/lib/files/useRenameFile'
 import { useToast } from '@/lib/useToast'
 import { FolderCard } from '@/pages/browser/FolderCard'
 import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
+import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { CircleAlert } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { BrowserHeader } from './BrowserHeader'
 import { FileCard } from './FileCard'
@@ -56,6 +68,23 @@ export function BrowserPage() {
     type: 'file' | 'folder'
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [fileToRename, setFileToRename] = useState<{
+    path: string
+    name: string
+  } | null>(null)
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
+  const {
+    error: renameError,
+    mutateAsync: renameFile,
+    reset: resetRenameState,
+  } = useRenameFile()
+  const existingFiles = flattenTreeItems(filesAndFolders)
+
+  useEffect(() => {
+    if (!isRenameDialogOpen) {
+      resetRenameState()
+    }
+  }, [isRenameDialogOpen, resetRenameState])
 
   async function handleCreateFile(folderPath?: string) {
     try {
@@ -139,6 +168,60 @@ export function BrowserPage() {
     }
   }
 
+  function handleRenameFile(filePath: string, fileName: string) {
+    setFileToRename({ path: filePath, name: fileName })
+    setIsRenameDialogOpen(true)
+  }
+
+  const handleSubmitRename = useCallback(
+    async (newName: string) => {
+      if (!fileToRename) return
+
+      const friendlyFileName = getDisplayName(fileToRename.name)
+      if (newName.trim() === friendlyFileName) {
+        setIsRenameDialogOpen(false)
+        resetRenameState()
+        setTimeout(() => setFileToRename(null), 150)
+        return
+      }
+
+      try {
+        const oldPath = fileToRename.path
+        await renameFile({
+          oldPath: fileToRename.path,
+          newName,
+          existingFiles,
+        })
+        setIsRenameDialogOpen(false)
+        resetRenameState()
+
+        if (oldPath) {
+          removeEntriesForFile(oldPath)
+        }
+
+        reloadFiles()
+
+        setTimeout(() => setFileToRename(null), 150)
+      } catch {
+        // Error is displayed in the input component
+      }
+    },
+    [
+      fileToRename,
+      existingFiles,
+      renameFile,
+      resetRenameState,
+      reloadFiles,
+      removeEntriesForFile,
+    ],
+  )
+
+  function handleCancelRename() {
+    setIsRenameDialogOpen(false)
+    resetRenameState()
+    setTimeout(() => setFileToRename(null), 150)
+  }
+
   if (status === 'pending') {
     return (
       <div className="flex-1 overflow-hidden flex justify-center items-center">
@@ -220,6 +303,34 @@ export function BrowserPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <Dialog
+        open={isRenameDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCancelRename()
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename File</DialogTitle>
+            <DialogDescription>
+              Enter a new name for &quot;
+              {fileToRename ? getDisplayName(fileToRename.name) : ''}&quot;
+            </DialogDescription>
+          </DialogHeader>
+          {fileToRename && (
+            <ItemRenameInput
+              itemName={getDisplayName(fileToRename.name)}
+              onSubmit={handleSubmitRename}
+              onCancel={handleCancelRename}
+              editing={isRenameDialogOpen}
+              error={renameError}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       <BrowserHeader onCreateFile={handleCreateFile} />
 
       <nav
@@ -256,7 +367,7 @@ export function BrowserPage() {
                 onShowContextMenu={showContextMenu}
                 onCopyFilePath={handleCopyFilePath}
                 onOpenInFolder={handleOpenInFolder}
-                onRename={reloadFiles}
+                onRename={() => handleRenameFile(data.path, data.name)}
                 onDelete={(filePath, fileName) =>
                   handleDeleteItem(filePath, fileName, 'file')
                 }

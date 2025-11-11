@@ -192,6 +192,7 @@ export function BrowserPage() {
           oldPath: itemToRename.path,
           newName,
           existingFiles,
+          itemType: itemToRename.type,
         })
         setIsRenameDialogOpen(false)
         resetRenameState()

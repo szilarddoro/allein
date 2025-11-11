@@ -75,6 +75,7 @@ export function FolderListItem({
           oldPath: folder.path,
           newName,
           existingFiles,
+          itemType: 'folder',
         })
         onCancelEdit()
         resetRenameState()

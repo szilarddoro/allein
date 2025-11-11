@@ -9,13 +9,19 @@ interface RenameFileParams {
   oldPath: string
   newName: string
   existingFiles?: Array<{ name: string; path: string }>
+  itemType?: 'file' | 'folder'
 }
 
 export function useRenameFile() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ oldPath, newName, existingFiles }: RenameFileParams) => {
+    mutationFn: ({
+      oldPath,
+      newName,
+      existingFiles,
+      itemType = 'file',
+    }: RenameFileParams) => {
       // Validate the new file name
       const { isValid, error } = validateFileName(newName)
       if (!isValid) {
@@ -33,9 +39,12 @@ export function useRenameFile() {
         throw new Error(errorMessages[error] || 'Invalid file name')
       }
 
+      // Only add .md extension for files, not folders
+      const fullFileName =
+        itemType === 'file' ? ensureMdExtension(newName) : newName
+
       // Check for duplicate file names in the same directory
       if (existingFiles) {
-        const fullFileName = ensureMdExtension(newName)
         const { isDuplicate } = checkDuplicateFileName(
           fullFileName,
           oldPath,
@@ -47,11 +56,9 @@ export function useRenameFile() {
         }
       }
 
-      // Ensure the new name has .md extension
-      const fullFileName = ensureMdExtension(newName)
       return invoke<string>('rename_file', { oldPath, newName: fullFileName })
     },
-    onMutate: async ({ oldPath, newName }) => {
+    onMutate: async ({ oldPath, newName, itemType = 'file' }) => {
       // Cancel outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({
         queryKey: READ_FILE_QUERY_KEY(oldPath),
@@ -63,7 +70,9 @@ export function useRenameFile() {
       )
 
       // Optimistically update the file path
-      const newPath = oldPath.replace(/[^/]+$/, ensureMdExtension(newName))
+      const fullFileName =
+        itemType === 'file' ? ensureMdExtension(newName) : newName
+      const newPath = oldPath.replace(/[^/]+$/, fullFileName)
       queryClient.setQueryData(READ_FILE_QUERY_KEY(newPath), previousFile)
 
       return { previousFile, newPath }

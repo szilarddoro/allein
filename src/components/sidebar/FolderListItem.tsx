@@ -23,6 +23,7 @@ import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useNavigate } from 'react-router'
+import { useDroppable } from '@dnd-kit/core'
 
 export interface FolderListItemProps {
   folder: TreeItem
@@ -49,6 +50,9 @@ export function FolderListItem({
   onStartEdit,
   onCancelEdit,
 }: FolderListItemProps) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: encodeURIComponent(folder.path),
+  })
   // All hooks must be called before any early returns
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)
   const { showContextMenu } = useFolderContextMenu()
@@ -160,7 +164,10 @@ export function FolderListItem({
   }
 
   return (
-    <li className="w-full">
+    <li
+      ref={setNodeRef}
+      className={cn('w-full', isOver && 'bg-blue-500/10 rounded-md')}
+    >
       <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
         <CollapsibleTrigger asChild>
           {isEditing ? (

@@ -11,6 +11,7 @@ import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useToast } from '@/lib/useToast'
+import { useDndMonitor } from '@dnd-kit/core'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -32,6 +33,11 @@ export function FileList() {
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [editingFilePath, setEditingFilePath] = useState<string | null>(null)
+
+  useDndMonitor({
+    // TODO: Add support for file moving - Validate changes, etc.
+    onDragEnd: (ev) => console.log(ev),
+  })
 
   const deleteStatus =
     deleteFileStatus === 'pending' || deleteFolderStatus === 'pending'

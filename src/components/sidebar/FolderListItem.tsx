@@ -166,7 +166,10 @@ export function FolderListItem({
   return (
     <li
       ref={setNodeRef}
-      className={cn('w-full', isOver && 'bg-blue-500/10 rounded-md')}
+      className={cn(
+        'w-full motion-safe:transition-colors',
+        isOver && 'bg-accent/70 rounded-md',
+      )}
     >
       <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
         <CollapsibleTrigger asChild>

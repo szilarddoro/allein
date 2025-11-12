@@ -3,6 +3,7 @@ import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useMoveFile } from '@/lib/files/useMoveFile'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useToast } from '@/lib/useToast'
+import { useMoveFolder } from '@/lib/folders/useMoveFolder'
 import { DragEndEvent, useDndMonitor } from '@dnd-kit/core'
 import { useCallback } from 'react'
 
@@ -10,6 +11,7 @@ export function useMoveFileOnDrop() {
   const { removeEntriesForFile } = useLocationHistory()
   const { data: currentDocsDir } = useCurrentDocsDir()
   const { mutateAsync: moveFile } = useMoveFile()
+  const { mutateAsync: moveFolder } = useMoveFolder()
   const { toast } = useToast()
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
 
@@ -33,26 +35,36 @@ export function useMoveFileOnDrop() {
         return
       }
 
-      // Don't attempt to move the file into the same folder
+      // Don't attempt to move into the same folder
       if (toFolder === fromPath.split('/').slice(0, -1).join('/')) {
         return
       }
 
-      try {
-        const newPath = await moveFile({ fromPath, toFolder })
+      // Determine if we're moving a file or folder
+      const isFile = fromPath.endsWith('.md')
 
-        removeEntriesForFile(fromPath)
-        if (currentFilePath === fromPath) {
-          updateCurrentFilePath(newPath)
+      try {
+        if (isFile) {
+          const newPath = await moveFile({ fromPath, toFolder })
+          removeEntriesForFile(fromPath)
+          if (currentFilePath === fromPath) {
+            updateCurrentFilePath(newPath)
+          }
+        } else {
+          await moveFolder({ fromPath, toFolder })
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Failed to move file')
+        const itemType = isFile ? 'file' : 'folder'
+        toast.error(
+          err instanceof Error ? err.message : `Failed to move ${itemType}`,
+        )
       }
     },
     [
       currentDocsDir,
       currentFilePath,
       moveFile,
+      moveFolder,
       removeEntriesForFile,
       toast,
       updateCurrentFilePath,

@@ -326,9 +326,8 @@ export function BrowserPage() {
         onCancel={handleCancelRename}
       />
 
-      <BrowserHeader onCreateFile={handleCreateFile} />
-
       <DndContext sensors={[mouseSensor]} collisionDetection={pointerWithin}>
+        <BrowserHeader onCreateFile={handleCreateFile} />
         <ScrollableBrowserGrid
           filesAndFolders={filesAndFolders}
           isDeletingFile={isDeletingFile}

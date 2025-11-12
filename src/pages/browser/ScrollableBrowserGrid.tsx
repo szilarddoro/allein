@@ -1,4 +1,4 @@
-import { DragOverlay, useDndMonitor, useDroppable } from '@dnd-kit/core'
+import { useDndMonitor, useDroppable } from '@dnd-kit/core'
 import { DragOverlayTooltip } from '@/components/DragOverlayTooltip'
 import { useMoveFileOnDrop } from '@/lib/dnd/useMoveFileOnDrop'
 import { useState } from 'react'
@@ -8,6 +8,7 @@ import { FolderCard } from './FolderCard'
 import { FileCard } from './FileCard'
 import { TreeItem } from '@/lib/files/types'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
+import { useCurrentDocsDir } from '@/lib/files/useCurrentDocsDir'
 
 export interface ScrollableBrowserGridProps {
   filesAndFolders: (TreeItem & { type: 'file' | 'folder' })[]
@@ -51,6 +52,7 @@ export function ScrollableBrowserGrid({
   showBackgroundContextMenu,
   navigate,
 }: ScrollableBrowserGridProps) {
+  const { data: currentDocsDir } = useCurrentDocsDir()
   const [currentFolderPath] = useCurrentFolderPath()
   const [activeItem, setActiveItem] = useState<string>()
   const [overFolder, setOverFolder] = useState<string>()
@@ -73,7 +75,9 @@ export function ScrollableBrowserGrid({
   const targetFolder =
     decodedFolder === 'home-folder'
       ? 'this folder'
-      : decodedFolder.split('/').pop() || ''
+      : currentDocsDir === decodedFolder
+        ? 'home'
+        : decodedFolder.split('/').pop() || ''
 
   return (
     <>
@@ -137,19 +141,14 @@ export function ScrollableBrowserGrid({
         </ul>
       </nav>
 
-      <DragOverlay
-        zIndex={100000}
-        dropAnimation={{ duration: 0 }}
-        className="z-[10000] pointer-events-none"
-      >
-        <DragOverlayTooltip
-          activeItem={decodedActiveItem}
-          targetFolder={targetFolder}
-          isActiveFile={isActiveFile}
-          dragMessage="Move into"
-          targetMessage="Drag over the browser"
-        />
-      </DragOverlay>
+      <DragOverlayTooltip
+        activeItem={decodedActiveItem}
+        targetFolder={targetFolder}
+        isActiveFile={isActiveFile}
+        dragMessage="Move into"
+        targetMessage="Drag over the browser"
+        className="flex justify-center items-center"
+      />
     </>
   )
 }

@@ -4,18 +4,18 @@ import { useDroppable } from '@dnd-kit/core'
 import { cn } from '@/lib/utils'
 import { PropsWithChildren } from 'react'
 
-export interface DropableBreadcrumbItemProps extends PropsWithChildren {
+export interface DroppableBreadcrumbItemProps extends PropsWithChildren {
   folderPath: string
   to: string
   isCurrentPage?: boolean
 }
 
-export function DropableBreadcrumbItem({
+export function DroppableBreadcrumbItem({
   folderPath,
   to,
   isCurrentPage = false,
   children,
-}: DropableBreadcrumbItemProps) {
+}: DroppableBreadcrumbItemProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: folderPath,
   })

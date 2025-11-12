@@ -10,7 +10,7 @@ import { useRelativePath } from '@/lib/folders/useRelativePath'
 import { cn } from '@/lib/utils'
 import { Plus } from 'lucide-react'
 import { Fragment } from 'react/jsx-runtime'
-import { DropableBreadcrumbItem } from './DropableBreadcrumbItem'
+import { DroppableBreadcrumbItem } from './DroppableBreadcrumbItem'
 
 export interface BrowserHeaderProps {
   onCreateFile: () => void
@@ -66,13 +66,13 @@ export function BrowserHeader({
       ) : (
         <Breadcrumb>
           <BreadcrumbList>
-            <DropableBreadcrumbItem
+            <DroppableBreadcrumbItem
               folderPath={selectedFolder || ''}
               to="/"
               isCurrentPage={segments.length === 0}
             >
               {title}
-            </DropableBreadcrumbItem>
+            </DroppableBreadcrumbItem>
 
             {segments.map((segment, index) => (
               <Fragment key={`${segment}-${index}`}>
@@ -80,12 +80,12 @@ export function BrowserHeader({
                 {index === segments.length - 1 ? (
                   <BreadcrumbPage>{segment}</BreadcrumbPage>
                 ) : (
-                  <DropableBreadcrumbItem
+                  <DroppableBreadcrumbItem
                     folderPath={buildFullPathForSegment(index)}
                     to={`/?folder=${getFullPath(segments.slice(0, index + 1))}`}
                   >
                     {segment}
-                  </DropableBreadcrumbItem>
+                  </DroppableBreadcrumbItem>
                 )}
               </Fragment>
             ))}

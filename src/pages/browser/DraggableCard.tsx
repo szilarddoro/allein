@@ -19,6 +19,7 @@ export function DraggableCard({
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      tabIndex={-1}
       className={cn(
         'relative motion-safe:transition-all before:absolute before:bg-transparent motion-safe:before:transition-colors before:rounded-md before:z-[100] before:inset-0 before:pointer-events-none',
         isDragging &&

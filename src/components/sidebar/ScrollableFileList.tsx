@@ -1,8 +1,7 @@
 import { FileList } from '@/components/sidebar/FileList'
 import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { H2 } from '@/components/ui/typography'
-import { DragOverlay, useDndMonitor, useDroppable } from '@dnd-kit/core'
-import { restrictToWindowEdges } from '@dnd-kit/modifiers'
+import { useDndMonitor, useDroppable } from '@dnd-kit/core'
 import { DragOverlayTooltip } from '@/components/DragOverlayTooltip'
 import { useState } from 'react'
 
@@ -54,19 +53,14 @@ export function ScrollableFileList({
         <FileList />
       </div>
 
-      <DragOverlay
-        modifiers={[restrictToWindowEdges]}
-        dropAnimation={{ duration: 0 }}
-        className="z-[10000] translate-y-8"
-      >
-        <DragOverlayTooltip
-          activeItem={decodedActiveItem}
-          targetFolder={targetFolder}
-          isActiveFile={isActiveFile}
-          dragMessage="Move into"
-          targetMessage="Drag over the sidebar"
-        />
-      </DragOverlay>
+      <DragOverlayTooltip
+        activeItem={decodedActiveItem}
+        targetFolder={targetFolder}
+        isActiveFile={isActiveFile}
+        dragMessage="Move into"
+        targetMessage="Drag over the sidebar"
+        className="translate-y-8"
+      />
     </>
   )
 }

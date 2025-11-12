@@ -1,5 +1,4 @@
 import { DragOverlay, useDndMonitor, useDroppable } from '@dnd-kit/core'
-import { snapCenterToCursor } from '@dnd-kit/modifiers'
 import { DragOverlayTooltip } from '@/components/DragOverlayTooltip'
 import { useMoveFileOnDrop } from '@/lib/dnd/useMoveFileOnDrop'
 import { useState } from 'react'
@@ -8,6 +7,7 @@ import { useNavigate } from 'react-router'
 import { FolderCard } from './FolderCard'
 import { FileCard } from './FileCard'
 import { TreeItem } from '@/lib/files/types'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 
 export interface ScrollableBrowserGridProps {
   filesAndFolders: (TreeItem & { type: 'file' | 'folder' })[]
@@ -51,10 +51,11 @@ export function ScrollableBrowserGrid({
   showBackgroundContextMenu,
   navigate,
 }: ScrollableBrowserGridProps) {
+  const [currentFolderPath] = useCurrentFolderPath()
   const [activeItem, setActiveItem] = useState<string>()
   const [overFolder, setOverFolder] = useState<string>()
   const { setNodeRef } = useDroppable({
-    id: 'home-folder',
+    id: currentFolderPath || 'home-folder',
   })
 
   useDndMonitor({
@@ -137,9 +138,9 @@ export function ScrollableBrowserGrid({
       </nav>
 
       <DragOverlay
-        modifiers={[snapCenterToCursor]}
+        zIndex={100000}
         dropAnimation={{ duration: 0 }}
-        className="z-[10000]"
+        className="z-[10000] pointer-events-none"
       >
         <DragOverlayTooltip
           activeItem={decodedActiveItem}

@@ -1,6 +1,7 @@
 import '@/App.css'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { OnboardingLayout } from '@/components/layout/OnboardingLayout'
+import { ErrorFallback } from '@/components/ErrorFallback'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { QueryProvider } from '@/lib/QueryProvider'
@@ -17,6 +18,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <AppLayout />,
+    ErrorBoundary: ErrorFallback,
     children: [
       {
         index: true,

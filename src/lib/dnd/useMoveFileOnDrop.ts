@@ -17,7 +17,7 @@ export function useMoveFileOnDrop() {
     async (ev: DragEndEvent) => {
       const { active, over } = ev
 
-      if (!over || active.id === over.id) {
+      if (!over || active.id === over.id || !over.id) {
         return
       }
 

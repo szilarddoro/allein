@@ -22,7 +22,7 @@ export function DraggableListItem({
       {...attributes}
       tabIndex={-1}
       className={cn(
-        'motion-safe:transition-all rounded-md',
+        'motion-safe:transition-all rounded-md outline-none',
         isDragging && 'opacity-80 bg-blue-500/20 dark:bg-blue-500/40',
         className,
       )}

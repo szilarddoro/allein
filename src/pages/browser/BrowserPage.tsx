@@ -32,6 +32,7 @@ import { ItemRenameDialog } from './ItemRenameDialog'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { ScrollableBrowserGrid } from './ScrollableBrowserGrid'
+import { snapCenterToCursor } from '@/lib/dnd/snapCenterToCursor'
 
 export function BrowserPage() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
@@ -326,7 +327,11 @@ export function BrowserPage() {
         onCancel={handleCancelRename}
       />
 
-      <DndContext sensors={[mouseSensor]} collisionDetection={pointerWithin}>
+      <DndContext
+        sensors={[mouseSensor]}
+        modifiers={[snapCenterToCursor]}
+        collisionDetection={pointerWithin}
+      >
         <BrowserHeader onCreateFile={handleCreateFile} />
         <ScrollableBrowserGrid
           filesAndFolders={filesAndFolders}

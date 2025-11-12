@@ -160,6 +160,7 @@ export function PageLayout({
               ? 'max-w-7xl 3xl:max-w-4/5 4xl:max-w-3/5 mx-auto pr-3.5'
               : 'pl-0 pr-3',
             !sidebarOpen && 'pl-1.5',
+            fullWidth && !sidebarOpen && 'pl-0.5',
           )}
         >
           {children}

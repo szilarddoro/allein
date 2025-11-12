@@ -1,7 +1,4 @@
-import { HOME_FOLDER_KEY } from '@/lib/constants'
 import { TreeItem } from '@/lib/files/types'
-import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
-import { useDroppable } from '@dnd-kit/core'
 import React from 'react'
 import { useNavigate } from 'react-router'
 import { FileCard } from './FileCard'
@@ -49,16 +46,15 @@ export function ScrollableBrowserGrid({
   showBackgroundContextMenu,
   navigate,
 }: ScrollableBrowserGridProps) {
-  const [currentFolderPath] = useCurrentFolderPath()
-  const { setNodeRef } = useDroppable({
-    id: currentFolderPath
-      ? `browser-${currentFolderPath}`
-      : `browser-${HOME_FOLDER_KEY}`,
-  })
+  // const [currentFolderPath] = useCurrentFolderPath()
+  // const { setNodeRef } = useDroppable({
+  //   id: currentFolderPath
+  //     ? `browser-${currentFolderPath}`
+  //     : `browser-${HOME_FOLDER_KEY}`,
+  // })
 
   return (
     <nav
-      ref={setNodeRef}
       aria-label="File browser"
       className="scroll-mt-0 flex-1 min-h-0"
       onContextMenu={(e) =>

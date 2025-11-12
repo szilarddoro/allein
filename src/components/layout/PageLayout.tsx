@@ -7,11 +7,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { CURRENT_PLATFORM } from '@/lib/constants'
+import { CURRENT_PLATFORM, HOME_FOLDER_KEY } from '@/lib/constants'
 import { useMoveItemOnDrop } from '@/lib/dnd/useMoveItemOnDrop'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useWindowState } from '@/lib/useWindowState'
 import { cn } from '@/lib/utils'
+import { useDroppable } from '@dnd-kit/core'
 import {
   ChevronLeft,
   ChevronRight,
@@ -35,6 +37,12 @@ export function PageLayout({
   setSearchOpen,
   fullWidth,
 }: PageLayoutProps) {
+  const [currentFolderPath] = useCurrentFolderPath()
+  const { setNodeRef } = useDroppable({
+    id: currentFolderPath
+      ? `browser-${currentFolderPath}`
+      : `browser-${HOME_FOLDER_KEY}`,
+  })
   const { isFullscreen } = useWindowState()
   const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()
 
@@ -44,7 +52,10 @@ export function PageLayout({
   useMoveItemOnDrop()
 
   return (
-    <div className="relative flex flex-1 overflow-hidden h-full z-50">
+    <div
+      className="relative flex flex-1 overflow-hidden h-full z-50"
+      ref={setNodeRef}
+    >
       <div className="flex-1 flex flex-col overflow-auto h-full">
         <header className="sticky top-0 z-50 py-2 w-full shrink-0 grow-0 bg-gradient-to-b from-zinc-100 via-zinc-100 to-zinc-100/0 dark:from-neutral-900 dark:via-neutral-900 via-85% dark:to-neutral-900/0">
           <TauriDragRegion />

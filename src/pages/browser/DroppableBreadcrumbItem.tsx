@@ -26,7 +26,7 @@ export function DroppableBreadcrumbItem({
       ref={setNodeRef}
       className={cn(
         'motion-safe:transition-colors rounded-md',
-        isOver && 'bg-blue-500/20 dark:bg-blue-500/30',
+        isOver && 'bg-blue-500/20 dark:bg-blue-500/30 !cursor-default',
         isCurrentPage && 'text-foreground',
       )}
     >

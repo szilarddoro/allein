@@ -7,6 +7,8 @@ import { restrictToWindowEdges } from '@dnd-kit/modifiers'
 import { memo, useState } from 'react'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { HOME_FOLDER_KEY } from '@/lib/constants'
+import { getCleanDndId } from '@/lib/dnd/getCleanDndId'
+import { useCurrentDocsDir } from '@/lib/files/useCurrentDocsDir'
 
 export interface DragOverlayTooltipProps {
   className?: string
@@ -15,27 +17,29 @@ export interface DragOverlayTooltipProps {
 
 export const DragOverlayTooltip = memo(
   ({ className, tooltipClassName }: DragOverlayTooltipProps) => {
+    const { data: currentDocsDir } = useCurrentDocsDir()
     const [currentFolderPath] = useCurrentFolderPath()
     const [activeItem, setActiveItem] = useState<string>()
     const [overFolder, setOverFolder] = useState<string>()
 
     useDndMonitor({
       onDragOver: ({ active, over }) => {
-        setActiveItem(active?.id?.toString() || '')
-        setOverFolder(over?.id?.toString() || '')
+        setActiveItem(getCleanDndId(active?.id?.toString() || ''))
+        setOverFolder(getCleanDndId(over?.id?.toString() || ''))
       },
     })
 
-    const decodedActiveItem = decodeURIComponent(activeItem || '')
-    const decodedFolder = decodeURIComponent(overFolder || '')
+    const sourcePath = activeItem || ''
+    const targetPath = overFolder || ''
 
-    const isFile = decodedActiveItem.endsWith('.md')
-    const displayName = getDisplayName(decodedActiveItem.split('/').pop() || '')
-    const targetFolder = decodedFolder.split('/').pop() || ''
+    const isFile = sourcePath.endsWith('.md')
+    const displayName = getDisplayName(sourcePath.split('/').pop() || '')
+    const targetFolder = targetPath.split('/').pop() || ''
 
-    const isMainFolder = decodedFolder.endsWith(HOME_FOLDER_KEY)
+    const isMainFolder =
+      targetPath.endsWith(HOME_FOLDER_KEY) || targetPath === currentDocsDir
     const keepInCurrentFolder = currentFolderPath
-      ? currentFolderPath === decodedFolder
+      ? currentFolderPath === targetPath
       : isMainFolder
 
     return createPortal(

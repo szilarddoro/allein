@@ -21,26 +21,16 @@ import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { CircleAlert } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import {
-  DndContext,
-  MouseSensor,
-  pointerWithin,
-  useSensor,
-} from '@dnd-kit/core'
 import { BrowserHeader } from './BrowserHeader'
 import { ItemRenameDialog } from './ItemRenameDialog'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { ScrollableBrowserGrid } from './ScrollableBrowserGrid'
-import { snapCenterToCursor } from '@/lib/dnd/snapCenterToCursor'
 
 export function BrowserPage() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
   const [currentFolderPath, updateCurrentFolderPath] = useCurrentFolderPath()
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
-  const mouseSensor = useSensor(MouseSensor, {
-    activationConstraint: { distance: 0 },
-  })
   const {
     data: filesAndFolders,
     status,
@@ -327,26 +317,20 @@ export function BrowserPage() {
         onCancel={handleCancelRename}
       />
 
-      <DndContext
-        sensors={[mouseSensor]}
-        modifiers={[snapCenterToCursor]}
-        collisionDetection={pointerWithin}
-      >
-        <BrowserHeader onCreateFile={handleCreateFile} />
-        <ScrollableBrowserGrid
-          filesAndFolders={filesAndFolders}
-          isDeletingFile={isDeletingFile}
-          onShowContextMenu={showContextMenu}
-          onCopyFilePath={handleCopyFilePath}
-          onOpenInFolder={handleOpenInFolder}
-          onRenameItem={handleRenameItem}
-          onDeleteItem={handleDeleteItem}
-          onCreateFile={handleCreateFile}
-          onCreateFolder={handleCreateFolder}
-          showBackgroundContextMenu={showBackgroundContextMenu}
-          navigate={navigate}
-        />
-      </DndContext>
+      <BrowserHeader onCreateFile={handleCreateFile} />
+      <ScrollableBrowserGrid
+        filesAndFolders={filesAndFolders}
+        isDeletingFile={isDeletingFile}
+        onShowContextMenu={showContextMenu}
+        onCopyFilePath={handleCopyFilePath}
+        onOpenInFolder={handleOpenInFolder}
+        onRenameItem={handleRenameItem}
+        onDeleteItem={handleDeleteItem}
+        onCreateFile={handleCreateFile}
+        onCreateFolder={handleCreateFolder}
+        showBackgroundContextMenu={showBackgroundContextMenu}
+        navigate={navigate}
+      />
     </>
   )
 }

@@ -74,7 +74,7 @@ export async function downloadLogs(): Promise<void> {
   // Create and trigger download
   const a = document.createElement('a')
   a.href = url
-  a.download = `allein-logs-${new Date().toISOString().slice(0, 10)}.txt`
+  a.download = `allein-logs-${new Date().toISOString().slice(0, 10)}.log`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)

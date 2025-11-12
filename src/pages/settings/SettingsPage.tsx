@@ -15,7 +15,7 @@ export function SettingsPage() {
     <div>
       <div
         className={cn(
-          'pt-4 pb-12 flex-1 grow shrink-0 mx-auto w-full flex flex-col gap-4',
+          'pt-4 pb-4 flex-1 grow shrink-0 mx-auto w-full flex flex-col gap-4',
           !sidebarOpen && 'pl-4',
         )}
       >
@@ -40,7 +40,7 @@ export function SettingsPage() {
         )}
       </div>
 
-      <footer className="pt-4 pb-16 px-4 text-center text-muted-foreground text-xs">
+      <footer className="pt-4 pb-16 px-4 text-center text-muted-foreground/80 text-xs">
         Version: {getAppVersion()} - License: MIT
       </footer>
     </div>

@@ -11,7 +11,7 @@ export interface UseCreateFileOptions {
 
 export function useCreateFile() {
   const queryClient = useQueryClient()
-  const { info, error: logError } = useLogger()
+  const logger = useLogger()
 
   return useMutation({
     mutationFn: (options: UseCreateFileOptions = {}) =>
@@ -20,7 +20,6 @@ export function useCreateFile() {
       }),
     onSuccess: async (newFile, variables) => {
       try {
-        info('file', `File created: ${newFile.path}`)
         await Promise.all([
           queryClient.invalidateQueries({
             queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(variables.targetFolder),
@@ -34,7 +33,7 @@ export function useCreateFile() {
       }
     },
     onError: (error) => {
-      logError('file', `Failed to create file: ${error.message}`)
+      logger.error('file', `Failed to create file: ${error.message}`)
     },
   })
 }

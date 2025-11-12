@@ -6,27 +6,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { downloadLogs, flushLogs, getLogs, openLogsFolder } from '@/lib/logging'
+import {
+  downloadLogs,
+  flushLogs,
+  openLogsFolder,
+} from '@/lib/logging/loggingUtils'
 import { useToast } from '@/lib/useToast'
-import { useState } from 'react'
-import { FolderOpen, Download, RefreshCw } from 'lucide-react'
+import { FolderOpen, Download, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { H2 } from '@/components/ui/typography'
 
 export function LogsCard() {
   const { toast } = useToast()
-  const [logCount, setLogCount] = useState(0)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleRefreshCount = async () => {
-    setIsLoading(true)
-    try {
-      const logs = await getLogs()
-      setLogCount(logs.length)
-    } catch {
-      toast.error('Failed to get log count')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleOpenFolder = async () => {
     try {
@@ -57,37 +48,24 @@ export function LogsCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Session Logs</CardTitle>
+        <CardTitle>
+          <H2 className="text-xl mb-0">Session Logs</H2>
+        </CardTitle>
         <CardDescription>
-          View, export, or manage your application session logs
+          Logs help diagnose issues more easily. Share them when reporting bugs
+          on GitHub.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Logs are stored locally at{' '}
-          <code className="bg-muted px-2 py-1 rounded text-xs">
-            ~/.allein/logs/
-          </code>
-        </p>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">Log Files</span>
-              <span className="text-xs text-muted-foreground">
-                {logCount === 0 ? 'No logs' : `${logCount} session log(s)`}
-              </span>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleRefreshCount}
-              disabled={isLoading}
-            >
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+      <CardContent className="space-y-4">
+        <Alert variant="info">
+          <ShieldCheck />
+          <AlertDescription>
+            All logs are stored locally on your machine. No data is sent to
+            external servers. You can share logs manually by attaching them to
+            GitHub issues.
+          </AlertDescription>
+        </Alert>
 
         <div className="space-y-2">
           <Button
@@ -100,7 +78,7 @@ export function LogsCard() {
             Open Logs Folder
           </Button>
           <p className="text-xs text-muted-foreground">
-            Logs older than 30 days are automatically deleted
+            Logs older than 7 days are automatically deleted
           </p>
         </div>
 
@@ -131,14 +109,6 @@ export function LogsCard() {
           </Button>
           <p className="text-xs text-muted-foreground">
             Force all pending logs to be written to disk
-          </p>
-        </div>
-
-        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-xs text-blue-900 dark:text-blue-100">
-            <strong>Privacy:</strong> All logs are stored locally on your
-            machine. No data is sent to external servers. You can share logs
-            manually by attaching them to GitHub issues.
           </p>
         </div>
       </CardContent>

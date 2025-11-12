@@ -1,6 +1,8 @@
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 use chrono::Local;
 use serde::{Deserialize, Serialize};
 
@@ -41,7 +43,18 @@ impl FileLogger {
         };
 
         let logger_arc = Arc::new(Mutex::new(logger));
-        LOGGER.get_or_init(|| logger_arc);
+        LOGGER.get_or_init(|| logger_arc.clone());
+
+        // Start periodic flush thread
+        let logger_clone = logger_arc.clone();
+        thread::spawn(move || {
+            loop {
+                thread::sleep(Duration::from_secs(10));
+                if let Ok(mut logger) = logger_clone.lock() {
+                    let _ = logger.flush_to_file();
+                }
+            }
+        });
 
         // Log app startup
         Self::log_internal(LogEvent {
@@ -69,8 +82,8 @@ impl FileLogger {
         if let Some(logger_arc) = LOGGER.get() {
             if let Ok(mut logger) = logger_arc.lock() {
                 logger.buffer.push(event);
-                // Auto-flush when buffer reaches 50 events
-                if logger.buffer.len() >= 50 {
+                // Auto-flush when buffer reaches 20 events
+                if logger.buffer.len() >= 20 {
                     drop(logger); // Drop the lock before flushing
                     flush_logs()?;
                 }
@@ -124,7 +137,7 @@ impl FileLogger {
         Ok(())
     }
 
-    /// Cleanup old log files (keep last 30 days)
+    /// Cleanup old log files (keep last 7 days)
     pub fn cleanup_old_logs() -> Result<(), String> {
         let logs_dir = Self::get_logs_dir()?;
 
@@ -133,7 +146,7 @@ impl FileLogger {
         }
 
         let cutoff_time = std::time::SystemTime::now()
-            - std::time::Duration::from_secs(30 * 24 * 60 * 60); // 30 days
+            - std::time::Duration::from_secs(7 * 24 * 60 * 60); // 7 days
 
         let entries = fs::read_dir(&logs_dir)
             .map_err(|e| format!("Failed to read logs directory: {}", e))?;
@@ -210,8 +223,8 @@ pub fn log_event(
     if let Some(logger_arc) = LOGGER.get() {
         if let Ok(mut logger) = logger_arc.lock() {
             logger.record_event(event);
-            // Auto-flush when buffer reaches 50 events
-            if logger.buffer.len() >= 50 {
+            // Auto-flush when buffer reaches 20 events
+            if logger.buffer.len() >= 20 {
                 drop(logger); // Drop the lock before flushing
                 flush_logs()?;
             }

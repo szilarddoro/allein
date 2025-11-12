@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { FileContent } from './types'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from './useFilesAndFolders'
 import { READ_FILE_QUERY_KEY } from '@/lib/files/useReadFile'
-import { useLogger } from '@/lib/logging'
+import { useLogger } from '@/lib/logging/useLogger'
 
 export interface UseCreateFileOptions {
   targetFolder?: string

@@ -92,7 +92,7 @@ export function FolderCard({
         <Card
           ref={setNodeRef}
           className={cn(
-            'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative bg-card',
+            'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative bg-card dark:bg-neutral-900',
             'before:absolute before:top-0 before:left-0 before:size-full group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5 before:motion-safe:transition-colors',
             isOver && 'bg-blue-500/10 before:bg-blue-500/20',
           )}

@@ -19,6 +19,7 @@ import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
+import { logEvent } from '@/lib/logging/useLogger'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
@@ -96,6 +97,10 @@ export function AppLayout() {
 
     return 25
   }, [isExtraLargeScreen, isLargeScreen])
+
+  useEffect(() => {
+    logEvent('INFO', 'nav', `Navigated to ${pathname}`)
+  }, [pathname])
 
   useEffect(() => {
     if (!sidebarOpen) {

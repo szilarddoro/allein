@@ -77,10 +77,84 @@ fn get_docs_dir() -> Result<PathBuf, String> {
     let home = dirs::home_dir().ok_or("Could not find home directory")?;
     let docs_dir = home.join("allein").join("docs");
 
+    // Check if directory exists before creation
+    let dir_exists = docs_dir.exists();
+
     // Create directory if it doesn't exist
     fs::create_dir_all(&docs_dir).map_err(|e| format!("Failed to create docs directory: {}", e))?;
 
+    // Create demo file only if directory was just created
+    if !dir_exists {
+        create_demo_file(&docs_dir)?;
+    }
+
     Ok(docs_dir)
+}
+
+fn create_demo_file(docs_dir: &PathBuf) -> Result<(), String> {
+    let demo_file_path = docs_dir.join("Getting Started.md");
+
+    let demo_content = r#"# Welcome to Allein
+
+The lightweight, AI-powered writing tool.
+
+## Key Features
+
+- **Context-aware autocompletion** — Get smart suggestions as you type
+- **Writing improvements** — Enhance your text with a single click
+- **Private LLMs** — Works offline, no data leaves your machine
+- **No registration needed** — Start writing immediately
+
+## Getting Started
+
+1. Create a new file by clicking the "+" button
+2. Start typing in markdown format
+3. Watch the live preview update on the right
+4. Use the **Improve Writing** button in the bottom right toolbar to enhance your text
+5. Your files are saved to `~/allein/docs/` (change the default folder anytime via the app menubar)
+
+## Markdown Basics
+
+**Bold text** — wrap with `**text**`
+
+_Italic text_ — wrap with `*text*`
+
+`Code snippets` — use backticks
+
+### Code Blocks
+
+```js
+// This is a code block
+function hello() {
+  console.log("Hello, world!");
+}
+```
+
+### Lists
+
+- Item one
+- Item two
+- Item three
+
+1. First item
+2. Second item
+3. Third item
+
+## Tips
+
+- Use headings to organize your thoughts
+- Add code blocks for technical examples
+- Markdown keeps your writing clean and portable
+
+---
+
+Ready to start? Delete this file and create your first document. Happy writing! ✨
+"#;
+
+    fs::write(&demo_file_path, demo_content)
+        .map_err(|e| format!("Failed to create demo file: {}", e))?;
+
+    Ok(())
 }
 
 /// Strip diacritics from a string and convert to lowercase for search matching.

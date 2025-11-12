@@ -91,7 +91,7 @@ export function FileList() {
   if (filesAndFolders.length === 0) {
     return (
       <P className="text-xs text-muted-foreground px-2 text-center mt-2">
-        No files were found.
+        Nothing here yet.
       </P>
     )
   }

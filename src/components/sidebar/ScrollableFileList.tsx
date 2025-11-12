@@ -34,6 +34,10 @@ export function ScrollableFileList({
   const decodedActiveItem = decodeURIComponent(activeItem || '')
   const isActiveFile = decodedActiveItem.endsWith('.md')
   const decodedFolder = decodeURIComponent(overFolder || '')
+  const targetFolder =
+    decodedFolder === 'home-folder'
+      ? 'the main folder'
+      : decodedFolder.split('/').pop() || ''
 
   return (
     <>
@@ -56,22 +60,23 @@ export function ScrollableFileList({
         dropAnimation={{ duration: 0 }}
         className="z-[10000] translate-y-8"
       >
-        <div className="bg-black/70 dark:bg-black/40 text-white backdrop-blur-xl dark:border border-border px-2 py-1.5 text-sm rounded-md max-w-56 flex flex-col gap-1.5 [&_svg]:size-3">
+        <div className="bg-black/70 dark:bg-black/40 text-white backdrop-blur-xl dark:border border-border px-2 py-1.5 text-sm rounded-md max-w-56 flex flex-col gap-0.5 [&_svg]:size-3">
           <div className="flex flex-row gap-1.5 items-center">
             {isActiveFile ? <File /> : <FolderClosed />}
-            <span>
+            <span className="font-medium">
               {getDisplayName(decodedActiveItem.split('/').pop() || '')}
             </span>
           </div>
 
-          <div className="text-white/80 dark:text-muted-foreground">
-            Move into{' '}
-            <span className="break-words">
-              {decodedFolder === 'home-folder'
-                ? 'the main folder'
-                : `"${decodedFolder.split('/').pop() || ''}"`}
-            </span>
-          </div>
+          {targetFolder ? (
+            <div className="text-white/80 dark:text-muted-foreground">
+              Move into <span className="break-words">{targetFolder}</span>
+            </div>
+          ) : (
+            <div className="text-white/80 dark:text-muted-foreground">
+              Drag over the sidebar
+            </div>
+          )}
         </div>
       </DragOverlay>
     </>

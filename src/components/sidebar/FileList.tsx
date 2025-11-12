@@ -3,16 +3,15 @@ import { FileDeleteConfirmDialog } from '@/components/sidebar/FileDeleteConfirmD
 import { FileListItem } from '@/components/sidebar/FileListItem'
 import { FolderListItem } from '@/components/sidebar/FolderListItem'
 import { P } from '@/components/ui/typography'
+import { useMoveFileOnDrop } from '@/lib/dnd/useMoveFileOnDrop'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
-import { useMoveFile } from '@/lib/files/useMoveFile'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useToast } from '@/lib/useToast'
-import { useDndMonitor } from '@dnd-kit/core'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -27,7 +26,6 @@ export function FileList() {
   const { mutateAsync: deleteFile, status: deleteFileStatus } = useDeleteFile()
   const { mutateAsync: deleteFolder, status: deleteFolderStatus } =
     useDeleteFolder()
-  const { mutateAsync: moveFile } = useMoveFile()
   const [itemToDelete, setItemToDelete] = useState<{
     path: string
     name: string
@@ -36,30 +34,7 @@ export function FileList() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [editingFilePath, setEditingFilePath] = useState<string | null>(null)
 
-  useDndMonitor({
-    onDragEnd: async (ev) => {
-      const { active, over } = ev
-
-      if (!over || active.id === over.id) {
-        return
-      }
-
-      const fromPath = decodeURIComponent(active.id.toString())
-      const toFolder = decodeURIComponent(over.id.toString())
-
-      // Don't move to home-folder if it's the same location
-      if (toFolder === 'home-folder') {
-        return
-      }
-
-      try {
-        await moveFile({ fromPath, toFolder })
-        toast.success('File moved successfully')
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Failed to move file')
-      }
-    },
-  })
+  useMoveFileOnDrop()
 
   const deleteStatus =
     deleteFileStatus === 'pending' || deleteFolderStatus === 'pending'

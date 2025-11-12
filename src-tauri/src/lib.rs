@@ -315,7 +315,7 @@ async fn move_file(from_path: String, to_folder: String) -> Result<String, Strin
 
         let mut counter = 1;
         loop {
-            let new_file_name = format!("{}{}{}", base_name, counter, extension);
+            let new_file_name = format!("{} {}{}", base_name, counter, extension);
             to_path = to_folder_buf.join(&new_file_name);
             if !to_path.exists() {
                 break;

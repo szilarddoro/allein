@@ -1,3 +1,4 @@
+import { useDraggingActive } from '@/lib/dnd/useDraggingActive'
 import { cn } from '@/lib/utils'
 import { useDraggable } from '@dnd-kit/core'
 import { PropsWithChildren } from 'react'
@@ -12,6 +13,7 @@ export function DraggableCard({
   id,
   className,
 }: PropsWithChildren<DraggableCardProps>) {
+  const isDraggingActive = useDraggingActive()
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id })
 
   return (
@@ -23,7 +25,8 @@ export function DraggableCard({
       className={cn(
         'outline-none relative motion-safe:transition-all before:absolute before:bg-transparent motion-safe:before:transition-colors before:rounded-md before:z-[100] before:inset-0 before:pointer-events-none',
         isDragging &&
-          'opacity-80 before:bg-blue-500/20 before:dark:bg-blue-500/40  pointer-events-none [&_*]:pointer-events-none',
+          'opacity-80 before:bg-blue-500/20 before:dark:bg-blue-500/40 pointer-events-none [&_*]:pointer-events-none',
+        isDraggingActive && 'pointer-events-none [&_*]:pointer-events-none',
         className,
       )}
     >

@@ -16,22 +16,30 @@ import {
 } from '@/lib/files/useFilesAndFolders'
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import { useToast } from '@/lib/useToast'
-import { FolderCard } from '@/pages/browser/FolderCard'
 import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { CircleAlert } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import {
+  DndContext,
+  MouseSensor,
+  pointerWithin,
+  useSensor,
+} from '@dnd-kit/core'
 import { BrowserHeader } from './BrowserHeader'
-import { FileCard } from './FileCard'
 import { ItemRenameDialog } from './ItemRenameDialog'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
+import { ScrollableBrowserGrid } from './ScrollableBrowserGrid'
 
 export function BrowserPage() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
   const [currentFolderPath, updateCurrentFolderPath] = useCurrentFolderPath()
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: { distance: 0 },
+  })
   const {
     data: filesAndFolders,
     status,
@@ -320,53 +328,21 @@ export function BrowserPage() {
 
       <BrowserHeader onCreateFile={handleCreateFile} />
 
-      <nav
-        aria-label="File browser"
-        className="scroll-mt-0 flex-1 min-h-0"
-        onContextMenu={(e) =>
-          showBackgroundContextMenu(e, {
-            onCreateFile: () => handleCreateFile(),
-            onCreateFolder: () => handleCreateFolder(),
-          })
-        }
-      >
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3.5 pb-16">
-          {filesAndFolders.map((data) => {
-            if (data.type === 'folder') {
-              return (
-                <FolderCard
-                  key={data.path}
-                  folder={data}
-                  onCreateFile={handleCreateFile}
-                  onCreateFolder={handleCreateFolder}
-                  onRename={() =>
-                    handleRenameItem(data.path, data.name, 'folder')
-                  }
-                  onDelete={(path, name) =>
-                    handleDeleteItem(path, name, 'folder')
-                  }
-                />
-              )
-            }
-
-            return (
-              <FileCard
-                key={data.path}
-                file={data}
-                isDeletingFile={isDeletingFile}
-                onShowContextMenu={showContextMenu}
-                onCopyFilePath={handleCopyFilePath}
-                onOpenInFolder={handleOpenInFolder}
-                onRename={() => handleRenameItem(data.path, data.name, 'file')}
-                onDelete={(filePath, fileName) =>
-                  handleDeleteItem(filePath, fileName, 'file')
-                }
-                navigate={navigate}
-              />
-            )
-          })}
-        </ul>
-      </nav>
+      <DndContext sensors={[mouseSensor]} collisionDetection={pointerWithin}>
+        <ScrollableBrowserGrid
+          filesAndFolders={filesAndFolders}
+          isDeletingFile={isDeletingFile}
+          onShowContextMenu={showContextMenu}
+          onCopyFilePath={handleCopyFilePath}
+          onOpenInFolder={handleOpenInFolder}
+          onRenameItem={handleRenameItem}
+          onDeleteItem={handleDeleteItem}
+          onCreateFile={handleCreateFile}
+          onCreateFolder={handleCreateFolder}
+          showBackgroundContextMenu={showBackgroundContextMenu}
+          navigate={navigate}
+        />
+      </DndContext>
     </>
   )
 }

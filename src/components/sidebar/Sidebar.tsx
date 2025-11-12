@@ -12,12 +12,6 @@ import {
 import { FileContent } from '@/lib/files/types'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useToast } from '@/lib/useToast'
-import {
-  DndContext,
-  MouseSensor,
-  pointerWithin,
-  useSensor,
-} from '@dnd-kit/core'
 import { FilePlus, House, PanelLeftCloseIcon } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -38,9 +32,6 @@ export function Sidebar({
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [currentFolderPath] = useCurrentFolderPath()
-  const mouseSensor = useSensor(MouseSensor, {
-    activationConstraint: { distance: 0 },
-  })
 
   async function handleCreateFile(folderPath?: string) {
     try {
@@ -127,12 +118,10 @@ export function Sidebar({
         <Separator />
       </div>
 
-      <DndContext sensors={[mouseSensor]} collisionDetection={pointerWithin}>
-        <ScrollableFileList
-          onCreateFile={handleCreateFile}
-          onCreateFolder={handleCreateFolder}
-        />
-      </DndContext>
+      <ScrollableFileList
+        onCreateFile={handleCreateFile}
+        onCreateFolder={handleCreateFolder}
+      />
     </div>
   )
 }

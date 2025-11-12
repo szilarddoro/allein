@@ -173,19 +173,16 @@ export function FolderListItem({
   }
 
   return (
-    <DraggableListItem
-      id={encodeURIComponent(folder.path)}
-      className="!rounded-none"
-    >
-      <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
-        <CollapsibleTrigger asChild>
-          <div
-            ref={setNodeRef}
-            className={cn(
-              'w-full motion-safe:transition-all rounded-md',
-              isOver && 'bg-blue-500/10',
-            )}
-          >
+    <DraggableListItem id={encodeURIComponent(folder.path)}>
+      <div
+        ref={setNodeRef}
+        className={cn(
+          'w-full motion-safe:transition-all rounded-md',
+          isOver && 'bg-blue-500/10',
+        )}
+      >
+        <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
+          <CollapsibleTrigger asChild>
             {isEditing ? (
               <div className="flex items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0 px-2">
                 {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
@@ -229,54 +226,54 @@ export function FolderListItem({
                 {folder.name}
               </Button>
             )}
-          </div>
-        </CollapsibleTrigger>
+          </CollapsibleTrigger>
 
-        <CollapsibleContent
-          className={cn('pl-[17px]', folderChildren.length > 0 && 'py-px')}
-        >
-          {folderChildren.length > 0 && (
-            <ul
-              className={cn(
-                'flex flex-col gap-1.5 border-l border-foreground/20 pl-1.5 truncate py-1',
-                nested ? 'pr-0' : 'pr-1',
-              )}
-            >
-              {folderChildren.map((child) => {
-                if (child.type === 'file') {
+          <CollapsibleContent
+            className={cn('pl-[17px]', folderChildren.length > 0 && 'py-px')}
+          >
+            {folderChildren.length > 0 && (
+              <ul
+                className={cn(
+                  'flex flex-col gap-1.5 border-l border-foreground/20 pl-1.5 truncate py-1',
+                  nested ? 'pr-0' : 'pr-1',
+                )}
+              >
+                {folderChildren.map((child) => {
+                  if (child.type === 'file') {
+                    return (
+                      <FileListItem
+                        key={child.path}
+                        file={child}
+                        isDeletingFile={isDeletingFile}
+                        onDelete={onDelete}
+                        editing={editingFilePath === child.path}
+                        onStartEdit={onStartEdit}
+                        onCancelEdit={onCancelEdit}
+                      />
+                    )
+                  }
+
                   return (
-                    <FileListItem
+                    <FolderListItem
                       key={child.path}
-                      file={child}
+                      folder={child}
                       isDeletingFile={isDeletingFile}
                       onDelete={onDelete}
-                      editing={editingFilePath === child.path}
+                      onRename={onRename}
+                      onCreateFile={onCreateFile}
+                      onCreateFolder={onCreateFolder}
+                      nested
+                      editingFilePath={editingFilePath}
                       onStartEdit={onStartEdit}
                       onCancelEdit={onCancelEdit}
                     />
                   )
-                }
-
-                return (
-                  <FolderListItem
-                    key={child.path}
-                    folder={child}
-                    isDeletingFile={isDeletingFile}
-                    onDelete={onDelete}
-                    onRename={onRename}
-                    onCreateFile={onCreateFile}
-                    onCreateFolder={onCreateFolder}
-                    nested
-                    editingFilePath={editingFilePath}
-                    onStartEdit={onStartEdit}
-                    onCancelEdit={onCancelEdit}
-                  />
-                )
-              })}
-            </ul>
-          )}
-        </CollapsibleContent>
-      </Collapsible>
+                })}
+              </ul>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
     </DraggableListItem>
   )
 }

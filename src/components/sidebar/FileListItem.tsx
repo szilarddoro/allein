@@ -1,22 +1,23 @@
+import { DraggableListItem } from '@/components/sidebar/DraggableListItem'
+import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { FileInfo } from '@/lib/files/types'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useFileContextMenu } from '@/lib/files/useFileContextMenu'
+import {
+  flattenTreeItemsWithType,
+  useFilesAndFolders,
+} from '@/lib/files/useFilesAndFolders'
+import { useRenameFile } from '@/lib/files/useRenameFile'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
-import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { useNavigate } from 'react-router'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
+import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { useCallback, useEffect } from 'react'
-import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
-import { useRenameFile } from '@/lib/files/useRenameFile'
-import {
-  useFilesAndFolders,
-  flattenTreeItemsWithType,
-} from '@/lib/files/useFilesAndFolders'
-import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
+import { useNavigate } from 'react-router'
 
 export interface FileListItemProps {
   file: FileInfo
@@ -138,7 +139,7 @@ export function FileListItem({
   }
 
   return (
-    <li className="w-full">
+    <DraggableListItem id={encodeURIComponent(file.path)}>
       <Button asChild variant="ghost" size="sm" className="w-full">
         <Link
           viewTransition
@@ -178,6 +179,6 @@ export function FileListItem({
           <span className="sr-only">Open file {friendlyFileName}</span>
         </Link>
       </Button>
-    </li>
+    </DraggableListItem>
   )
 }

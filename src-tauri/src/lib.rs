@@ -288,6 +288,11 @@ async fn rename_file(old_path: String, new_name: String) -> Result<String, Strin
 
 #[tauri::command]
 async fn move_file(from_path: String, to_folder: String) -> Result<String, String> {
+    // Prevent file move if to_folder is empty
+    if to_folder.is_empty() {
+        return Err("Destination folder cannot be empty".to_string());
+    }
+
     let from_path_buf = PathBuf::from(&from_path);
     let file_name = from_path_buf
         .file_name()
@@ -295,11 +300,33 @@ async fn move_file(from_path: String, to_folder: String) -> Result<String, Strin
         .to_string_lossy()
         .to_string();
 
-    let to_path = PathBuf::from(&to_folder).join(&file_name);
+    let to_folder_buf = PathBuf::from(&to_folder);
+    let mut to_path = to_folder_buf.join(&file_name);
 
     // Ensure destination is different from source
     if from_path_buf == to_path {
         return Err("Source and destination are the same".to_string());
+    }
+
+    // Auto-rename if file already exists at destination
+    if to_path.exists() {
+        let base_name = if file_name.ends_with(".md") {
+            &file_name[..file_name.len() - 3]
+        } else {
+            &file_name
+        };
+
+        let extension = if file_name.ends_with(".md") { ".md" } else { "" };
+
+        let mut counter = 1;
+        loop {
+            let new_file_name = format!("{} {}{}", base_name, counter, extension);
+            to_path = to_folder_buf.join(&new_file_name);
+            if !to_path.exists() {
+                break;
+            }
+            counter += 1;
+        }
     }
 
     fs::rename(&from_path, &to_path).map_err(|e| format!("Failed to move file: {}", e))?;
@@ -309,6 +336,11 @@ async fn move_file(from_path: String, to_folder: String) -> Result<String, Strin
 
 #[tauri::command]
 async fn move_folder(from_path: String, to_folder: String) -> Result<String, String> {
+    // Prevent folder move if to_folder is empty
+    if to_folder.is_empty() {
+        return Err("Destination folder cannot be empty".to_string());
+    }
+
     let from_path_buf = PathBuf::from(&from_path);
     let folder_name = from_path_buf
         .file_name()
@@ -316,7 +348,8 @@ async fn move_folder(from_path: String, to_folder: String) -> Result<String, Str
         .to_string_lossy()
         .to_string();
 
-    let to_path = PathBuf::from(&to_folder).join(&folder_name);
+    let to_folder_buf = PathBuf::from(&to_folder);
+    let mut to_path = to_folder_buf.join(&folder_name);
 
     // Ensure destination is different from source
     if from_path_buf == to_path {
@@ -326,6 +359,19 @@ async fn move_folder(from_path: String, to_folder: String) -> Result<String, Str
     // Prevent moving a folder into itself or its children
     if to_path.starts_with(&from_path_buf) {
         return Err("Cannot move a folder into itself or its children".to_string());
+    }
+
+    // Auto-rename if folder already exists at destination
+    if to_path.exists() {
+        let mut counter = 1;
+        loop {
+            let new_folder_name = format!("{}{}", folder_name, counter);
+            to_path = to_folder_buf.join(&new_folder_name);
+            if !to_path.exists() {
+                break;
+            }
+            counter += 1;
+        }
     }
 
     fs::rename(&from_path, &to_path).map_err(|e| format!("Failed to move folder: {}", e))?;

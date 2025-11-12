@@ -1,6 +1,5 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
-import { FileList } from '@/components/sidebar/FileList'
-import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
+import { ScrollableFileList } from '@/components/sidebar/ScrollableFileList'
 import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
@@ -10,7 +9,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { H2 } from '@/components/ui/typography'
 import { FileContent } from '@/lib/files/types'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useToast } from '@/lib/useToast'
@@ -34,7 +32,6 @@ export function Sidebar({
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [currentFolderPath] = useCurrentFolderPath()
-  const { showContextMenu } = useSidebarContextMenu()
 
   async function handleCreateFile(folderPath?: string) {
     try {
@@ -61,7 +58,7 @@ export function Sidebar({
   }
 
   return (
-    <div className="z-10 relative w-full h-full flex flex-col bg-card border border-border rounded-[12px] overflow-hidden">
+    <div className="z-[100] relative w-full h-full flex flex-col bg-card border border-border rounded-[12px] overflow-hidden">
       <div className="h-10 w-full sticky top-0 pt-1 pr-1">
         <TauriDragRegion />
 
@@ -121,19 +118,10 @@ export function Sidebar({
         <Separator />
       </div>
 
-      <div
-        className="flex-1 overflow-y-auto pt-4 pb-20 flex flex-col gap-2 px-2.5"
-        onContextMenu={(e) =>
-          showContextMenu(e, {
-            onCreateFile: handleCreateFile,
-            onCreateFolder: handleCreateFolder,
-          })
-        }
-      >
-        <H2 className="sr-only">Files</H2>
-
-        <FileList />
-      </div>
+      <ScrollableFileList
+        onCreateFile={handleCreateFile}
+        onCreateFolder={handleCreateFolder}
+      />
     </div>
   )
 }

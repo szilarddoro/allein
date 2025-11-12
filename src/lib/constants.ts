@@ -13,7 +13,12 @@ export const RECOMMENDED_AUTOCOMPLETION_MODEL = {
   name: 'codellama:7b-code',
   url: 'https://ollama.com/library/codellama:7b-code',
 }
+
 export const RECOMMENDED_WRITING_IMPROVEMENTS_MODEL = {
   name: 'gemma3:latest',
   url: 'https://ollama.com/library/gemma3',
 }
+
+// Drag and drop constants
+
+export const HOME_FOLDER_KEY = 'home-folder'

@@ -1,3 +1,4 @@
+import { DragOverlayTooltip } from '@/components/DragOverlayTooltip'
 import { BaseLayout } from '@/components/layout/BaseLayout'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { SearchDialog } from '@/components/search/SearchDialog'
@@ -18,6 +19,13 @@ import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
+import {
+  DndContext,
+  MeasuringStrategy,
+  MouseSensor,
+  pointerWithin,
+  useSensor,
+} from '@dnd-kit/core'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ImperativePanelGroupHandle,
@@ -43,6 +51,9 @@ export function AppLayout() {
   const isLargeScreen = useMediaQuery('(min-width: 1920px)')
   const isExtraLargeScreen = useMediaQuery('(min-width: 2560px)')
   const fullWidth = pathname.startsWith('/editor')
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: { distance: 24 },
+  })
 
   const fileLength = files?.length ?? 0
 
@@ -205,65 +216,78 @@ export function AppLayout() {
     <BaseLayout>
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 
-      <main className="relative flex-auto overflow-hidden flex z-0">
-        <ResizablePanelGroup
-          ref={panelGroupRef}
-          direction="horizontal"
-          autoSaveId="main-layout"
-        >
-          <ResizablePanel
-            defaultSize={getSidebarDefaultSize()}
-            minSize={getSidebarMinSize()}
-            maxSize={getSidebarMaxSize()}
-            collapsedSize={0}
-            collapsible
-            onCollapse={() => setSidebarOpen(false)}
-            onExpand={() => setSidebarOpen(true)}
-            ref={sidebarPanelRef}
-            className="pl-2 py-2.5 relative"
+      <DndContext
+        sensors={[mouseSensor]}
+        collisionDetection={pointerWithin}
+        measuring={{
+          droppable: {
+            frequency: 500,
+            strategy: MeasuringStrategy.WhileDragging,
+          },
+        }}
+      >
+        <main className="relative flex-auto overflow-hidden flex z-0">
+          <ResizablePanelGroup
+            ref={panelGroupRef}
+            direction="horizontal"
+            autoSaveId="main-layout"
           >
-            <div className="absolute top-0 left-0 right-0 h-8 z-0">
-              <TauriDragRegion />
-            </div>
-
-            <Sidebar
-              onNewFile={createNewFile}
-              onCreateFolder={createNewFolder}
-              onClose={() => setSidebarOpen(false)}
-            />
-          </ResizablePanel>
-
-          <ResizableHandle
-            onDoubleClick={handleResetResizablePanels}
-            className={cn(
-              'pr-2.5 before:left-0 before:right-[unset]',
-              'data-[resize-handle-state=hover]:opacity-0 data-[resize-handle-state=drag]:opacity-0',
-              !sidebarOpen && 'hidden',
-            )}
-          />
-
-          <ResizablePanel
-            defaultSize={100 - getSidebarDefaultSize()}
-            minSize={50}
-          >
-            <PageLayout
-              sidebarOpen={sidebarOpen}
-              setSidebarOpen={setSidebarOpen}
-              setSearchOpen={setSearchOpen}
-              fullWidth={fullWidth}
+            <ResizablePanel
+              defaultSize={getSidebarDefaultSize()}
+              minSize={getSidebarMinSize()}
+              maxSize={getSidebarMaxSize()}
+              collapsedSize={0}
+              collapsible
+              onCollapse={() => setSidebarOpen(false)}
+              onExpand={() => setSidebarOpen(true)}
+              ref={sidebarPanelRef}
+              className="pl-2 py-2.5 relative"
             >
-              <Outlet
-                context={
-                  {
-                    sidebarOpen,
-                    setSearchOpen,
-                  } satisfies AppLayoutContextProps
-                }
+              <div className="absolute top-0 left-0 right-0 h-8 z-0">
+                <TauriDragRegion />
+              </div>
+
+              <Sidebar
+                onNewFile={createNewFile}
+                onCreateFolder={createNewFolder}
+                onClose={() => setSidebarOpen(false)}
               />
-            </PageLayout>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </main>
+            </ResizablePanel>
+
+            <ResizableHandle
+              onDoubleClick={handleResetResizablePanels}
+              className={cn(
+                'pr-2.5 before:left-0 before:right-[unset]',
+                'data-[resize-handle-state=hover]:opacity-0 data-[resize-handle-state=drag]:opacity-0',
+                !sidebarOpen && 'hidden',
+              )}
+            />
+
+            <ResizablePanel
+              defaultSize={100 - getSidebarDefaultSize()}
+              minSize={50}
+            >
+              <PageLayout
+                sidebarOpen={sidebarOpen}
+                setSidebarOpen={setSidebarOpen}
+                setSearchOpen={setSearchOpen}
+                fullWidth={fullWidth}
+              >
+                <Outlet
+                  context={
+                    {
+                      sidebarOpen,
+                      setSearchOpen,
+                    } satisfies AppLayoutContextProps
+                  }
+                />
+              </PageLayout>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </main>
+
+        <DragOverlayTooltip />
+      </DndContext>
     </BaseLayout>
   )
 }

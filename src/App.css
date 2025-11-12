@@ -52,7 +52,7 @@
     backwards;
 
   --animate-opacity-in: opacity-in
-    var(--tw-animation-duration, var(--tw-duration, 0.5s))
+    var(--tw-animation-duration, var(--tw-duration, 0.1s))
     var(--tw-ease, ease-in-out) var(--tw-animation-delay, 0s)
     var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal);
 

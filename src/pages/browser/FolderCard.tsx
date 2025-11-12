@@ -33,7 +33,7 @@ export function FolderCard({
   const { toast } = useToast()
   const navigate = useNavigate()
   const { setNodeRef, isOver } = useDroppable({
-    id: `card-${encodeURIComponent(folder.path)}`,
+    id: `browser-${encodeURIComponent(folder.path)}`,
   })
 
   async function handleCopyFolderPath() {
@@ -78,7 +78,7 @@ export function FolderCard({
   return (
     <DraggableCard
       id={encodeURIComponent(folder.path)}
-      className="relative scroll-mt-4"
+      className="relative scroll-mt-20"
     >
       <Link
         viewTransition

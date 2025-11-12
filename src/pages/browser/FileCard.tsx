@@ -45,7 +45,7 @@ export function FileCard({
   return (
     <DraggableCard
       id={encodeURIComponent(file.path)}
-      className="relative scroll-mt-4"
+      className="relative scroll-mt-20"
     >
       <Link
         viewTransition

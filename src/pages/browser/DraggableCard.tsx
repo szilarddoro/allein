@@ -15,7 +15,7 @@ export function DraggableCard({
 }: PropsWithChildren<DraggableCardProps>) {
   const isDraggingActive = useDraggingActive()
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `card-${id}`,
+    id: `browser-${id}`,
   })
 
   return (

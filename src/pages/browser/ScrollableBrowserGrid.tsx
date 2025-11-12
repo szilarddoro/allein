@@ -1,4 +1,4 @@
-import { useMoveFileOnDrop } from '@/lib/dnd/useMoveFileOnDrop'
+import { HOME_FOLDER_KEY } from '@/lib/constants'
 import { TreeItem } from '@/lib/files/types'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useDroppable } from '@dnd-kit/core'
@@ -51,10 +51,10 @@ export function ScrollableBrowserGrid({
 }: ScrollableBrowserGridProps) {
   const [currentFolderPath] = useCurrentFolderPath()
   const { setNodeRef } = useDroppable({
-    id: currentFolderPath || 'home-folder',
+    id: currentFolderPath
+      ? `browser-${currentFolderPath}`
+      : `browser-${HOME_FOLDER_KEY}`,
   })
-
-  useMoveFileOnDrop()
 
   return (
     <nav

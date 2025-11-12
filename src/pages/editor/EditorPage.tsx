@@ -351,7 +351,9 @@ export function EditorPage() {
             <div className="flex flex-col h-full pb-2.5 min-h-0">
               <MarkdownPreview
                 content={markdownContent}
-                cardClassName="bg-card/20"
+                cardClassName="bg-background"
+                placeholder="Nothing to show yet."
+                onClose={() => setShowPreview(false)}
               />
             </div>
           </ResizablePanel>

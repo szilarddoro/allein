@@ -10,6 +10,8 @@ import { useToast } from '@/lib/useToast'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { useNavigate } from 'react-router'
+import { DraggableCard } from './DraggableCard'
+import { useDroppable } from '@dnd-kit/core'
 
 export interface FolderCardProps {
   folder: TreeItem & { type: 'folder' }
@@ -30,6 +32,9 @@ export function FolderCard({
   const { showContextMenu } = useFolderContextMenu()
   const { toast } = useToast()
   const navigate = useNavigate()
+  const { setNodeRef, isOver } = useDroppable({
+    id: encodeURIComponent(folder.path),
+  })
 
   async function handleCopyFolderPath() {
     try {
@@ -71,7 +76,10 @@ export function FolderCard({
   }
 
   return (
-    <li>
+    <DraggableCard
+      id={encodeURIComponent(folder.path)}
+      className="relative scroll-mt-4"
+    >
       <Link
         viewTransition
         key={folder.path}
@@ -79,12 +87,14 @@ export function FolderCard({
           pathname: '/',
           search: `?folder=${encodeURIComponent(folder.path)}`,
         }}
-        className="group scroll-mt-4 cursor-default motion-safe:transition-colors outline-none"
+        className="group cursor-default motion-safe:transition-colors outline-none"
       >
         <Card
+          ref={setNodeRef}
           className={cn(
             'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative bg-background/70',
             'before:absolute before:top-0 before:left-0 before:size-full group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5 before:motion-safe:transition-colors',
+            isOver && 'bg-blue-500/10 before:bg-blue-500/20',
           )}
           onContextMenu={handleContextMenu}
         >
@@ -106,6 +116,6 @@ export function FolderCard({
           </CardContent>
         </Card>
       </Link>
-    </li>
+    </DraggableCard>
   )
 }

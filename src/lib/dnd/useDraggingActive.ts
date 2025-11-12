@@ -7,6 +7,8 @@ export function useDraggingActive() {
   useDndMonitor({
     onDragStart: () => setActive(true),
     onDragEnd: () => setActive(false),
+    onDragAbort: () => setActive(false),
+    onDragCancel: () => setActive(false),
   })
 
   return active

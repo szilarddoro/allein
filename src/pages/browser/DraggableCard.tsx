@@ -14,7 +14,9 @@ export function DraggableCard({
   className,
 }: PropsWithChildren<DraggableCardProps>) {
   const isDraggingActive = useDraggingActive()
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id })
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `card-${id}`,
+  })
 
   return (
     <li

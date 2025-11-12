@@ -14,7 +14,9 @@ export function DraggableListItem({
   className,
 }: PropsWithChildren<DraggableListItemProps>) {
   const isDraggingActive = useDraggingActive()
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id })
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `listitem-${id}`,
+  })
 
   return (
     <li

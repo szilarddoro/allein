@@ -64,13 +64,10 @@ export function EditorPage() {
   }
 
   useEffect(() => {
-    monacoEditorRef.current = null
-    setEditorReady(false)
-  }, [currentFilePath])
-
-  useEffect(() => {
     return () => {
       monacoEditorRef.current?.dispose()
+      monacoEditorRef.current = null
+      setEditorReady(false)
     }
   }, [])
 

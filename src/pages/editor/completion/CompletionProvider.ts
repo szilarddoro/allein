@@ -58,6 +58,10 @@ export class CompletionProvider {
   createDebouncedInlineCompletionsHandler() {
     this.debouncedHandleProvideInlineCompletions = pDebounce(
       async (model, position) => {
+        if (model.isDisposed()) {
+          return { items: [] }
+        }
+
         const result = await this.handleProvideInlineCompletions(
           model,
           position,

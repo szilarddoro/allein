@@ -1,17 +1,16 @@
 import {
   Breadcrumb,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
-import { Link } from '@/components/ui/link'
 import { H1 } from '@/components/ui/typography'
 import { useRelativePath } from '@/lib/folders/useRelativePath'
 import { cn } from '@/lib/utils'
 import { Plus } from 'lucide-react'
 import { Fragment } from 'react/jsx-runtime'
+import { DropableBreadcrumbItem } from './DropableBreadcrumbItem'
 
 export interface BrowserHeaderProps {
   onCreateFile: () => void
@@ -36,6 +35,15 @@ export function BrowserHeader({
     return encodeURIComponent(`${selectedFolder}/${segments.join('/')}`)
   }
 
+  function buildFullPathForSegment(index: number): string {
+    if (!selectedFolder) {
+      return ''
+    }
+
+    const slicedSegments = segments.slice(0, index + 1)
+    return `${selectedFolder}/${slicedSegments.join('/')}`
+  }
+
   return (
     <header className="flex flex-row gap-3 items-center justify-start mt-4 z-10">
       <Button
@@ -58,12 +66,13 @@ export function BrowserHeader({
       ) : (
         <Breadcrumb>
           <BreadcrumbList>
-            <BreadcrumbLink
-              asChild
-              className={cn((segments || []).length === 0 && 'text-foreground')}
+            <DropableBreadcrumbItem
+              folderPath={selectedFolder || ''}
+              to="/"
+              isCurrentPage={segments.length === 0}
             >
-              <Link to="/">{title}</Link>
-            </BreadcrumbLink>
+              {title}
+            </DropableBreadcrumbItem>
 
             {segments.map((segment, index) => (
               <Fragment key={`${segment}-${index}`}>
@@ -71,14 +80,12 @@ export function BrowserHeader({
                 {index === segments.length - 1 ? (
                   <BreadcrumbPage>{segment}</BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink asChild>
-                    <Link
-                      viewTransition
-                      to={`/?folder=${getFullPath(segments.slice(0, index + 1))}`}
-                    >
-                      {segment}
-                    </Link>
-                  </BreadcrumbLink>
+                  <DropableBreadcrumbItem
+                    folderPath={buildFullPathForSegment(index)}
+                    to={`/?folder=${getFullPath(segments.slice(0, index + 1))}`}
+                  >
+                    {segment}
+                  </DropableBreadcrumbItem>
                 )}
               </Fragment>
             ))}

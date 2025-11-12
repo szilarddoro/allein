@@ -80,6 +80,29 @@ export function FolderListItem({
     }
   }, [debouncedIsOver])
 
+  useEffect(() => {
+    if (!folder.path) {
+      return
+    }
+
+    if (
+      currentFolderPath === folder.path ||
+      currentFolderPath.startsWith(folder.path)
+    ) {
+      setCollapsibleOpen(true)
+    }
+  }, [currentFolderPath, folder.path])
+
+  useEffect(() => {
+    if (!editingFilePath || !folder.path) {
+      return
+    }
+
+    if (editingFilePath.startsWith(folder.path)) {
+      setCollapsibleOpen(true)
+    }
+  }, [editingFilePath, folder.path])
+
   const handleSubmitNewName = useCallback(
     async (newName: string) => {
       if (newName.trim() === friendlyFolderName) {
@@ -161,6 +184,7 @@ export function FolderListItem({
   }
 
   function handleOpen() {
+    setCollapsibleOpen(true)
     navigate({
       pathname: '/',
       search: `?folder=${encodeURIComponent(folder.path)}`,
@@ -170,6 +194,16 @@ export function FolderListItem({
   function handleCancelNameEditing() {
     onCancelEdit()
     resetRenameState()
+  }
+
+  function handleCreateFile() {
+    onCreateFile?.(folder.path)
+    setCollapsibleOpen(true)
+  }
+
+  function handleCreateFolder() {
+    onCreateFolder?.(folder.path)
+    setCollapsibleOpen(true)
   }
 
   return (
@@ -184,7 +218,7 @@ export function FolderListItem({
         <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
           <CollapsibleTrigger asChild>
             {isEditing ? (
-              <div className="flex items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0 px-2">
+              <div className="flex items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0 pl-2">
                 {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
                 <ItemRenameInput
                   itemName={friendlyFolderName}
@@ -207,10 +241,8 @@ export function FolderListItem({
                   showContextMenu(e, {
                     folderPath: folder.path,
                     folderName: folder.name,
-                    onCreateFile:
-                      onCreateFile && (() => onCreateFile(folder.path)),
-                    onCreateFolder:
-                      onCreateFolder && (() => onCreateFolder(folder.path)),
+                    onCreateFile: handleCreateFile,
+                    onCreateFolder: handleCreateFolder,
                     onOpen: handleOpen,
                     onCopyPath: () => handleCopyFolderPath(folder.path),
                     onOpenInFolder: () => handleOpenFolderInFinder(folder.path),
@@ -235,7 +267,7 @@ export function FolderListItem({
               <ul
                 className={cn(
                   'flex flex-col gap-1.5 border-l border-foreground/20 pl-1.5 truncate py-1',
-                  nested ? 'pr-0' : 'pr-1',
+                  nested ? 'pr-0.5' : 'pr-1',
                 )}
               >
                 {folderChildren.map((child) => {

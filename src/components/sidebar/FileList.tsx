@@ -3,22 +3,24 @@ import { FileDeleteConfirmDialog } from '@/components/sidebar/FileDeleteConfirmD
 import { FileListItem } from '@/components/sidebar/FileListItem'
 import { FolderListItem } from '@/components/sidebar/FolderListItem'
 import { P } from '@/components/ui/typography'
-import { FOCUS_NAME_INPUT } from '@/lib/constants'
+import { FOCUS_NAME_INPUT, TRIGGER_FOLDER_NAME_EDIT } from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useToast } from '@/lib/useToast'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 export function FileList() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
   const { data: filesAndFolders, status, error, refetch } = useFilesAndFolders()
   const [currentFilePath] = useCurrentFilePath()
+  const [currentFolderPath] = useCurrentFolderPath()
   const navigate = useNavigate()
   const { toast } = useToast()
   const { mutateAsync: createFile } = useCreateFile()
@@ -34,6 +36,19 @@ export function FileList() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [editingFilePath, setEditingFilePath] = useState<string | null>(null)
 
+  // Note: Since so many places can trigger folder creation, we have to catch these via event listeners
+  useEffect(() => {
+    function handleStartEdit(ev: EventInit) {
+      if ('detail' in ev) {
+        setEditingFilePath(ev.detail as string)
+      }
+    }
+
+    window.addEventListener(TRIGGER_FOLDER_NAME_EDIT, handleStartEdit)
+    return () =>
+      window.removeEventListener(TRIGGER_FOLDER_NAME_EDIT, handleStartEdit)
+  }, [currentFolderPath])
+
   const deleteStatus =
     deleteFileStatus === 'pending' || deleteFolderStatus === 'pending'
       ? 'pending'
@@ -48,7 +63,10 @@ export function FileList() {
         removeEntriesForFolder(itemToDelete.path)
 
         // Redirect if deleting a folder containing the currently edited file
-        if (currentFilePath?.startsWith(itemToDelete.path)) {
+        if (
+          currentFilePath?.startsWith(itemToDelete.path) ||
+          currentFolderPath === itemToDelete.path
+        ) {
           navigate('/')
         }
       } else {

@@ -8,10 +8,7 @@ import { DragEndEvent, useDndMonitor } from '@dnd-kit/core'
 import { useCallback } from 'react'
 import { HOME_FOLDER_KEY } from '@/lib/constants'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
-
-function getCleanId(id: string) {
-  return decodeURIComponent(id.replace(/^(browser|sidebar|breadcrumb)-/, ''))
-}
+import { getCleanDndId } from '@/lib/dnd/getCleanDndId'
 
 export function useMoveItemOnDrop() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
@@ -31,8 +28,8 @@ export function useMoveItemOnDrop() {
         return
       }
 
-      const fromPath = getCleanId(active.id.toString())
-      let toFolder = getCleanId(over.id.toString())
+      const fromPath = getCleanDndId(active.id.toString())
+      let toFolder = getCleanDndId(over.id.toString())
 
       // Replace the home folder reference with the selected directory
       if (toFolder.endsWith(HOME_FOLDER_KEY) && currentDocsDir) {

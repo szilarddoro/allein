@@ -1,3 +1,4 @@
+import { DraggableListItem } from '@/components/sidebar/DraggableListItem'
 import { FileListItem } from '@/components/sidebar/FileListItem'
 import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { Button } from '@/components/ui/button'
@@ -172,56 +173,63 @@ export function FolderListItem({
   }
 
   return (
-    <li
-      ref={setNodeRef}
-      className={cn(
-        'w-full motion-safe:transition-all rounded-md',
-        isOver && 'bg-blue-500/10',
-      )}
+    <DraggableListItem
+      id={encodeURIComponent(folder.path)}
+      className="!rounded-none"
     >
       <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
         <CollapsibleTrigger asChild>
-          {isEditing ? (
-            <div className="flex items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0 px-2">
-              {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
-              <ItemRenameInput
-                itemName={friendlyFolderName}
-                onSubmit={handleSubmitNewName}
-                onCancel={handleCancelNameEditing}
-                editing={isEditing}
-                error={renameError}
-                className="-translate-x-2"
-              />
-            </div>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                'w-full justify-start flex items-center gap-2 !p-2 rounded-md cursor-default transition-colors',
-                'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40',
-              )}
-              onContextMenu={(e) =>
-                showContextMenu(e, {
-                  folderPath: folder.path,
-                  folderName: folder.name,
-                  onCreateFile:
-                    onCreateFile && (() => onCreateFile(folder.path)),
-                  onCreateFolder:
-                    onCreateFolder && (() => onCreateFolder(folder.path)),
-                  onOpen: handleOpen,
-                  onCopyPath: () => handleCopyFolderPath(folder.path),
-                  onOpenInFolder: () => handleOpenFolderInFinder(folder.path),
-                  onRename: () => onRename(folder.path, folder.name, 'folder'),
-                  onDelete: () => onDelete(folder.path, folder.name, 'folder'),
-                  isDeletingFolder: isDeletingFile,
-                })
-              }
-            >
-              {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
-              {folder.name}
-            </Button>
-          )}
+          <div
+            ref={setNodeRef}
+            className={cn(
+              'w-full motion-safe:transition-all rounded-md',
+              isOver && 'bg-blue-500/10',
+            )}
+          >
+            {isEditing ? (
+              <div className="flex items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0 px-2">
+                {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
+                <ItemRenameInput
+                  itemName={friendlyFolderName}
+                  onSubmit={handleSubmitNewName}
+                  onCancel={handleCancelNameEditing}
+                  editing={isEditing}
+                  error={renameError}
+                  className="-translate-x-2"
+                />
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'w-full justify-start flex items-center gap-2 !p-2 rounded-md cursor-default transition-colors',
+                  'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40',
+                )}
+                onContextMenu={(e) =>
+                  showContextMenu(e, {
+                    folderPath: folder.path,
+                    folderName: folder.name,
+                    onCreateFile:
+                      onCreateFile && (() => onCreateFile(folder.path)),
+                    onCreateFolder:
+                      onCreateFolder && (() => onCreateFolder(folder.path)),
+                    onOpen: handleOpen,
+                    onCopyPath: () => handleCopyFolderPath(folder.path),
+                    onOpenInFolder: () => handleOpenFolderInFinder(folder.path),
+                    onRename: () =>
+                      onRename(folder.path, folder.name, 'folder'),
+                    onDelete: () =>
+                      onDelete(folder.path, folder.name, 'folder'),
+                    isDeletingFolder: isDeletingFile,
+                  })
+                }
+              >
+                {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
+                {folder.name}
+              </Button>
+            )}
+          </div>
         </CollapsibleTrigger>
 
         <CollapsibleContent
@@ -269,6 +277,6 @@ export function FolderListItem({
           )}
         </CollapsibleContent>
       </Collapsible>
-    </li>
+    </DraggableListItem>
   )
 }

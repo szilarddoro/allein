@@ -28,18 +28,6 @@ export async function getLogsFolder(): Promise<string> {
 }
 
 /**
- * Flush pending logs to disk
- */
-export async function flushLogs(): Promise<void> {
-  try {
-    await invoke('flush_logs')
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to flush logs:', error)
-  }
-}
-
-/**
  * Open the logs folder in the system file explorer
  */
 export async function openLogsFolder(): Promise<void> {

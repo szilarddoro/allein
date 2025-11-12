@@ -6,13 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  downloadLogs,
-  flushLogs,
-  openLogsFolder,
-} from '@/lib/logging/loggingUtils'
+import { downloadLogs, openLogsFolder } from '@/lib/logging/loggingUtils'
 import { useToast } from '@/lib/useToast'
-import { FolderOpen, Download, RefreshCw, ShieldCheck } from 'lucide-react'
+import { FolderOpen, Download, ShieldCheck } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { H2 } from '@/components/ui/typography'
 
@@ -33,15 +29,6 @@ export function LogsCard() {
       toast.success('Logs downloaded successfully')
     } catch {
       toast.error('Failed to download logs')
-    }
-  }
-
-  const handleFlushLogs = async () => {
-    try {
-      await flushLogs()
-      toast.success('Logs flushed successfully')
-    } catch {
-      toast.error('Failed to flush logs')
     }
   }
 
@@ -94,21 +81,6 @@ export function LogsCard() {
           </Button>
           <p className="text-xs text-muted-foreground">
             Export all session logs as a single text file for debugging
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full justify-start gap-2"
-            onClick={handleFlushLogs}
-          >
-            <RefreshCw className="w-4 h-4" />
-            Flush Logs
-          </Button>
-          <p className="text-xs text-muted-foreground">
-            Force all pending logs to be written to disk
           </p>
         </div>
       </CardContent>

@@ -1,8 +1,7 @@
-use std::fs;
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
+use std::sync::Mutex;
 use chrono::Local;
 use serde::{Deserialize, Serialize};
 
@@ -15,13 +14,10 @@ pub struct LogEvent {
     pub context: Option<serde_json::Value>,
 }
 
-/// Global logger instance - thread-safe
-static LOGGER: std::sync::OnceLock<Arc<Mutex<FileLogger>>> = std::sync::OnceLock::new();
+/// Global logger instance - stores the path to the current log file
+static LOGGER: std::sync::OnceLock<Mutex<PathBuf>> = std::sync::OnceLock::new();
 
-pub struct FileLogger {
-    log_file_path: PathBuf,
-    buffer: Vec<LogEvent>,
-}
+pub struct FileLogger;
 
 impl FileLogger {
     /// Initialize the logger with a session-specific log file
@@ -29,7 +25,7 @@ impl FileLogger {
         let logs_dir = Self::get_logs_dir()?;
 
         // Create logs directory if it doesn't exist
-        fs::create_dir_all(&logs_dir)
+        std::fs::create_dir_all(&logs_dir)
             .map_err(|e| format!("Failed to create logs directory: {}", e))?;
 
         // Create session log file with timestamp
@@ -37,27 +33,10 @@ impl FileLogger {
         let timestamp = now.format("%Y-%m-%d_%H-%M-%S%.3f").to_string();
         let log_file = logs_dir.join(format!("{}.log", timestamp));
 
-        let logger = FileLogger {
-            log_file_path: log_file,
-            buffer: Vec::new(),
-        };
-
-        let logger_arc = Arc::new(Mutex::new(logger));
-        LOGGER.get_or_init(|| logger_arc.clone());
-
-        // Start periodic flush thread
-        let logger_clone = logger_arc.clone();
-        thread::spawn(move || {
-            loop {
-                thread::sleep(Duration::from_secs(10));
-                if let Ok(mut logger) = logger_clone.lock() {
-                    let _ = logger.flush_to_file();
-                }
-            }
-        });
+        LOGGER.get_or_init(|| Mutex::new(log_file.clone()));
 
         // Log app startup
-        Self::log_internal(LogEvent {
+        Self::write_log_entry(LogEvent {
             timestamp: Local::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string(),
             level: "INFO".to_string(),
             category: "startup".to_string(),
@@ -77,62 +56,31 @@ impl FileLogger {
         Ok(home.join(".allein").join("logs"))
     }
 
-    /// Log an event - internal method
-    fn log_internal(event: LogEvent) -> Result<(), String> {
-        if let Some(logger_arc) = LOGGER.get() {
-            if let Ok(mut logger) = logger_arc.lock() {
-                logger.buffer.push(event);
-                // Auto-flush when buffer reaches 20 events
-                if logger.buffer.len() >= 20 {
-                    drop(logger); // Drop the lock before flushing
-                    flush_logs()?;
-                }
-            }
-        }
-        Ok(())
-    }
-
-    /// Record a log event
-    fn record_event(&mut self, event: LogEvent) {
-        self.buffer.push(event);
-    }
-
-    /// Flush buffer to disk
-    fn flush_to_file(&mut self) -> Result<(), String> {
-        if self.buffer.is_empty() {
-            return Ok(());
-        }
-
-        let log_content = self.buffer
-            .iter()
-            .map(|event| {
+    /// Write a log entry directly to disk
+    fn write_log_entry(event: LogEvent) -> Result<(), String> {
+        if let Some(log_file) = LOGGER.get() {
+            if let Ok(log_path) = log_file.lock() {
                 let context_str = event.context
                     .as_ref()
                     .map(|c| format!(" - Context: {}", c.to_string()))
                     .unwrap_or_default();
 
-                format!(
+                let log_line = format!(
                     "[{}] [{}] [{}] {}{}",
                     event.timestamp, event.level, event.category, event.message, context_str
-                )
-            })
-            .collect::<Vec<String>>()
-            .join("\n");
+                );
 
-        // Append to log file
-        let mut file_content = fs::read_to_string(&self.log_file_path)
-            .unwrap_or_default();
+                // Open file in append mode and write directly
+                let mut file = OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(log_path.as_path())
+                    .map_err(|e| format!("Failed to open log file: {}", e))?;
 
-        if !file_content.is_empty() {
-            file_content.push('\n');
+                writeln!(file, "{}", log_line)
+                    .map_err(|e| format!("Failed to write to log file: {}", e))?;
+            }
         }
-
-        file_content.push_str(&log_content);
-
-        fs::write(&self.log_file_path, file_content)
-            .map_err(|e| format!("Failed to write to log file: {}", e))?;
-
-        self.buffer.clear();
 
         Ok(())
     }
@@ -148,7 +96,7 @@ impl FileLogger {
         let cutoff_time = std::time::SystemTime::now()
             - std::time::Duration::from_secs(7 * 24 * 60 * 60); // 7 days
 
-        let entries = fs::read_dir(&logs_dir)
+        let entries = std::fs::read_dir(&logs_dir)
             .map_err(|e| format!("Failed to read logs directory: {}", e))?;
 
         for entry in entries {
@@ -156,10 +104,10 @@ impl FileLogger {
             let path = entry.path();
 
             if path.extension().and_then(|s| s.to_str()) == Some("log") {
-                if let Ok(metadata) = fs::metadata(&path) {
+                if let Ok(metadata) = std::fs::metadata(&path) {
                     if let Ok(modified) = metadata.modified() {
                         if modified < cutoff_time {
-                            let _ = fs::remove_file(&path);
+                            let _ = std::fs::remove_file(&path);
                         }
                     }
                 }
@@ -178,7 +126,7 @@ impl FileLogger {
         }
 
         let mut log_files = Vec::new();
-        let entries = fs::read_dir(&logs_dir)
+        let entries = std::fs::read_dir(&logs_dir)
             .map_err(|e| format!("Failed to read logs directory: {}", e))?;
 
         for entry in entries {
@@ -192,10 +140,10 @@ impl FileLogger {
 
         // Sort by modification time (newest first)
         log_files.sort_by(|a, b| {
-            let a_modified = fs::metadata(a)
+            let a_modified = std::fs::metadata(a)
                 .and_then(|m| m.modified())
                 .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
-            let b_modified = fs::metadata(b)
+            let b_modified = std::fs::metadata(b)
                 .and_then(|m| m.modified())
                 .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
             b_modified.cmp(&a_modified)
@@ -205,7 +153,7 @@ impl FileLogger {
     }
 }
 
-/// Public API for logging
+/// Public API for logging - writes directly to disk
 pub fn log_event(
     level: String,
     category: String,
@@ -220,37 +168,16 @@ pub fn log_event(
         context,
     };
 
-    if let Some(logger_arc) = LOGGER.get() {
-        if let Ok(mut logger) = logger_arc.lock() {
-            logger.record_event(event);
-            // Auto-flush when buffer reaches 20 events
-            if logger.buffer.len() >= 20 {
-                drop(logger); // Drop the lock before flushing
-                flush_logs()?;
-            }
-        }
-    }
-
-    Ok(())
-}
-
-/// Manual flush to ensure all logs are written
-pub fn flush_logs() -> Result<(), String> {
-    if let Some(logger_arc) = LOGGER.get() {
-        if let Ok(mut logger) = logger_arc.lock() {
-            logger.flush_to_file()?;
-        }
-    }
-    Ok(())
+    FileLogger::write_log_entry(event)
 }
 
 /// Get the path to the current session log file
 #[allow(dead_code)]
 pub fn get_current_log_file() -> Result<Option<PathBuf>, String> {
-    if let Some(logger_arc) = LOGGER.get() {
-        if let Ok(logger) = logger_arc.lock() {
-            if logger.log_file_path.exists() {
-                return Ok(Some(logger.log_file_path.clone()));
+    if let Some(log_file) = LOGGER.get() {
+        if let Ok(path) = log_file.lock() {
+            if path.exists() {
+                return Ok(Some(path.clone()));
             }
         }
     }

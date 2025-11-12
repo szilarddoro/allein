@@ -33,7 +33,7 @@ export function FolderCard({
   const { toast } = useToast()
   const navigate = useNavigate()
   const { setNodeRef, isOver } = useDroppable({
-    id: encodeURIComponent(folder.path),
+    id: `card-${encodeURIComponent(folder.path)}`,
   })
 
   async function handleCopyFolderPath() {

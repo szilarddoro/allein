@@ -2,7 +2,6 @@ import { DraggableListItem } from '@/components/sidebar/DraggableListItem'
 import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
-import { useDraggingActive } from '@/lib/dnd/useDraggingActive'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { FileInfo } from '@/lib/files/types'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
@@ -39,7 +38,6 @@ export function FileListItem({
   onStartEdit,
   onCancelEdit,
 }: FileListItemProps) {
-  const draggingActive = useDraggingActive()
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const { showContextMenu } = useFileContextMenu()
   const { toast } = useToast()
@@ -152,11 +150,9 @@ export function FileListItem({
           aria-current={currentFilePath === file.path}
           className={cn(
             'group flex items-center gap-2 p-2 rounded-md cursor-default transition-colors',
-            !draggingActive
-              ? currentFilePath === file.path
-                ? 'bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/90'
-                : 'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40'
-              : 'pointer-events-none hover:!bg-transparent',
+            currentFilePath === file.path
+              ? 'bg-neutral-200/60 hover:bg-neutral-200/90 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/90'
+              : 'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40',
             className,
           )}
           onContextMenu={(e) =>

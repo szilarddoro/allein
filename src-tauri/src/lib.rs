@@ -288,6 +288,11 @@ async fn rename_file(old_path: String, new_name: String) -> Result<String, Strin
 
 #[tauri::command]
 async fn move_file(from_path: String, to_folder: String) -> Result<String, String> {
+    // Prevent file move if to_folder is empty
+    if to_folder.is_empty() {
+        return Err("Destination folder cannot be empty".to_string());
+    }
+
     let from_path_buf = PathBuf::from(&from_path);
     let file_name = from_path_buf
         .file_name()
@@ -331,6 +336,11 @@ async fn move_file(from_path: String, to_folder: String) -> Result<String, Strin
 
 #[tauri::command]
 async fn move_folder(from_path: String, to_folder: String) -> Result<String, String> {
+    // Prevent folder move if to_folder is empty
+    if to_folder.is_empty() {
+        return Err("Destination folder cannot be empty".to_string());
+    }
+
     let from_path_buf = PathBuf::from(&from_path);
     let folder_name = from_path_buf
         .file_name()

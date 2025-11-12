@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/card'
 import { downloadLogs, openLogsFolder } from '@/lib/logging/loggingUtils'
 import { useToast } from '@/lib/useToast'
-import { FolderOpen, Download, ShieldCheck } from 'lucide-react'
+import { Download, ShieldCheck, ExternalLink } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { H2 } from '@/components/ui/typography'
 
@@ -54,33 +54,35 @@ export function LogsCard() {
           </AlertDescription>
         </Alert>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2 items-start">
           <Button
             size="sm"
             variant="outline"
-            className="w-full justify-start gap-2"
+            className="gap-2"
             onClick={handleOpenFolder}
           >
-            <FolderOpen className="w-4 h-4" />
+            <ExternalLink />
             Open Logs Folder
           </Button>
+
           <p className="text-xs text-muted-foreground">
-            Logs older than 7 days are automatically deleted
+            Older logs are automatically deleted after seven days.
           </p>
         </div>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2 items-start">
           <Button
             size="sm"
             variant="outline"
-            className="w-full justify-start gap-2"
+            className="gap-2"
             onClick={handleDownloadLogs}
           >
-            <Download className="w-4 h-4" />
+            <Download />
             Download All Logs
           </Button>
           <p className="text-xs text-muted-foreground">
-            Export all session logs as a single text file for debugging
+            The combined logs will be placed in your default
+            &quot;Downloads&quot; folder.
           </p>
         </div>
       </CardContent>

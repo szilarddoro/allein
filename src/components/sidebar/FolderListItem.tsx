@@ -7,25 +7,24 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { TreeItem } from '@/lib/files/types'
+import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
+import {
+  flattenTreeItemsWithType,
+  useFilesAndFolders,
+} from '@/lib/files/useFilesAndFolders'
+import { useRenameFile } from '@/lib/files/useRenameFile'
 import { useFolderContextMenu } from '@/lib/folders/useFolderContextMenu'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
+import { useDroppable } from '@dnd-kit/core'
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { useState, useCallback, useEffect } from 'react'
-import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { useRenameFile } from '@/lib/files/useRenameFile'
-import {
-  useFilesAndFolders,
-  flattenTreeItemsWithType,
-} from '@/lib/files/useFilesAndFolders'
-import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
-import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
-import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useDroppable } from '@dnd-kit/core'
 import { useDebounceValue } from 'usehooks-ts'
-import { useDraggingActive } from '@/lib/dnd/useDraggingActive'
 
 export interface FolderListItemProps {
   folder: TreeItem
@@ -52,7 +51,6 @@ export function FolderListItem({
   onStartEdit,
   onCancelEdit,
 }: FolderListItemProps) {
-  const draggingActive = useDraggingActive()
   const { isOver, setNodeRef } = useDroppable({
     id: encodeURIComponent(folder.path),
   })
@@ -201,9 +199,7 @@ export function FolderListItem({
               size="sm"
               className={cn(
                 'w-full justify-start flex items-center gap-2 !p-2 rounded-md cursor-default transition-colors',
-                !draggingActive
-                  ? 'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40'
-                  : 'hover:!bg-transparent pointer-events-none',
+                'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40',
               )}
               onContextMenu={(e) =>
                 showContextMenu(e, {

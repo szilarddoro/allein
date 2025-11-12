@@ -21,12 +21,17 @@ export async function testOllamaConnection(
     )
 
     if (!response.ok) {
-      logEvent('ERROR', 'ollama', 'Connection cannot be established', { url })
       throw new Error('Connection cannot be established.')
     }
 
     return response.ok
-  } catch {
+  } catch (error) {
+    logEvent(
+      'ERROR',
+      'ollama',
+      (error as Error).message || 'Connection cannot be established.',
+      { serverUrl },
+    )
     return false
   }
 }

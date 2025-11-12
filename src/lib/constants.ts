@@ -19,7 +19,7 @@ export const RECOMMENDED_AUTOCOMPLETION_MODEL = {
 
 export const RECOMMENDED_WRITING_IMPROVEMENTS_MODEL = {
   name: 'gemma3:latest',
-  url: 'https://ollama.com/library/gemma3',
+  url: 'https://ollama.com/library/gemma3:latest',
 }
 
 // Drag and drop constants

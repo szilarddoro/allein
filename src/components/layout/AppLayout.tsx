@@ -1,3 +1,4 @@
+import { DragOverlayTooltip } from '@/components/DragOverlayTooltip'
 import { BaseLayout } from '@/components/layout/BaseLayout'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { SearchDialog } from '@/components/search/SearchDialog'
@@ -18,6 +19,13 @@ import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
+import {
+  DndContext,
+  MeasuringStrategy,
+  MouseSensor,
+  pointerWithin,
+  useSensor,
+} from '@dnd-kit/core'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ImperativePanelGroupHandle,
@@ -25,14 +33,6 @@ import {
 } from 'react-resizable-panels'
 import { Outlet, useLocation, useNavigate } from 'react-router'
 import { useMediaQuery } from 'usehooks-ts'
-import {
-  DndContext,
-  MouseSensor,
-  pointerWithin,
-  useSensor,
-} from '@dnd-kit/core'
-import { snapCenterToCursor } from '@/lib/dnd/snapCenterToCursor'
-import { DragOverlayTooltip } from '@/components/DragOverlayTooltip'
 
 export function AppLayout() {
   useAIFeatures()
@@ -218,8 +218,13 @@ export function AppLayout() {
 
       <DndContext
         sensors={[mouseSensor]}
-        modifiers={[snapCenterToCursor]}
         collisionDetection={pointerWithin}
+        measuring={{
+          droppable: {
+            frequency: 500,
+            strategy: MeasuringStrategy.WhileDragging,
+          },
+        }}
       >
         <main className="relative flex-auto overflow-hidden flex z-0">
           <ResizablePanelGroup

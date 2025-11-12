@@ -1,14 +1,14 @@
-import { File, FolderClosed } from 'lucide-react'
-import { getDisplayName } from '@/lib/files/fileUtils'
-import { DragOverlay, useDndMonitor } from '@dnd-kit/core'
-import { createPortal } from 'react-dom'
-import { cn } from '@/lib/utils'
-import { restrictToWindowEdges } from '@dnd-kit/modifiers'
-import { memo, useState } from 'react'
-import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { HOME_FOLDER_KEY } from '@/lib/constants'
 import { getCleanDndId } from '@/lib/dnd/getCleanDndId'
+import { snapCenterToCursor } from '@/lib/dnd/snapCenterToCursor'
+import { getDisplayName } from '@/lib/files/fileUtils'
 import { useCurrentDocsDir } from '@/lib/files/useCurrentDocsDir'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
+import { cn } from '@/lib/utils'
+import { DragOverlay, useDndMonitor } from '@dnd-kit/core'
+import { File, FolderClosed } from 'lucide-react'
+import { memo, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export interface DragOverlayTooltipProps {
   className?: string
@@ -63,7 +63,7 @@ export const DragOverlayTooltip = memo(
 
     return createPortal(
       <DragOverlay
-        modifiers={[restrictToWindowEdges]}
+        modifiers={[snapCenterToCursor]}
         dropAnimation={{ duration: 0 }}
         className={cn('z-[10000] animate-opacity-in transform-gpu', className)}
       >

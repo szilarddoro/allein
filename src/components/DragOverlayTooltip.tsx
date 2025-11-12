@@ -1,30 +1,38 @@
 import { File, FolderClosed } from 'lucide-react'
 import { getDisplayName } from '@/lib/files/fileUtils'
-import { DragOverlay } from '@dnd-kit/core'
+import { DragOverlay, useDndMonitor } from '@dnd-kit/core'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { restrictToWindowEdges } from '@dnd-kit/modifiers'
+import { useState } from 'react'
 
 export interface DragOverlayTooltipProps {
-  activeItem: string
-  targetFolder: string
-  isActiveFile: boolean
-  dragMessage?: string
-  targetMessage?: string
   className?: string
   tooltipClassName?: string
 }
 
 export function DragOverlayTooltip({
-  activeItem,
-  targetFolder,
-  isActiveFile,
-  dragMessage = 'Move into',
-  targetMessage = 'Drag over the browser',
   className,
   tooltipClassName,
 }: DragOverlayTooltipProps) {
-  const displayName = getDisplayName(activeItem.split('/').pop() || '')
+  const [activeItem, setActiveItem] = useState<string>()
+  const [overFolder, setOverFolder] = useState<string>()
+
+  useDndMonitor({
+    onDragOver: ({ active, over }) => {
+      setActiveItem(active?.id?.toString() || '')
+      setOverFolder(over?.id?.toString() || '')
+    },
+  })
+
+  const decodedActiveItem = decodeURIComponent(activeItem || '')
+  const isActiveFile = decodedActiveItem.endsWith('.md')
+  const decodedFolder = decodeURIComponent(overFolder || '')
+  const targetFolder =
+    decodedFolder === 'home-folder'
+      ? 'the main folder'
+      : decodedFolder.split('/').pop() || ''
+  const displayName = getDisplayName(decodedActiveItem.split('/').pop() || '')
 
   return createPortal(
     <DragOverlay
@@ -43,15 +51,15 @@ export function DragOverlayTooltip({
           <span className="font-medium">{displayName}</span>
         </div>
 
-        {targetFolder ? (
-          <div className="text-white/80 dark:text-muted-foreground">
-            {dragMessage} <span className="break-words">{targetFolder}</span>
-          </div>
-        ) : (
-          <div className="text-white/80 dark:text-muted-foreground">
-            {targetMessage}
-          </div>
-        )}
+        <div className="text-white/80 dark:text-muted-foreground">
+          {targetFolder ? (
+            <span>
+              Move into <span className="break-words">{targetFolder}</span>
+            </span>
+          ) : (
+            <span>Select a folder</span>
+          )}
+        </div>
       </div>
     </DragOverlay>,
     document.body,

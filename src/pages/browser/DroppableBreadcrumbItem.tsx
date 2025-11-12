@@ -17,7 +17,7 @@ export function DroppableBreadcrumbItem({
   children,
 }: DroppableBreadcrumbItemProps) {
   const { setNodeRef, isOver } = useDroppable({
-    id: folderPath,
+    id: `breadcrumb-${folderPath}`,
   })
 
   return (

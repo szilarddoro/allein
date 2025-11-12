@@ -71,7 +71,7 @@ export function ScrollableBrowserGrid({
   const decodedFolder = decodeURIComponent(overFolder || '')
   const targetFolder =
     decodedFolder === 'home-folder'
-      ? 'the main folder'
+      ? 'this folder'
       : decodedFolder.split('/').pop() || ''
 
   return (

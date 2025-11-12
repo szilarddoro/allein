@@ -9,6 +9,7 @@ import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useDeleteFile } from '@/lib/files/useDeleteFile'
 import { useDeleteFolder } from '@/lib/files/useDeleteFolder'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
+import { useMoveFile } from '@/lib/files/useMoveFile'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useToast } from '@/lib/useToast'
 import { useDndMonitor } from '@dnd-kit/core'
@@ -26,6 +27,7 @@ export function FileList() {
   const { mutateAsync: deleteFile, status: deleteFileStatus } = useDeleteFile()
   const { mutateAsync: deleteFolder, status: deleteFolderStatus } =
     useDeleteFolder()
+  const { mutateAsync: moveFile } = useMoveFile()
   const [itemToDelete, setItemToDelete] = useState<{
     path: string
     name: string
@@ -35,8 +37,28 @@ export function FileList() {
   const [editingFilePath, setEditingFilePath] = useState<string | null>(null)
 
   useDndMonitor({
-    // TODO: Add support for file moving - Validate changes, etc.
-    onDragEnd: (ev) => console.log(ev),
+    onDragEnd: async (ev) => {
+      const { active, over } = ev
+
+      if (!over || active.id === over.id) {
+        return
+      }
+
+      const fromPath = decodeURIComponent(active.id.toString())
+      const toFolder = decodeURIComponent(over.id.toString())
+
+      // Don't move to home-folder if it's the same location
+      if (toFolder === 'home-folder') {
+        return
+      }
+
+      try {
+        await moveFile({ fromPath, toFolder })
+        toast.success('File moved successfully')
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Failed to move file')
+      }
+    },
   })
 
   const deleteStatus =

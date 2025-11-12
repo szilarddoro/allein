@@ -2,6 +2,7 @@ import { DraggableListItem } from '@/components/sidebar/DraggableListItem'
 import { ItemRenameInput } from '@/components/sidebar/ItemRenameInput'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
+import { useDraggingActive } from '@/lib/dnd/useDraggingActive'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { FileInfo } from '@/lib/files/types'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
@@ -14,10 +15,9 @@ import { useRenameFile } from '@/lib/files/useRenameFile'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
-import { useDndMonitor } from '@dnd-kit/core'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 
 export interface FileListItemProps {
@@ -39,7 +39,7 @@ export function FileListItem({
   onStartEdit,
   onCancelEdit,
 }: FileListItemProps) {
-  const [draggingActive, setDraggingActive] = useState(false)
+  const draggingActive = useDraggingActive()
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const { showContextMenu } = useFileContextMenu()
   const { toast } = useToast()
@@ -53,11 +53,6 @@ export function FileListItem({
   const { data: filesAndFolders } = useFilesAndFolders()
   const existingFiles = flattenTreeItemsWithType(filesAndFolders)
   const { removeEntriesForFile } = useLocationHistory()
-
-  useDndMonitor({
-    onDragStart: () => setDraggingActive(true),
-    onDragEnd: () => setDraggingActive(false),
-  })
 
   async function handleCopyFilePath(filePath: string) {
     try {

@@ -25,6 +25,7 @@ import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useNavigate } from 'react-router'
 import { useDroppable } from '@dnd-kit/core'
 import { useDebounceValue } from 'usehooks-ts'
+import { useDraggingActive } from '@/lib/dnd/useDraggingActive'
 
 export interface FolderListItemProps {
   folder: TreeItem
@@ -51,6 +52,7 @@ export function FolderListItem({
   onStartEdit,
   onCancelEdit,
 }: FolderListItemProps) {
+  const draggingActive = useDraggingActive()
   const { isOver, setNodeRef } = useDroppable({
     id: encodeURIComponent(folder.path),
   })
@@ -175,8 +177,8 @@ export function FolderListItem({
     <li
       ref={setNodeRef}
       className={cn(
-        'w-full motion-safe:transition-colors',
-        isOver && 'bg-neutral-200/40 dark:bg-neutral-700/40 rounded-md',
+        'w-full motion-safe:transition-all rounded-md',
+        isOver && 'bg-blue-500/30 dark:bg-blue-500/50',
       )}
     >
       <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
@@ -197,7 +199,12 @@ export function FolderListItem({
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start flex items-center gap-2 !p-2 rounded-md cursor-default transition-colors hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40"
+              className={cn(
+                'w-full justify-start flex items-center gap-2 !p-2 rounded-md cursor-default transition-colors',
+                !draggingActive
+                  ? 'hover:bg-neutral-200/40 dark:hover:bg-neutral-700/40'
+                  : 'hover:!bg-transparent pointer-events-none',
+              )}
               onContextMenu={(e) =>
                 showContextMenu(e, {
                   folderPath: folder.path,

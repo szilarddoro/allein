@@ -20,6 +20,7 @@ export function DraggableListItem({
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      tabIndex={-1}
       className={cn(
         'motion-safe:transition-all rounded-md',
         isDragging &&

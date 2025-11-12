@@ -73,10 +73,10 @@ export function ScrollableBrowserGrid({
   const isActiveFile = decodedActiveItem.endsWith('.md')
   const decodedFolder = decodeURIComponent(overFolder || '')
   const targetFolder =
-    decodedFolder === 'home-folder'
+    decodedFolder === 'home-folder' || decodedFolder === currentFolderPath
       ? 'this folder'
       : currentDocsDir === decodedFolder
-        ? 'home'
+        ? 'the main folder'
         : decodedFolder.split('/').pop() || ''
 
   return (

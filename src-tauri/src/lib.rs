@@ -6,6 +6,7 @@ use tauri::menu::{MenuBuilder, SubmenuBuilder};
 use tauri_plugin_dialog::DialogExt;
 
 mod database;
+mod logging;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileInfo {
@@ -945,6 +946,42 @@ async fn reset_docs_folder() -> Result<String, String> {
     Ok(default_dir.to_string_lossy().to_string())
 }
 
+// Logging commands
+#[tauri::command]
+async fn log_event(
+    level: String,
+    category: String,
+    message: String,
+    context: Option<serde_json::Value>,
+) -> Result<(), String> {
+    logging::log_event(level, category, message, context)
+}
+
+#[tauri::command]
+async fn flush_logs() -> Result<(), String> {
+    logging::flush_logs()
+}
+
+#[tauri::command]
+async fn get_logs() -> Result<Vec<String>, String> {
+    let log_files = logging::FileLogger::get_all_logs()?;
+    let mut logs = Vec::new();
+
+    for file_path in log_files {
+        if let Ok(content) = fs::read_to_string(&file_path) {
+            logs.push(content);
+        }
+    }
+
+    Ok(logs)
+}
+
+#[tauri::command]
+async fn get_logs_folder() -> Result<String, String> {
+    let logs_dir = logging::FileLogger::get_logs_dir()?;
+    Ok(logs_dir.to_string_lossy().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -980,8 +1017,18 @@ pub fn run() {
             get_current_docs_folder,
             set_docs_folder,
             reset_docs_folder,
+            log_event,
+            flush_logs,
+            get_logs,
+            get_logs_folder,
         ])
         .setup(|app| {
+            // Initialize logging
+            logging::FileLogger::init()?;
+
+            // Cleanup old logs (30+ days)
+            let _ = logging::FileLogger::cleanup_old_logs();
+
             let about_menu = SubmenuBuilder::new(app, "About")
                 .text("about", "About Allein")
                 .build()?;
@@ -993,6 +1040,12 @@ pub fn run() {
             app.set_menu(menu.clone())?;
 
             Ok(())
+        })
+        .on_window_event(|_app, event| {
+            // Flush logs before closing
+            if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
+                let _ = logging::flush_logs();
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

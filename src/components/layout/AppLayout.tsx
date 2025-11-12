@@ -19,6 +19,7 @@ import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
+import { useLogger } from '@/lib/logging'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
@@ -40,7 +41,13 @@ import { useMediaQuery } from 'usehooks-ts'
 
 export function AppLayout() {
   useAIFeatures()
+  const { info } = useLogger()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  // Log app initialization on first mount
+  useEffect(() => {
+    info('ui', 'App layout initialized - Frontend ready')
+  }, [info])
   const [searchOpen, setSearchOpen] = useState(false)
   const { mutateAsync: createFile } = useCreateFile()
   const { mutateAsync: createFolder } = useCreateFolder()

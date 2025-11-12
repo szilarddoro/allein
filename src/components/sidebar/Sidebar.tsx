@@ -19,7 +19,6 @@ import {
   useSensor,
 } from '@dnd-kit/core'
 import { FilePlus, House, PanelLeftCloseIcon } from 'lucide-react'
-import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 interface SidebarProps {
@@ -39,7 +38,6 @@ export function Sidebar({
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [currentFolderPath] = useCurrentFolderPath()
-  const [activeId, setActiveId] = useState<string | number | null>(null)
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: { distance: 0 },
   })
@@ -129,14 +127,8 @@ export function Sidebar({
         <Separator />
       </div>
 
-      <DndContext
-        onDragStart={(ev) => setActiveId(ev.active.id)}
-        onDragEnd={() => setActiveId(null)}
-        sensors={[mouseSensor]}
-        collisionDetection={pointerWithin}
-      >
+      <DndContext sensors={[mouseSensor]} collisionDetection={pointerWithin}>
         <ScrollableFileList
-          activeId={activeId}
           onCreateFile={handleCreateFile}
           onCreateFolder={handleCreateFolder}
         />

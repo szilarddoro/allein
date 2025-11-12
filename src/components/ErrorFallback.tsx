@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/collapsible'
 import { H1, P } from '@/components/ui/typography'
 import { downloadLogs } from '@/lib/logging/loggingUtils'
-import { useLogger } from '@/lib/logging/useLogger'
+import { logEvent } from '@/lib/logging/useLogger'
 import { ChevronDown, ChevronUp, RotateCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
@@ -24,7 +24,6 @@ export function ErrorFallback() {
   const routeError = useRouteError()
   const [detailsOpen, setDetailsOpen] = useState(false)
   const navigate = useNavigate()
-  const logger = useLogger()
 
   const error = useMemo(() => {
     if (isRouteErrorResponse(routeError)) {
@@ -52,11 +51,11 @@ export function ErrorFallback() {
 
   useEffect(() => {
     if (error) {
-      logger.error('ErrorBoundary', error.message, {
+      logEvent('ERROR', 'ErrorBoundary', error.message, {
         stack: error.stack || null,
       })
     }
-  }, [error, logger])
+  }, [error])
 
   return (
     <div className="w-full h-screen bg-neutral-50 dark:bg-background flex items-center justify-center">

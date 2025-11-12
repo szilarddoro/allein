@@ -6,36 +6,41 @@ import { useToast } from '@/lib/useToast'
 import { useMoveFolder } from '@/lib/folders/useMoveFolder'
 import { DragEndEvent, useDndMonitor } from '@dnd-kit/core'
 import { useCallback } from 'react'
+import { HOME_FOLDER_KEY } from '@/lib/constants'
+import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 
-export function useMoveFileOnDrop() {
-  const { removeEntriesForFile } = useLocationHistory()
+function getCleanId(id: string) {
+  return decodeURIComponent(id.replace(/^(browser|sidebar|breadcrumb)-/, ''))
+}
+
+export function useMoveItemOnDrop() {
+  const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
   const { data: currentDocsDir } = useCurrentDocsDir()
   const { mutateAsync: moveFile } = useMoveFile()
   const { mutateAsync: moveFolder } = useMoveFolder()
   const { toast } = useToast()
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
+  const [currentFolderPath, updateCurrentFolderPath] = useCurrentFolderPath()
 
   const handleDragEnd = useCallback(
     async (ev: DragEndEvent) => {
       const { active, over } = ev
 
-      if (!over || active.id === over.id || !over.id) {
+      // Return early in case either the active element or the element the user is hovering over is missing
+      if (!over || !active || !active.id || !over.id || active.id === over.id) {
         return
       }
 
-      const fromPath = decodeURIComponent(
-        active.id.toString().replace(/^(card|listitem|breadcrumb)-/, ''),
-      )
-      let toFolder = decodeURIComponent(
-        over.id.toString().replace(/^(card|listitem|breadcrumb)-/, ''),
-      )
+      const fromPath = getCleanId(active.id.toString())
+      let toFolder = getCleanId(over.id.toString())
 
-      if (toFolder === 'home-folder' && currentDocsDir) {
+      // Replace the home folder reference with the selected directory
+      if (toFolder.endsWith(HOME_FOLDER_KEY) && currentDocsDir) {
         toFolder = currentDocsDir
       }
 
       // Return early if the proper home folder was not available
-      if (toFolder === 'home-folder') {
+      if (toFolder.endsWith(HOME_FOLDER_KEY)) {
         return
       }
 
@@ -47,6 +52,11 @@ export function useMoveFileOnDrop() {
       // Determine if we're moving a file or folder
       const isFile = fromPath.endsWith('.md')
 
+      // Return early if a parent folder is moved into one of its descendants
+      if (!isFile && toFolder.startsWith(fromPath)) {
+        return
+      }
+
       try {
         if (isFile) {
           const newPath = await moveFile({ fromPath, toFolder })
@@ -55,7 +65,11 @@ export function useMoveFileOnDrop() {
             updateCurrentFilePath(newPath)
           }
         } else {
-          await moveFolder({ fromPath, toFolder })
+          const newPath = await moveFolder({ fromPath, toFolder })
+          removeEntriesForFolder(fromPath)
+          if (currentFolderPath === fromPath) {
+            updateCurrentFolderPath(newPath)
+          }
         }
       } catch (err) {
         const itemType = isFile ? 'file' : 'folder'
@@ -67,11 +81,14 @@ export function useMoveFileOnDrop() {
     [
       currentDocsDir,
       currentFilePath,
+      currentFolderPath,
       moveFile,
       moveFolder,
       removeEntriesForFile,
+      removeEntriesForFolder,
       toast,
       updateCurrentFilePath,
+      updateCurrentFolderPath,
     ],
   )
 

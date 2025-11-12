@@ -4,6 +4,7 @@ import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from './useFilesAndFolders'
 import { READ_FILE_QUERY_KEY } from '@/lib/files/useReadFile'
 import { ensureMdExtension } from './fileUtils'
 import { validateFileName, checkDuplicateFileName } from './validation'
+import { useLogger } from '@/lib/logging/useLogger'
 
 interface RenameFileParams {
   oldPath: string
@@ -14,6 +15,7 @@ interface RenameFileParams {
 
 export function useRenameFile() {
   const queryClient = useQueryClient()
+  const logger = useLogger()
 
   return useMutation({
     mutationFn: async ({
@@ -80,6 +82,12 @@ export function useRenameFile() {
       } catch {
         // silently ignore invalidation errors
       }
+    },
+    onError: (error, variables) => {
+      const type = variables.itemType || 'file'
+      logger.error(type, `Failed to rename ${type}: ${error.message}`, {
+        stack: error.stack || null,
+      })
     },
   })
 }

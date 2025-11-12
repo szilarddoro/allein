@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { DEFAULT_OLLAMA_URL } from './ollama'
+import { logEvent } from '@/lib/logging/useLogger'
 
 export const OLLAMA_CONNECTION_QUERY_KEY = (serverUrl: string) => [
   'ollama-connection',
@@ -24,7 +25,13 @@ export async function testOllamaConnection(
     }
 
     return response.ok
-  } catch {
+  } catch (error) {
+    logEvent(
+      'ERROR',
+      'ollama',
+      (error as Error).message || 'Connection cannot be established.',
+      { serverUrl },
+    )
     return false
   }
 }

@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { FileContent } from './types'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from './useFilesAndFolders'
 import { READ_FILE_QUERY_KEY } from '@/lib/files/useReadFile'
+import { useLogger } from '@/lib/logging/useLogger'
 
 export interface UseCreateFileOptions {
   targetFolder?: string
@@ -10,6 +11,7 @@ export interface UseCreateFileOptions {
 
 export function useCreateFile() {
   const queryClient = useQueryClient()
+  const logger = useLogger()
 
   return useMutation({
     mutationFn: (options: UseCreateFileOptions = {}) =>
@@ -29,6 +31,11 @@ export function useCreateFile() {
       } catch {
         // silently ignore invalidation errors
       }
+    },
+    onError: (error) => {
+      logger.error('file', `Failed to create file: ${error.message}`, {
+        stack: error.stack,
+      })
     },
   })
 }

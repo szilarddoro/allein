@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from '@/lib/files/useFilesAndFolders'
 import { DOCS_FOLDER_QUERY_KEY } from '@/lib/files/useCurrentDocsFolder'
+import { useLogger } from '@/lib/logging/useLogger'
 
 export function useSetFolder() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const logger = useLogger()
 
   return useMutation({
     mutationFn: (folderPath: string) =>
@@ -26,6 +28,9 @@ export function useSetFolder() {
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to switch folder')
+      logger.error('folder', `Failed to switch folder: ${error.message}`, {
+        stack: error.stack || null,
+      })
     },
   })
 }

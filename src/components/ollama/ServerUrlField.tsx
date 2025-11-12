@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import { DEFAULT_OLLAMA_URL } from '@/lib/ollama/ollama'
 import { cn } from '@/lib/utils'
-import { CheckCircle2, CircleAlert, RefreshCcw } from 'lucide-react'
+import { AlertCircle, CheckCircle2, RefreshCcw } from 'lucide-react'
 import {
   Controller,
   Control,
@@ -98,7 +98,7 @@ export function ServerUrlField({
                   </DelayedActivityIndicator>
                 ) : !isConnected ? (
                   <>
-                    <CircleAlert className="size-4" /> Can&apos;t connect to{' '}
+                    <AlertCircle className="size-4" /> Can&apos;t connect to{' '}
                     {debouncedOllamaUrl}. Is Ollama running?
                   </>
                 ) : (

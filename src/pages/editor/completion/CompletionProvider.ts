@@ -19,6 +19,7 @@ import {
 import { buildCompletionPrompt } from './promptTemplates'
 import { applyTransforms, type TransformContext } from './transforms'
 import pDebounce from 'p-debounce'
+import { logEvent } from '@/lib/logging/useLogger'
 
 export interface InlineCompletionResult {
   items: monaco.languages.InlineCompletion[]
@@ -339,6 +340,10 @@ export class CompletionProvider {
         // Record metric on error
         const duration = performance.now() - startTime
         getCompletionMetrics().recordRequest(duration, { type: 'rejected' })
+        logEvent('ERROR', 'completion', 'Failed to generate completion.', {
+          status: generateResponse.status,
+          statusText: generateResponse.statusText,
+        })
         return { items: [] }
       }
 
@@ -381,6 +386,14 @@ export class CompletionProvider {
         getCompletionMetrics().recordRequest(duration, { type: 'canceled' })
         return { items: [] }
       } else {
+        logEvent(
+          'ERROR',
+          'completion',
+          `Failed to generate completion: ${(error as Error).message}`,
+          {
+            stack: (error as Error)?.stack || null,
+          },
+        )
         getCompletionMetrics().recordRequest(duration, { type: 'rejected' })
         return { items: [] }
       }

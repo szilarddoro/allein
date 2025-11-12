@@ -3,8 +3,11 @@ import { invoke } from '@tauri-apps/api/core'
 import { queryClient } from '@/lib/queryClientConfig'
 import { READ_FILE_QUERY_KEY } from '@/lib/files/useReadFile'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from '@/lib/files/useFilesAndFolders'
+import { useLogger } from '@/lib/logging/useLogger'
 
 export function useWriteFile() {
+  const logger = useLogger()
+
   return useMutation({
     mutationFn: ({
       filePath,
@@ -27,6 +30,11 @@ export function useWriteFile() {
       } catch {
         // silently ignore invalidation errors
       }
+    },
+    onError: (error) => {
+      logger.error('file', `Failed to write file: ${error.message}`, {
+        stack: error.stack || null,
+      })
     },
   })
 }

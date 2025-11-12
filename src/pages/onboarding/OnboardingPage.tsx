@@ -10,11 +10,13 @@ import {
   DownloadModelsStep,
   DownloadModelsSubmitData,
 } from '@/pages/onboarding/steps/DownloadModelsStep'
+import { useLogger } from '@/lib/logging/useLogger'
 
 export function OnboardingPage() {
   const { currentStep, setCurrentStep } =
     useOutletContext<OnboardingLayoutContext>()
   const { toast } = useToast()
+  const logger = useLogger()
 
   const { mutateAsync: updateProgress } = useUpdateOnboardingProgress()
 
@@ -25,6 +27,7 @@ export function OnboardingPage() {
 
   async function handleSkip() {
     await updateProgress({ status: 'skipped', currentStep: 0 })
+    logger.info('onboarding', 'Skipped onboarding', { currentStep })
   }
 
   function handleNext() {
@@ -62,7 +65,12 @@ export function OnboardingPage() {
   async function handleFinish() {
     try {
       await updateProgress({ status: 'completed', currentStep: 0 })
-    } catch {
+    } catch (error) {
+      logger.error(
+        'onboarding',
+        `Failed to complete onboarding: ${(error as Error).message}`,
+        { stack: (error as Error)?.stack || null },
+      )
       toast.error('Failed to complete onboarding')
     }
   }

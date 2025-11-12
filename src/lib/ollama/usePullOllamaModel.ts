@@ -1,3 +1,4 @@
+import { useLogger } from '@/lib/logging/useLogger'
 import {
   useQuery,
   experimental_streamedQuery as streamedQuery,
@@ -19,6 +20,8 @@ export interface PullModelResponseChunk {
 export function usePullOllamaModel(
   { serverUrl, model, disabled }: UsePullOllamaModelProps = { disabled: false },
 ) {
+  const logger = useLogger()
+
   return useQuery<PullModelResponseChunk[]>({
     queryKey: ['model-status', serverUrl, model],
     queryFn: streamedQuery({
@@ -42,12 +45,21 @@ export function usePullOllamaModel(
             )
 
             if (!response.ok) {
+              logger.error('download', 'Failed to download the model.', {
+                model,
+                serverUrl,
+              })
               throw new Error('Failed to download the model.')
             }
 
             const body = response.body
 
             if (body == null) {
+              logger.error('download', 'Failed to download the model.', {
+                model,
+                serverUrl,
+                reason: 'empty-body',
+              })
               throw new Error('Failed to download the model.')
             }
 

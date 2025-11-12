@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Check, ChevronsUpDown, CircleAlert } from 'lucide-react'
+import { Check, ChevronsUpDown } from 'lucide-react'
 import { Controller, Control } from 'react-hook-form'
 
 import {
@@ -158,7 +158,6 @@ export function ModelSelectorField({
 
             {(fieldState.invalid || modelsError) && (
               <FieldError className="flex flex-row gap-1 items-center">
-                <CircleAlert className="size-4" />
                 {fieldState.error?.message || 'Failed to load models.'}
               </FieldError>
             )}

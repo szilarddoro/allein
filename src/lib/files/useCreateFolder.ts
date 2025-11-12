@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from './useFilesAndFolders'
 import { TRIGGER_FOLDER_NAME_EDIT } from '@/lib/constants'
+import { useLogger } from '@/lib/logging/useLogger'
 
 export interface UseCreateFolderOptions {
   targetFolder?: string
@@ -9,6 +10,7 @@ export interface UseCreateFolderOptions {
 
 export function useCreateFolder() {
   const queryClient = useQueryClient()
+  const logger = useLogger()
 
   return useMutation({
     mutationFn: (options: UseCreateFolderOptions = {}) =>
@@ -27,6 +29,11 @@ export function useCreateFolder() {
       } catch {
         // silently ignore invalidation errors
       }
+    },
+    onError: (error) => {
+      logger.error('folder', `Failed to create folder: ${error.message}`, {
+        stack: error.stack,
+      })
     },
   })
 }

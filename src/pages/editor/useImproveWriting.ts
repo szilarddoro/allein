@@ -2,6 +2,7 @@ import { streamText } from 'ai'
 import { useCallback, useRef, useState } from 'react'
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useAIConfig } from '@/lib/ai/useAIConfig'
+import { logEvent } from '@/lib/logging/useLogger'
 
 const IMPROVE_WRITING_PROMPT = `Act as a spelling corrector, content writer, and text improver/editor. Reply to each message only with the rewritten text
 Strictly follow these rules:
@@ -94,13 +95,21 @@ export function useImproveWriting() {
 
         const error =
           err instanceof Error ? err : new Error('Failed to improve text')
+
+        logEvent(
+          'ERROR',
+          'improvements',
+          `Failed to improve text: ${error.message}`,
+          { stack: error.stack || null },
+        )
+
         setError(error)
         setIsPending(false)
         abortControllerRef.current = null
         throw error
       }
     },
-    [ollamaProvider, improvementModel, aiAssistanceEnabled, cancel],
+    [cancel, aiAssistanceEnabled, improvementModel, ollamaProvider],
   )
 
   const reset = useCallback(() => {

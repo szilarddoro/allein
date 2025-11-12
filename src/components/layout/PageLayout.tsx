@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { CURRENT_PLATFORM } from '@/lib/constants'
+import { useMoveItemOnDrop } from '@/lib/dnd/useMoveItemOnDrop'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { useWindowState } from '@/lib/useWindowState'
 import { cn } from '@/lib/utils'
@@ -38,6 +39,9 @@ export function PageLayout({
   const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()
 
   const isFullScreenOnMac = CURRENT_PLATFORM === 'macos' && isFullscreen
+
+  // Manage DND file movements
+  useMoveItemOnDrop()
 
   return (
     <div className="relative flex flex-1 overflow-hidden h-full z-50">

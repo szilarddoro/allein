@@ -3,7 +3,6 @@ import { FileDeleteConfirmDialog } from '@/components/sidebar/FileDeleteConfirmD
 import { FileListItem } from '@/components/sidebar/FileListItem'
 import { FolderListItem } from '@/components/sidebar/FolderListItem'
 import { P } from '@/components/ui/typography'
-import { useMoveFileOnDrop } from '@/lib/dnd/useMoveFileOnDrop'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
@@ -33,8 +32,6 @@ export function FileList() {
   } | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [editingFilePath, setEditingFilePath] = useState<string | null>(null)
-
-  useMoveFileOnDrop()
 
   const deleteStatus =
     deleteFileStatus === 'pending' || deleteFolderStatus === 'pending'

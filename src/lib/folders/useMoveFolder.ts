@@ -25,7 +25,9 @@ export function useMoveFolder() {
       }
     },
     onError: (error) => {
-      logger.error('file', `Failed to move folder: ${error.message}`)
+      logger.error('file', `Failed to move folder: ${error.message}`, {
+        stack: error.stack,
+      })
     },
   })
 }

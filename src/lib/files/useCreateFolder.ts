@@ -31,7 +31,9 @@ export function useCreateFolder() {
       }
     },
     onError: (error) => {
-      logger.error('folder', `Failed to create folder: ${error.message}`)
+      logger.error('folder', `Failed to create folder: ${error.message}`, {
+        stack: error.stack,
+      })
     },
   })
 }

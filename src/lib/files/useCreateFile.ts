@@ -33,7 +33,9 @@ export function useCreateFile() {
       }
     },
     onError: (error) => {
-      logger.error('file', `Failed to create file: ${error.message}`)
+      logger.error('file', `Failed to create file: ${error.message}`, {
+        stack: error.stack,
+      })
     },
   })
 }

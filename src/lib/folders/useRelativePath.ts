@@ -1,9 +1,9 @@
+import { useCurrentDocsFolder } from '@/lib/files/useCurrentDocsFolder'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
-import { useCurrentFolder } from '@/lib/folders/useCurrentFolder'
 
 export function useRelativePath() {
   const { data: currentFolder, status: currentFolderStatus } =
-    useCurrentFolder()
+    useCurrentDocsFolder()
   const [currentFolderPath] = useCurrentFolderPath()
 
   if (currentFolderStatus !== 'success') {

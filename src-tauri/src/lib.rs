@@ -70,7 +70,7 @@ fn get_docs_dir() -> Result<PathBuf, String> {
         if path.exists() && path.is_dir() {
             return Ok(path);
         }
-        // If path is invalid, fall through to default
+        // If path is invalid, fall through to default and update config
     }
 
     // Default path
@@ -82,6 +82,10 @@ fn get_docs_dir() -> Result<PathBuf, String> {
 
     // Create directory if it doesn't exist
     fs::create_dir_all(&docs_dir).map_err(|e| format!("Failed to create docs directory: {}", e))?;
+
+    // Update config to reflect the current docs folder (in case we fell back from invalid custom path)
+    let docs_dir_str = docs_dir.to_string_lossy().to_string();
+    let _ = database::set_config("current_docs_folder", &docs_dir_str);
 
     // Create demo file only if directory was just created
     if !dir_exists {

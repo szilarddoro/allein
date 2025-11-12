@@ -1,7 +1,8 @@
+import { DOCS_FOLDER_QUERY_KEY } from '@/lib/files/useCurrentDocsFolder'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from '@/lib/files/useFilesAndFolders'
 import { READ_FILE_BASE_QUERY_KEY } from '@/lib/files/useReadFile'
-import { OLLAMA_WARMUP_BASE_QUERY_KEY } from '@/lib/ollama/useWarmupCompletionModel'
 import { OLLAMA_MODEL_BASE_QUERY_KEY } from '@/lib/ollama/useOllamaModels'
+import { OLLAMA_WARMUP_BASE_QUERY_KEY } from '@/lib/ollama/useWarmupCompletionModel'
 import { useQueryClient } from '@tanstack/react-query'
 import { listen } from '@tauri-apps/api/event'
 import { useEffect, useRef } from 'react'
@@ -27,6 +28,9 @@ export function useInvalidateQueriesOnWindowFocus() {
 
         try {
           await Promise.all([
+            queryClient.invalidateQueries({
+              queryKey: DOCS_FOLDER_QUERY_KEY(),
+            }),
             queryClient.invalidateQueries({
               queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(),
             }),

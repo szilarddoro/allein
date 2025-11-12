@@ -2,7 +2,7 @@ import { HOME_FOLDER_KEY } from '@/lib/constants'
 import { getCleanDndId } from '@/lib/dnd/getCleanDndId'
 import { snapCenterToCursor } from '@/lib/dnd/snapCenterToCursor'
 import { getDisplayName } from '@/lib/files/fileUtils'
-import { useCurrentDocsDir } from '@/lib/files/useCurrentDocsDir'
+import { useCurrentDocsFolder } from '@/lib/files/useCurrentDocsFolder'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { cn } from '@/lib/utils'
 import { DragOverlay, useDndMonitor } from '@dnd-kit/core'
@@ -17,7 +17,7 @@ export interface DragOverlayTooltipProps {
 
 export const DragOverlayTooltip = memo(
   ({ className, tooltipClassName }: DragOverlayTooltipProps) => {
-    const { data: selectedDocsDir } = useCurrentDocsDir()
+    const { data: selectedDocsDir } = useCurrentDocsFolder()
     const [currentFolderPath] = useCurrentFolderPath()
     const [activeItem, setActiveItem] = useState<string>()
     const [overFolder, setOverFolder] = useState<string>()

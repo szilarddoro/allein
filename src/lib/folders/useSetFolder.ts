@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from '@/lib/files/useFilesAndFolders'
-import { CURRENT_FOLDER_QUERY_KEY } from './useCurrentFolder'
+import { DOCS_FOLDER_QUERY_KEY } from '@/lib/files/useCurrentDocsFolder'
 
 export function useSetFolder() {
   const queryClient = useQueryClient()
@@ -21,7 +21,7 @@ export function useSetFolder() {
         queryClient.invalidateQueries({
           queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(),
         }),
-        queryClient.invalidateQueries({ queryKey: CURRENT_FOLDER_QUERY_KEY }),
+        queryClient.invalidateQueries({ queryKey: DOCS_FOLDER_QUERY_KEY() }),
       ])
     },
     onError: (error: Error) => {

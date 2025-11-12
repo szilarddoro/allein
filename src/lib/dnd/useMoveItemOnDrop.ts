@@ -1,4 +1,4 @@
-import { useCurrentDocsDir } from '@/lib/files/useCurrentDocsDir'
+import { useCurrentDocsFolder } from '@/lib/files/useCurrentDocsFolder'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useMoveFile } from '@/lib/files/useMoveFile'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
@@ -12,7 +12,7 @@ import { getCleanDndId } from '@/lib/dnd/getCleanDndId'
 
 export function useMoveItemOnDrop() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
-  const { data: currentDocsDir } = useCurrentDocsDir()
+  const { data: currentDocsDir } = useCurrentDocsFolder()
   const { mutateAsync: moveFile } = useMoveFile()
   const { mutateAsync: moveFolder } = useMoveFolder()
   const { toast } = useToast()

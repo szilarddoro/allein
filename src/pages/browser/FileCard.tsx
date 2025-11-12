@@ -4,6 +4,7 @@ import { H3, P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { cn } from '@/lib/utils'
 import { MarkdownPreview } from '@/pages/editor/MarkdownPreview'
+import { DraggableCard } from './DraggableCard'
 import type React from 'react'
 import type { NavigateFunction } from 'react-router'
 import type { TreeItem } from '@/lib/files/types'
@@ -42,7 +43,10 @@ export function FileCard({
   navigate,
 }: FileCardProps) {
   return (
-    <li className="relative scroll-mt-4">
+    <DraggableCard
+      id={encodeURIComponent(file.path)}
+      className="relative scroll-mt-4"
+    >
       <Link
         viewTransition
         key={file.path}
@@ -108,6 +112,6 @@ export function FileCard({
           </CardContent>
         </Card>
       </Link>
-    </li>
+    </DraggableCard>
   )
 }

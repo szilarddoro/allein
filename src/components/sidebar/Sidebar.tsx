@@ -59,7 +59,7 @@ export function Sidebar({
   }
 
   return (
-    <div className="z-[100] relative w-full h-full flex flex-col bg-card border border-border rounded-[12px] overflow-hidden">
+    <div className="z-[100] relative w-full h-full flex flex-col bg-card dark:bg-zinc-900/50 border border-border rounded-[12px] overflow-hidden">
       <div className="h-10 w-full sticky top-0 pt-1 pr-1">
         <TauriDragRegion />
 

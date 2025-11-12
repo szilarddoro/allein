@@ -353,7 +353,7 @@ export function EditorPage() {
             <div className="flex flex-col h-full pb-2.5 min-h-0">
               <MarkdownPreview
                 content={markdownContent}
-                cardClassName="bg-background"
+                cardClassName="bg-background dark:bg-zinc-900/80"
                 placeholder="Nothing to show yet."
                 onClose={() => setShowPreview(false)}
               />

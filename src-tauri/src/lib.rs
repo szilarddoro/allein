@@ -587,7 +587,7 @@ fn search_files_recursive(
 
 /// Recursively build folder tree up to specified depth (max 5 levels)
 fn build_folder_tree(path: &PathBuf, current_depth: u32) -> Result<Vec<FolderNode>, String> {
-    const MAX_DEPTH: u32 = 5;
+    const MAX_DEPTH: u32 = 10;
 
     if current_depth >= MAX_DEPTH {
         return Ok(Vec::new());

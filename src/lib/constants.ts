@@ -13,8 +13,8 @@ export const TRIGGER_FOLDER_NAME_EDIT = 'trigger-folder-name-edit'
 
 // AI assistant constants
 export const RECOMMENDED_AUTOCOMPLETION_MODEL = {
-  name: 'codellama:7b-code',
-  url: 'https://ollama.com/library/codellama:7b-code',
+  name: 'qwen2.5-coder:3b-base',
+  url: 'https://ollama.com/library/qwen2.5-coder:3b-base',
 }
 
 export const RECOMMENDED_WRITING_IMPROVEMENTS_MODEL = {

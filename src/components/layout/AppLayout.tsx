@@ -52,7 +52,7 @@ export function AppLayout() {
   const isExtraLargeScreen = useMediaQuery('(min-width: 2560px)')
   const fullWidth = pathname.startsWith('/editor')
   const mouseSensor = useSensor(MouseSensor, {
-    activationConstraint: { distance: 0, delay: 150 },
+    activationConstraint: { distance: 24 },
   })
 
   const fileLength = files?.length ?? 0

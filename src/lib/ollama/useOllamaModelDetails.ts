@@ -1,3 +1,4 @@
+import { useLogger } from '@/lib/logging/useLogger'
 import { useQuery } from '@tanstack/react-query'
 
 export interface UseOllamaModelDetailsProps {
@@ -27,6 +28,7 @@ export function useOllamaModelDetails({
   model,
   disabled,
 }: UseOllamaModelDetailsProps) {
+  const logger = useLogger()
   return useQuery<OllamaModelDetailsResponse | { status: 'missing' }>({
     queryKey: OLLAMA_MODEL_QUERY_KEY(serverUrl, model),
     queryFn: async () => {
@@ -48,6 +50,11 @@ export function useOllamaModelDetails({
       )
 
       if (!response.ok) {
+        logger.info('model-details', 'Model is missing.', {
+          serverUrl,
+          model,
+        })
+
         return {
           status: 'missing',
         }

@@ -17,10 +17,11 @@ export interface DragOverlayTooltipProps {
 
 export const DragOverlayTooltip = memo(
   ({ className, tooltipClassName }: DragOverlayTooltipProps) => {
-    const { data: currentDocsDir } = useCurrentDocsDir()
+    const { data: selectedDocsDir } = useCurrentDocsDir()
     const [currentFolderPath] = useCurrentFolderPath()
     const [activeItem, setActiveItem] = useState<string>()
     const [overFolder, setOverFolder] = useState<string>()
+    const activeFolderPath = currentFolderPath || selectedDocsDir
 
     useDndMonitor({
       onDragOver: ({ active, over }) => {
@@ -33,14 +34,32 @@ export const DragOverlayTooltip = memo(
     const targetPath = overFolder || ''
 
     const isFile = sourcePath.endsWith('.md')
+
+    const sourceFolderPath = isFile
+      ? sourcePath.split('/').slice(0, -1).join('/') || ''
+      : sourcePath
+
     const displayName = getDisplayName(sourcePath.split('/').pop() || '')
     const targetFolder = targetPath.split('/').pop() || ''
 
-    const isMainFolder =
-      targetPath.endsWith(HOME_FOLDER_KEY) || targetPath === currentDocsDir
-    const keepInCurrentFolder = currentFolderPath
-      ? currentFolderPath === targetPath
-      : isMainFolder
+    const isMainFolderTarget =
+      targetPath.endsWith(HOME_FOLDER_KEY) || targetPath === selectedDocsDir
+
+    // console.log(activeFolderPath, targetPath, sourceFolderPath)
+    const keepInCurrentFolder = (() => {
+      if (sourceFolderPath === targetPath) {
+        return true
+      }
+
+      if (activeFolderPath && activeFolderPath === targetPath) {
+        return true
+      }
+
+      return (
+        targetPath.endsWith(HOME_FOLDER_KEY) &&
+        sourceFolderPath === selectedDocsDir
+      )
+    })()
 
     return createPortal(
       <DragOverlay
@@ -62,7 +81,7 @@ export const DragOverlayTooltip = memo(
           <div className="text-white/80 dark:text-muted-foreground">
             {keepInCurrentFolder ? (
               <span>Keep in the current folder</span>
-            ) : isMainFolder ? (
+            ) : isMainFolderTarget ? (
               <span>Move into the main folder</span>
             ) : targetFolder ? (
               <span>

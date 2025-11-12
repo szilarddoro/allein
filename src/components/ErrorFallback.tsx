@@ -1,3 +1,4 @@
+import alleinLogo from '@/assets/allein-logo.png'
 import { Anchor } from '@/components/ui/anchor'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,6 +14,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { H1, P } from '@/components/ui/typography'
+import { downloadLogs } from '@/lib/logging/loggingUtils'
 import { useLogger } from '@/lib/logging/useLogger'
 import { ChevronDown, ChevronUp, RotateCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -50,21 +52,32 @@ export function ErrorFallback() {
 
   useEffect(() => {
     if (error) {
-      logger.error('generic', error.message, { stack: error.stack || null })
+      logger.error('ErrorBoundary', error.message, {
+        stack: error.stack || null,
+      })
     }
   }, [error, logger])
 
   return (
     <div className="w-full h-screen bg-neutral-50 dark:bg-background flex items-center justify-center">
       <Card className="shadow-sm dark:shadow-none gap-0 text-center max-w-xl w-full">
-        <CardHeader>
+        <CardHeader className="flex flex-col items-center justify-center gap-1 mb-1">
+          <img
+            draggable={false}
+            src={alleinLogo}
+            width={1024}
+            height={1024}
+            alt="Letter A in a rounded rectangle"
+            className="size-16"
+          />
+
           <CardTitle>
             <H1 className="my-0 text-2xl">Something went wrong</H1>
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="my-0 text-center flex flex-col text-base">
-          <span>
+        <CardContent className="my-0 text-center">
+          <P className="my-1 mx-auto">
             Please{' '}
             <Anchor
               href="https://github.com/szilarddoro/allein/issues/new"
@@ -72,8 +85,17 @@ export function ErrorFallback() {
             >
               submit a GitHub issue
             </Anchor>{' '}
-            detailing the reproduction steps.
-          </span>
+            outlining the steps to reproduce the problem. You can{' '}
+            <Button
+              onClick={downloadLogs}
+              variant="ghost"
+              size="sm"
+              className="!p-0 hover:!bg-transparent underline text-blue-500 dark:text-blue-400 hover:!text-foreground cursor-pointer text-base font-normal h-auto"
+            >
+              download the logs
+            </Button>{' '}
+            and attach them to the issue.
+          </P>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2 justify-center items-center mt-4 w-full">

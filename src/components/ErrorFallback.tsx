@@ -13,16 +13,18 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { H1, P } from '@/components/ui/typography'
+import { useLogger } from '@/lib/logging/useLogger'
 import { ChevronDown, ChevronUp, RotateCw } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
 
 export function ErrorFallback() {
   const routeError = useRouteError()
   const [detailsOpen, setDetailsOpen] = useState(false)
   const navigate = useNavigate()
+  const logger = useLogger()
 
-  const error = (() => {
+  const error = useMemo(() => {
     if (isRouteErrorResponse(routeError)) {
       return {
         name: `${routeError.status} ${routeError.statusText}`,
@@ -44,7 +46,13 @@ export function ErrorFallback() {
       message: 'Unknown Error',
       stack: null,
     }
-  })()
+  }, [routeError])
+
+  useEffect(() => {
+    if (error) {
+      logger.error('generic', error.message, { stack: error.stack || null })
+    }
+  }, [error, logger])
 
   return (
     <div className="w-full h-screen bg-neutral-50 dark:bg-background flex items-center justify-center">

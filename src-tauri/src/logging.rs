@@ -5,6 +5,9 @@ use std::sync::Mutex;
 use chrono::Local;
 use serde::{Deserialize, Serialize};
 
+/// Default application folder in home directory
+const APP_FOLDER: &str = "allein";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogEvent {
     pub timestamp: String,
@@ -53,7 +56,7 @@ impl FileLogger {
     /// Get the logs directory path
     pub fn get_logs_dir() -> Result<PathBuf, String> {
         let home = dirs::home_dir().ok_or("Could not find home directory")?;
-        Ok(home.join(".allein").join("logs"))
+        Ok(home.join(APP_FOLDER).join("logs"))
     }
 
     /// Write a log entry directly to disk

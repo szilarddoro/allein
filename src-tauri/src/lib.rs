@@ -8,6 +8,9 @@ use tauri_plugin_dialog::DialogExt;
 mod database;
 mod logging;
 
+/// Default application folder in home directory
+const APP_FOLDER: &str = "allein";
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileInfo {
     pub name: String,
@@ -76,7 +79,7 @@ fn get_docs_dir() -> Result<PathBuf, String> {
 
     // Default path
     let home = dirs::home_dir().ok_or("Could not find home directory")?;
-    let docs_dir = home.join("allein").join("docs");
+    let docs_dir = home.join(APP_FOLDER).join("docs");
 
     // Check if directory exists before creation
     let dir_exists = docs_dir.exists();

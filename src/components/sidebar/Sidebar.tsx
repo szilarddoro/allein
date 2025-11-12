@@ -9,6 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { FOCUS_NAME_INPUT } from '@/lib/constants'
 import { FileContent } from '@/lib/files/types'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useToast } from '@/lib/useToast'
@@ -40,7 +41,7 @@ export function Sidebar({
       )
       navigate({
         pathname: '/editor',
-        search: `?file=${encodeURIComponent(path)}&focus=true`,
+        search: `?file=${encodeURIComponent(path)}&${FOCUS_NAME_INPUT}=true`,
       })
     } catch {
       toast.error('Failed to create file')

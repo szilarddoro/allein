@@ -6,13 +6,14 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 import { P } from '@/components/ui/typography'
+import { FOCUS_NAME_INPUT } from '@/lib/constants'
 import { formatMarkdown } from '@/lib/editor/formatMarkdown'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useReadFile } from '@/lib/files/useReadFile'
+import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { AppLayoutContextProps } from '@/lib/types'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
-import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { FloatingActionToolbar } from '@/pages/editor/FloatingActionToolbar'
 import { CircleAlert, RefreshCw } from 'lucide-react'
 import * as monaco from 'monaco-editor'
@@ -41,7 +42,7 @@ export function EditorPage() {
     null,
   )
   const previewButtonRef = useRef<HTMLButtonElement>(null)
-  const shouldFocusEditorRef = useRef(false)
+  const fileNameInputRef = useRef<HTMLInputElement>(null)
   const [editorReady, setEditorReady] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [markdownContent, setMarkdownContent] = useState('')
@@ -51,7 +52,6 @@ export function EditorPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null)
   const previewPanelRef = useRef<ImperativePanelHandle | null>(null)
-
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
 
   const handleFileRenamed = (newPath: string, oldPath: string) => {
@@ -67,6 +67,12 @@ export function EditorPage() {
     monacoEditorRef.current = null
     setEditorReady(false)
   }, [currentFilePath])
+
+  useEffect(() => {
+    return () => {
+      monacoEditorRef.current?.dispose()
+    }
+  }, [])
 
   const {
     data: currentFile,
@@ -129,16 +135,6 @@ export function EditorPage() {
     }
   }, [currentFile])
 
-  // Store focus intention when focus=true parameter is present
-  useEffect(() => {
-    if (searchParams.get('focus') === 'true') {
-      shouldFocusEditorRef.current = true
-      // Remove the focus parameter immediately
-      searchParams.delete('focus')
-      setSearchParams(searchParams, { replace: true })
-    }
-  }, [searchParams, setSearchParams])
-
   const handleEditorChange = (content: string) => {
     setMarkdownContent(content)
     saveContent(currentFile || null, content)
@@ -178,12 +174,20 @@ export function EditorPage() {
     handleEditorReady(editor)
     setEditorReady(true)
 
-    // Focus editor if focus was requested
-    if (shouldFocusEditorRef.current) {
+    const focusFileNameInput = searchParams.get(FOCUS_NAME_INPUT) === 'true'
+
+    if (focusFileNameInput) {
+      requestAnimationFrame(() => {
+        fileNameInputRef.current?.focus()
+        fileNameInputRef.current?.select()
+      })
+
+      searchParams.delete(FOCUS_NAME_INPUT)
+      setSearchParams(searchParams, { replace: true, viewTransition: false })
+    } else {
       requestAnimationFrame(() => {
         editor.focus()
       })
-      shouldFocusEditorRef.current = false
     }
   }
 
@@ -306,6 +310,7 @@ export function EditorPage() {
         sidebarOpen={sidebarOpen}
         onFileRenamed={handleFileRenamed}
         inlineCompletionLoading={inlineCompletionLoading}
+        fileNameInputRef={fileNameInputRef}
       />
 
       <div className="w-full flex flex-1 min-h-0 relative">

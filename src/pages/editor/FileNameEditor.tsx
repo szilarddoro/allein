@@ -5,6 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { FOCUS_NAME_INPUT } from '@/lib/constants'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { FileContent } from '@/lib/files/types'
 import {
@@ -17,12 +18,14 @@ import { useFileNameContextMenu } from '@/pages/editor/useFileNameContextMenu'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import type React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { RefObject, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 
 export interface FileNameEditorProps {
   currentFile: FileContent | null
   onFileRenamed: (newPath: string, oldPath: string) => void
   sidebarOpen: boolean
+  fileNameInputRef: RefObject<HTMLInputElement | null>
 }
 
 /**
@@ -33,7 +36,9 @@ export function FileNameEditor({
   currentFile,
   onFileRenamed,
   sidebarOpen,
+  fileNameInputRef,
 }: FileNameEditorProps) {
+  const [searchParams] = useSearchParams()
   const { toast } = useToast()
   const { data } = useFilesAndFolders()
   const files = flattenTreeItems(data)
@@ -44,9 +49,10 @@ export function FileNameEditor({
   } = useRenameFile()
   const { showContextMenu } = useFileNameContextMenu()
   const [fileName, setFileName] = useState('')
-  const [isEditingFileName, setIsEditingFileName] = useState(false)
+  const [isEditingFileName, setIsEditingFileName] = useState(
+    searchParams.get(FOCUS_NAME_INPUT) === 'true',
+  )
   const [tooltipOpen, setTooltipOpen] = useState(false)
-  const fileNameInputRef = useRef<HTMLInputElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   // Sync file name when current file changes
@@ -64,7 +70,7 @@ export function FileNameEditor({
       fileNameInputRef.current.focus()
       fileNameInputRef.current.select()
     }
-  }, [isEditingFileName])
+  }, [fileNameInputRef, isEditingFileName])
 
   function handleFileNameClick() {
     setIsEditingFileName(true)
@@ -91,7 +97,7 @@ export function FileNameEditor({
 
   async function handleFileNameBlur(
     _ev: React.FocusEvent<HTMLInputElement> | null,
-    trigger?: 'enter',
+    trigger?: 'enter' | 'tab',
   ) {
     if (!currentFile) return
 

@@ -20,5 +20,7 @@ export const RECOMMENDED_WRITING_IMPROVEMENTS_MODEL = {
 }
 
 // Drag and drop constants
-
 export const HOME_FOLDER_KEY = 'home-folder'
+
+// Input focus constants
+export const FOCUS_NAME_INPUT = 'focusFileNameInput'

@@ -10,7 +10,11 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 import { useAIFeatures } from '@/lib/ai/useAIFeatures'
-import { NEW_FILE_MENU_EVENT, NEW_FOLDER_MENU_EVENT } from '@/lib/constants'
+import {
+  FOCUS_NAME_INPUT,
+  NEW_FILE_MENU_EVENT,
+  NEW_FOLDER_MENU_EVENT,
+} from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
@@ -57,13 +61,49 @@ export function AppLayout() {
 
   const fileLength = files?.length ?? 0
 
+  const getSidebarDefaultSize = useCallback(() => {
+    if (isExtraLargeScreen) {
+      return 12
+    }
+
+    if (isLargeScreen) {
+      return 15
+    }
+
+    return 20
+  }, [isExtraLargeScreen, isLargeScreen])
+
+  const getSidebarMinSize = useCallback(() => {
+    if (isExtraLargeScreen) {
+      return 10
+    }
+
+    if (isLargeScreen) {
+      return 12
+    }
+
+    return 15
+  }, [isExtraLargeScreen, isLargeScreen])
+
+  const getSidebarMaxSize = useCallback(() => {
+    if (isExtraLargeScreen) {
+      return 14
+    }
+
+    if (isLargeScreen) {
+      return 18
+    }
+
+    return 25
+  }, [isExtraLargeScreen, isLargeScreen])
+
   useEffect(() => {
     if (!sidebarOpen) {
       sidebarPanelRef.current?.collapse()
     } else {
-      sidebarPanelRef.current?.expand()
+      sidebarPanelRef.current?.expand(getSidebarDefaultSize())
     }
-  }, [sidebarOpen])
+  }, [getSidebarDefaultSize, sidebarOpen])
 
   useEffect(() => {
     if (progress?.status !== 'skipped' && progress?.status !== 'completed') {
@@ -89,7 +129,7 @@ export function AppLayout() {
         navigate(
           {
             pathname: '/editor',
-            search: `?file=${encodeURIComponent(fileContent.path)}&focus=true`,
+            search: `?file=${encodeURIComponent(fileContent.path)}&${FOCUS_NAME_INPUT}=true`,
           },
           { viewTransition: true },
         )
@@ -160,42 +200,6 @@ export function AppLayout() {
     return () =>
       window.removeEventListener(NEW_FOLDER_MENU_EVENT, handleCreateNewFolder)
   }, [createNewFolder, currentFolderPath])
-
-  function getSidebarDefaultSize() {
-    if (isExtraLargeScreen) {
-      return 12
-    }
-
-    if (isLargeScreen) {
-      return 15
-    }
-
-    return 20
-  }
-
-  function getSidebarMinSize() {
-    if (isExtraLargeScreen) {
-      return 10
-    }
-
-    if (isLargeScreen) {
-      return 12
-    }
-
-    return 15
-  }
-
-  function getSidebarMaxSize() {
-    if (isExtraLargeScreen) {
-      return 14
-    }
-
-    if (isLargeScreen) {
-      return 18
-    }
-
-    return 25
-  }
 
   function handleResetResizablePanels() {
     if (panelGroupRef.current == null) {

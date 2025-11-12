@@ -22,6 +22,7 @@ import {
   Search,
 } from 'lucide-react'
 import { PropsWithChildren } from 'react'
+import { useLocation } from 'react-router'
 
 export interface PageLayoutProps extends PropsWithChildren {
   sidebarOpen: boolean
@@ -37,11 +38,14 @@ export function PageLayout({
   setSearchOpen,
   fullWidth,
 }: PageLayoutProps) {
+  const { pathname } = useLocation()
   const [currentFolderPath] = useCurrentFolderPath()
   const { setNodeRef } = useDroppable({
     id: currentFolderPath
       ? `browser-${currentFolderPath}`
       : `browser-${HOME_FOLDER_KEY}`,
+    // Only enable on the browser page
+    disabled: pathname !== '/',
   })
   const { isFullscreen } = useWindowState()
   const { goBack, goForward, canGoBack, canGoForward } = useLocationHistory()

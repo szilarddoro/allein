@@ -23,8 +23,12 @@ export function useMoveFileOnDrop() {
         return
       }
 
-      const fromPath = decodeURIComponent(active.id.toString())
-      let toFolder = decodeURIComponent(over.id.toString())
+      const fromPath = decodeURIComponent(
+        active.id.toString().replace(/^(card|listitem|breadcrumb)-/, ''),
+      )
+      let toFolder = decodeURIComponent(
+        over.id.toString().replace(/^(card|listitem|breadcrumb)-/, ''),
+      )
 
       if (toFolder === 'home-folder' && currentDocsDir) {
         toFolder = currentDocsDir

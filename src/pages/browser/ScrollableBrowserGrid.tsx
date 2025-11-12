@@ -1,5 +1,5 @@
 import { DragOverlay, useDndMonitor, useDroppable } from '@dnd-kit/core'
-import { restrictToWindowEdges, snapCenterToCursor } from '@dnd-kit/modifiers'
+import { snapCenterToCursor } from '@dnd-kit/modifiers'
 import { DragOverlayTooltip } from '@/components/DragOverlayTooltip'
 import { useMoveFileOnDrop } from '@/lib/dnd/useMoveFileOnDrop'
 import { useState } from 'react'
@@ -137,7 +137,7 @@ export function ScrollableBrowserGrid({
       </nav>
 
       <DragOverlay
-        modifiers={[restrictToWindowEdges, snapCenterToCursor]}
+        modifiers={[snapCenterToCursor]}
         dropAnimation={{ duration: 0 }}
         className="z-[10000]"
       >

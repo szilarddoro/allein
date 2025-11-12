@@ -1,6 +1,7 @@
 import { FileList } from '@/components/sidebar/FileList'
 import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { H2 } from '@/components/ui/typography'
+import { HOME_FOLDER_KEY } from '@/lib/constants'
 import { useDroppable } from '@dnd-kit/core'
 
 export interface ScrollableFileListProps {
@@ -14,7 +15,7 @@ export function ScrollableFileList({
 }: ScrollableFileListProps) {
   const { showContextMenu } = useSidebarContextMenu()
   const { setNodeRef } = useDroppable({
-    id: 'home-folder',
+    id: `sidebar-${HOME_FOLDER_KEY}`,
   })
 
   return (

@@ -53,7 +53,7 @@ export function FolderListItem({
   onCancelEdit,
 }: FolderListItemProps) {
   const { isOver, setNodeRef } = useDroppable({
-    id: `listitem-${encodeURIComponent(folder.path)}`,
+    id: `sidebar-${encodeURIComponent(folder.path)}`,
   })
   // All hooks must be called before any early returns
   const [collapsibleOpen, setCollapsibleOpen] = useState(false)

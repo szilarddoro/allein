@@ -15,7 +15,7 @@ export function DraggableListItem({
 }: PropsWithChildren<DraggableListItemProps>) {
   const isDraggingActive = useDraggingActive()
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `listitem-${id}`,
+    id: `sidebar-${id}`,
   })
 
   return (

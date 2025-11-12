@@ -1,10 +1,9 @@
 import { FileList } from '@/components/sidebar/FileList'
 import { useSidebarContextMenu } from '@/components/sidebar/useSidebarContextMenu'
 import { H2 } from '@/components/ui/typography'
-import { getDisplayName } from '@/lib/files/fileUtils'
 import { DragOverlay, useDndMonitor, useDroppable } from '@dnd-kit/core'
 import { restrictToWindowEdges } from '@dnd-kit/modifiers'
-import { File, FolderClosed } from 'lucide-react'
+import { DragOverlayTooltip } from '@/components/DragOverlayTooltip'
 import { useState } from 'react'
 
 export interface ScrollableFileListProps {
@@ -60,24 +59,13 @@ export function ScrollableFileList({
         dropAnimation={{ duration: 0 }}
         className="z-[10000] translate-y-8"
       >
-        <div className="bg-black/70 dark:bg-black/40 text-white backdrop-blur-xl dark:border border-border px-2 py-1.5 text-sm rounded-md max-w-56 flex flex-col gap-0.5 [&_svg]:size-3">
-          <div className="flex flex-row gap-1.5 items-center">
-            {isActiveFile ? <File /> : <FolderClosed />}
-            <span className="font-medium">
-              {getDisplayName(decodedActiveItem.split('/').pop() || '')}
-            </span>
-          </div>
-
-          {targetFolder ? (
-            <div className="text-white/80 dark:text-muted-foreground">
-              Move into <span className="break-words">{targetFolder}</span>
-            </div>
-          ) : (
-            <div className="text-white/80 dark:text-muted-foreground">
-              Drag over the sidebar
-            </div>
-          )}
-        </div>
+        <DragOverlayTooltip
+          activeItem={decodedActiveItem}
+          targetFolder={targetFolder}
+          isActiveFile={isActiveFile}
+          dragMessage="Move into"
+          targetMessage="Drag over the sidebar"
+        />
       </DragOverlay>
     </>
   )

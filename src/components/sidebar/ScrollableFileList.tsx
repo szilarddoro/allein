@@ -6,7 +6,6 @@ import { DragOverlayTooltip } from '@/components/DragOverlayTooltip'
 import { useState } from 'react'
 
 export interface ScrollableFileListProps {
-  activeId: string | number | null
   onCreateFile: () => void
   onCreateFolder: () => void
 }

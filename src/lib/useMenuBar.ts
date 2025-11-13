@@ -4,14 +4,18 @@ import {
   PredefinedMenuItem,
   Submenu,
 } from '@tauri-apps/api/menu'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { toast } from 'sonner'
 import {
+  FORMAT_DOCUMENT_EVENT,
+  IMPROVE_WRITING_EVENT,
   NEW_FILE_MENU_EVENT,
   NEW_FOLDER_MENU_EVENT,
   REDO_MENU_EVENT,
+  TOGGLE_PREVIEW_EVENT,
+  TOGGLE_SIDEBAR_EVENT,
   UNDO_MENU_EVENT,
 } from '@/lib/constants'
 import { openFolderPicker } from '@/lib/folders/useOpenFolderPicker'
@@ -21,18 +25,27 @@ const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
 const newFolderEvent = new CustomEvent(NEW_FOLDER_MENU_EVENT)
 const undoEvent = new CustomEvent(UNDO_MENU_EVENT)
 const redoEvent = new CustomEvent(REDO_MENU_EVENT)
+const toggleSidebarEvent = new CustomEvent(TOGGLE_SIDEBAR_EVENT)
+const formatDocumentEvent = new CustomEvent(FORMAT_DOCUMENT_EVENT)
+const improveWritingEvent = new CustomEvent(IMPROVE_WRITING_EVENT)
+const togglePreviewEvent = new CustomEvent(TOGGLE_PREVIEW_EVENT)
 
 export interface UseMenuBarProps {
   onOpenAbout?: (open: boolean) => void
 }
 
 export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
+  const previousPathNameRef = useRef<string>(null)
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { mutateAsync: setFolder } = useSetFolder()
 
   useEffect(() => {
-    if (!pathname) return
+    if (!pathname || previousPathNameRef.current === pathname) {
+      return
+    }
+
+    previousPathNameRef.current = pathname
 
     async function setupAppMenuBar() {
       try {
@@ -151,6 +164,43 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
             await PredefinedMenuItem.new({
               item: 'Paste',
             }),
+            separator,
+            await MenuItem.new({
+              text: 'Format Document',
+              accelerator: 'CmdOrCtrl+Shift+F',
+              action() {
+                window.dispatchEvent(formatDocumentEvent)
+              },
+            }),
+            await MenuItem.new({
+              text: 'Improve Writing',
+              accelerator: 'CmdOrCtrl+I',
+              action() {
+                window.dispatchEvent(improveWritingEvent)
+              },
+            }),
+          ],
+        })
+
+        const viewSubmenu = await Submenu.new({
+          id: 'view',
+          text: 'View',
+          items: [
+            await MenuItem.new({
+              text: 'Toggle Sidebar',
+              accelerator: 'CmdOrCtrl+\\',
+              action() {
+                window.dispatchEvent(toggleSidebarEvent)
+              },
+            }),
+            await MenuItem.new({
+              text: 'Toggle Preview',
+              accelerator: 'CmdOrCtrl+P',
+              enabled: pathname.startsWith('/editor'),
+              action() {
+                window.dispatchEvent(togglePreviewEvent)
+              },
+            }),
           ],
         })
 
@@ -192,6 +242,7 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
             aboutSubmenu,
             fileSubmenu,
             editSubmenu,
+            viewSubmenu,
             windowSubmenu,
             helpSubmenu,
           ],

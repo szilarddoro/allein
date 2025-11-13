@@ -7,12 +7,11 @@ import {
   applyInlineCodeFormatting,
   applyHeadingFormatting,
 } from '@/lib/editor/editorFormatting'
-import { formatMarkdown } from '@/lib/editor/formatMarkdown'
-import { toast } from 'sonner'
 
 interface UseSetupEditorKeyBindigsProps {
   onTogglePreview: () => void
   onImproveWriting: () => void
+  onFormatDocument: () => void
 }
 
 /**
@@ -22,6 +21,7 @@ interface UseSetupEditorKeyBindigsProps {
 export function useSetupEditorKeyBindings({
   onTogglePreview,
   onImproveWriting,
+  onFormatDocument,
 }: UseSetupEditorKeyBindigsProps) {
   const handleEditorReady = useCallback(
     (editor: monaco.editor.IStandaloneCodeEditor) => {
@@ -96,38 +96,14 @@ export function useSetupEditorKeyBindings({
       // Override CMD+Shift+F for formatting markdown
       editor.addCommand(
         monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF,
-        async () => {
-          const model = editor.getModel()
-
-          if (!model) {
-            return
-          }
-
-          const position = editor.getPosition()
-          const content = model.getValue()
-
-          try {
-            const formatted = await formatMarkdown(content)
-            const fullRange = model.getFullModelRange()
-            editor.executeEdits('format-markdown', [
-              {
-                range: fullRange,
-                text: formatted,
-              },
-            ])
-            if (position) {
-              editor.setPosition(position)
-              editor.revealPositionInCenter(position)
-            }
-          } catch {
-            toast.error('Failed to format text')
-          }
+        () => {
+          onFormatDocument()
         },
       )
 
       return editor
     },
-    [onTogglePreview, onImproveWriting],
+    [onTogglePreview, onImproveWriting, onFormatDocument],
   )
 
   return { handleEditorReady }

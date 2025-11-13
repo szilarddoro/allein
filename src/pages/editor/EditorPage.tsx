@@ -185,6 +185,7 @@ export function EditorPage() {
   const { handleEditorReady } = useSetupEditorKeyBindings({
     onImproveWriting: handleOpenImproveWritingModal,
     onTogglePreview: handleTogglePreview,
+    onFormatDocument: handleFormatDocument,
   })
 
   useHighlightLine({

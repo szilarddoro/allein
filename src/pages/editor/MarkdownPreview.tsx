@@ -62,28 +62,29 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     <div {...props} className={cn('flex flex-col h-full', className)}>
       <Card
         className={cn(
-          'relative flex-1 overflow-auto p-4 pb-24',
+          'relative flex-1 overflow-auto pt-0 pb-24',
           renderType === 'embedded' && 'border-0 p-0',
           cardClassName,
         )}
       >
         {renderType !== 'embedded' && onClose && (
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label="Close Preview"
-            className="absolute top-2 right-2"
-            onClick={onClose}
-          >
-            <X />
-          </Button>
+          <div className="sticky top-0 w-full flex justify-end pt-2 pr-2 transform-gpu">
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label="Close Preview"
+              onClick={onClose}
+            >
+              <X />
+            </Button>
+          </div>
         )}
 
         <div
           onContextMenu={showContextMenu}
           className={cn(
-            'prose prose-sm max-w-none prose-headings:text-neutral-900 prose-p:text-neutral-700 prose-strong:text-neutral-900 prose-blockquote:border-l-4 prose-blockquote:border-neutral-300 prose-blockquote:text-neutral-600 [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_li_ul]:ml-4 [&_li_ol]:ml-4 select-auto cursor-auto',
-            renderType === 'embedded' && 'overflow-hidden w-full',
+            '-mt-12 px-4 prose prose-sm max-w-none prose-headings:text-neutral-900 prose-p:text-neutral-700 prose-strong:text-neutral-900 prose-blockquote:border-l-4 prose-blockquote:border-neutral-300 prose-blockquote:text-neutral-600 [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_li_ul]:ml-4 [&_li_ol]:ml-4 select-auto cursor-auto',
+            renderType === 'embedded' && 'mt-0 px-0 overflow-hidden w-full',
             previewClassName,
           )}
         >

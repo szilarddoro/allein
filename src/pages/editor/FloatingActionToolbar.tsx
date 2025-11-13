@@ -31,7 +31,7 @@ export function FloatingActionToolbar({
       <div
         className={cn(
           'flex flex-row gap-1 bg-secondary dark:bg-background border-1 border-input/60 rounded-lg p-1 motion-safe:transition-colors',
-          showPreview && 'bg-background dark:bg-card',
+          showPreview && 'bg-secondary dark:bg-card',
         )}
       >
         <Tooltip delayDuration={500}>

@@ -1,4 +1,5 @@
 import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
+import { Hotkey } from '@/components/Hotkey'
 import { ScrollableFileList } from '@/components/sidebar/ScrollableFileList'
 import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { Button } from '@/components/ui/button'
@@ -76,7 +77,9 @@ export function Sidebar({
               </Button>
             </TooltipTrigger>
 
-            <TooltipContent>Close Sidebar</TooltipContent>
+            <TooltipContent>
+              Close Sidebar <Hotkey keyCode="\" modifiers={['meta']} />
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>

@@ -14,6 +14,7 @@ import {
   FOCUS_NAME_INPUT,
   NEW_FILE_MENU_EVENT,
   NEW_FOLDER_MENU_EVENT,
+  TOGGLE_SIDEBAR_EVENT,
 } from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
@@ -111,6 +112,16 @@ export function AppLayout() {
   }, [getSidebarDefaultSize, sidebarOpen])
 
   useEffect(() => {
+    function handleToggleSidebarEvent() {
+      setSidebarOpen((open) => !open)
+    }
+
+    window.addEventListener(TOGGLE_SIDEBAR_EVENT, handleToggleSidebarEvent)
+    return () =>
+      window.removeEventListener(TOGGLE_SIDEBAR_EVENT, handleToggleSidebarEvent)
+  }, [])
+
+  useEffect(() => {
     if (progress?.status !== 'skipped' && progress?.status !== 'completed') {
       navigate('/onboarding')
     }
@@ -162,11 +173,6 @@ export function AppLayout() {
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        navigate('/settings')
-      }
-
       if (e.key === 'w' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
 

@@ -89,7 +89,7 @@ export function PageLayout({
                     align={isFullScreenOnMac ? 'start' : 'center'}
                     side="bottom"
                   >
-                    Open Sidebar
+                    Open Sidebar <Hotkey keyCode="\" modifiers={['meta']} />
                   </TooltipContent>
                 </Tooltip>
               )}

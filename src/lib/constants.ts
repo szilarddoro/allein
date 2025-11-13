@@ -10,6 +10,10 @@ export const NEW_FOLDER_MENU_EVENT = 'create-new-folder'
 export const UNDO_MENU_EVENT = 'undo'
 export const REDO_MENU_EVENT = 'redo'
 export const TRIGGER_FOLDER_NAME_EDIT = 'trigger-folder-name-edit'
+export const TOGGLE_SIDEBAR_EVENT = 'toggle-sidebar'
+export const FORMAT_DOCUMENT_EVENT = 'format-document'
+export const IMPROVE_WRITING_EVENT = 'improve-writing'
+export const TOGGLE_PREVIEW_EVENT = 'toggle-preview'
 
 // AI assistant constants
 export const RECOMMENDED_AUTOCOMPLETION_MODEL = {

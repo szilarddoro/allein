@@ -10,19 +10,19 @@ import {
 import { formatMarkdown } from '@/lib/editor/formatMarkdown'
 import { toast } from 'sonner'
 
-interface UseEditorKeyBindingsProps {
+interface UseSetupEditorKeyBindigsProps {
   onTogglePreview: () => void
-  onOpenImproveWritingModal: () => void
+  onImproveWriting: () => void
 }
 
 /**
  * Hook that sets up Monaco Editor keyboard shortcuts.
  * Registers all custom keybindings when the editor is ready.
  */
-export function useEditorKeyBindings({
+export function useSetupEditorKeyBindings({
   onTogglePreview,
-  onOpenImproveWritingModal,
-}: UseEditorKeyBindingsProps) {
+  onImproveWriting,
+}: UseSetupEditorKeyBindigsProps) {
   const handleEditorReady = useCallback(
     (editor: monaco.editor.IStandaloneCodeEditor) => {
       // Override CMD+P to toggle preview
@@ -45,7 +45,7 @@ export function useEditorKeyBindings({
 
       // Override CMD+I to open writing improvement modal
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI, () => {
-        onOpenImproveWritingModal()
+        onImproveWriting()
       })
 
       // Override CMD+Shift+Minus for strikethrough formatting
@@ -127,7 +127,7 @@ export function useEditorKeyBindings({
 
       return editor
     },
-    [onTogglePreview, onOpenImproveWritingModal],
+    [onTogglePreview, onImproveWriting],
   )
 
   return { handleEditorReady }

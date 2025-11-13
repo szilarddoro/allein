@@ -6,7 +6,12 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 import { P } from '@/components/ui/typography'
-import { FOCUS_NAME_INPUT } from '@/lib/constants'
+import {
+  FOCUS_NAME_INPUT,
+  FORMAT_DOCUMENT_EVENT,
+  IMPROVE_WRITING_EVENT,
+  TOGGLE_PREVIEW_EVENT,
+} from '@/lib/constants'
 import { formatMarkdown } from '@/lib/editor/formatMarkdown'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
 import { useReadFile } from '@/lib/files/useReadFile'
@@ -17,7 +22,7 @@ import { cn } from '@/lib/utils'
 import { FloatingActionToolbar } from '@/pages/editor/FloatingActionToolbar'
 import { CircleAlert, RefreshCw } from 'lucide-react'
 import * as monaco from 'monaco-editor'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ImperativePanelGroupHandle,
   ImperativePanelHandle,
@@ -29,7 +34,7 @@ import { ImprovementDialog } from './ImprovementDialog'
 import { MarkdownPreview } from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
 import { useAutoSave } from './useAutoSave'
-import { useEditorKeyBindings } from './useEditorKeyBindings'
+import { useSetupEditorKeyBindings } from './useSetupEditorKeyBindings'
 import { useHighlightLine } from './useHighlightLine'
 
 export function EditorPage() {
@@ -53,6 +58,100 @@ export function EditorPage() {
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null)
   const previewPanelRef = useRef<ImperativePanelHandle | null>(null)
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
+  const { saveContent } = useAutoSave()
+
+  useEffect(() => {
+    function handleTogglePreviewEvent() {
+      setShowPreview((show) => !show)
+    }
+
+    window.addEventListener(TOGGLE_PREVIEW_EVENT, handleTogglePreviewEvent)
+    return () =>
+      window.removeEventListener(TOGGLE_PREVIEW_EVENT, handleTogglePreviewEvent)
+  }, [])
+
+  const handleOpenImproveWritingModal = useCallback(() => {
+    const editor = monacoEditorRef.current
+    if (!editor) return
+
+    const model = editor.getModel()
+
+    if (!model) return
+
+    const selection = editor.getSelection()
+
+    // Check if selection is empty (cursor position only, not actual text selected)
+    const isSelectionEmpty = selection?.isEmpty() ?? true
+    const text =
+      !isSelectionEmpty && selection
+        ? model?.getValueInRange(selection) || ''
+        : model?.getValue() || ''
+
+    if (!text.trim()) {
+      toast.warning('Text not available for improvement')
+      return
+    }
+
+    setSelectedText(text)
+    setShowImprovementDialog(true)
+  }, [toast])
+
+  useEffect(() => {
+    function handleImproveWritingEvent() {
+      handleOpenImproveWritingModal()
+    }
+
+    window.addEventListener(IMPROVE_WRITING_EVENT, handleImproveWritingEvent)
+    return () =>
+      window.removeEventListener(
+        IMPROVE_WRITING_EVENT,
+        handleImproveWritingEvent,
+      )
+  }, [handleOpenImproveWritingModal])
+
+  const handleFormatDocument = useCallback(async () => {
+    const editor = monacoEditorRef.current
+    if (!editor) return
+
+    const model = editor.getModel()
+    if (!model) return
+
+    const position = editor.getPosition()
+    const content = model.getValue()
+
+    try {
+      const formatted = await formatMarkdown(content)
+      const fullRange = model.getFullModelRange()
+      editor.executeEdits('format-markdown', [
+        {
+          range: fullRange,
+          text: formatted,
+        },
+      ])
+      if (position) {
+        editor.setPosition(position)
+        editor.revealPositionInCenter(position)
+      }
+      requestAnimationFrame(() => {
+        editor.focus()
+      })
+    } catch {
+      toast.error('Failed to format document')
+    }
+  }, [toast])
+
+  useEffect(() => {
+    function handleFormatDocumentEvent() {
+      handleFormatDocument()
+    }
+
+    window.addEventListener(FORMAT_DOCUMENT_EVENT, handleFormatDocumentEvent)
+    return () =>
+      window.removeEventListener(
+        FORMAT_DOCUMENT_EVENT,
+        handleFormatDocumentEvent,
+      )
+  }, [handleFormatDocument])
 
   const handleFileRenamed = (newPath: string, oldPath: string) => {
     // Clean up old file path from location history
@@ -77,37 +176,15 @@ export function EditorPage() {
     refetch: refetchCurrentFile,
   } = useReadFile(currentFilePath)
 
-  const { saveContent } = useAutoSave()
+  const handleTogglePreview = useCallback(
+    () => setShowPreview((show) => !show),
+    [],
+  )
 
-  const handleOpenImproveWritingModal = () => {
-    const editor = monacoEditorRef.current
-    if (!editor) return
-
-    const model = editor.getModel()
-
-    if (!model) return
-
-    const selection = editor.getSelection()
-
-    // Check if selection is empty (cursor position only, not actual text selected)
-    const isSelectionEmpty = selection?.isEmpty() ?? true
-    const text =
-      !isSelectionEmpty && selection
-        ? model?.getValueInRange(selection) || ''
-        : model?.getValue() || ''
-
-    if (!text.trim()) {
-      toast.warning('Text not available for improvement')
-      return
-    }
-
-    setSelectedText(text)
-    setShowImprovementDialog(true)
-  }
-
-  const { handleEditorReady } = useEditorKeyBindings({
-    onTogglePreview: () => setShowPreview((show) => !show),
-    onOpenImproveWritingModal: handleOpenImproveWritingModal,
+  // Events don't escape Monaco editor, so we need to handle these here too
+  const { handleEditorReady } = useSetupEditorKeyBindings({
+    onImproveWriting: handleOpenImproveWritingModal,
+    onTogglePreview: handleTogglePreview,
   })
 
   useHighlightLine({
@@ -185,37 +262,6 @@ export function EditorPage() {
       requestAnimationFrame(() => {
         editor.focus()
       })
-    }
-  }
-
-  const handleFormatDocument = async () => {
-    const editor = monacoEditorRef.current
-    if (!editor) return
-
-    const model = editor.getModel()
-    if (!model) return
-
-    const position = editor.getPosition()
-    const content = model.getValue()
-
-    try {
-      const formatted = await formatMarkdown(content)
-      const fullRange = model.getFullModelRange()
-      editor.executeEdits('format-markdown', [
-        {
-          range: fullRange,
-          text: formatted,
-        },
-      ])
-      if (position) {
-        editor.setPosition(position)
-        editor.revealPositionInCenter(position)
-      }
-      requestAnimationFrame(() => {
-        editor.focus()
-      })
-    } catch {
-      toast.error('Failed to format document')
     }
   }
 

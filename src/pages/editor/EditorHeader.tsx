@@ -1,7 +1,7 @@
 import { ActivityIndicator } from '@/components/ActivityIndicator'
 import { FileContent } from '@/lib/files/types'
 import { cn } from '@/lib/utils'
-import { RefObject, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FileNameEditor } from './FileNameEditor'
 
 export interface EditorHeaderProps {
@@ -9,7 +9,7 @@ export interface EditorHeaderProps {
   sidebarOpen: boolean
   inlineCompletionLoading?: boolean
   onFileRenamed: (newPath: string, oldPath: string) => void
-  fileNameInputRef: RefObject<HTMLInputElement | null>
+  editorReady: boolean
 }
 
 const INDICATOR_VISIBILITY_DELAY = 750
@@ -23,7 +23,7 @@ export function EditorHeader({
   sidebarOpen,
   inlineCompletionLoading,
   onFileRenamed,
-  fileNameInputRef,
+  editorReady,
 }: EditorHeaderProps) {
   const [showIndicator, setShowIndicator] = useState(false)
 
@@ -50,7 +50,7 @@ export function EditorHeader({
         currentFile={currentFile}
         onFileRenamed={onFileRenamed}
         sidebarOpen={sidebarOpen}
-        fileNameInputRef={fileNameInputRef}
+        editorReady={editorReady}
       />
 
       <div className="flex items-center gap-1">

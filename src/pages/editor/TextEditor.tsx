@@ -307,7 +307,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                   : 'allein-light'
               }
               defaultLanguage="markdown"
-              value={value}
+              defaultValue={value}
               onChange={handleEditorChange}
               beforeMount={handleBeforeMount}
               onMount={handleEditorDidMount}

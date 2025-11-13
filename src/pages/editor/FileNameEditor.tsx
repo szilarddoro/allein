@@ -15,17 +15,18 @@ import {
 import { useRenameFile } from '@/lib/files/useRenameFile'
 import { useToast } from '@/lib/useToast'
 import { useFileNameContextMenu } from '@/pages/editor/useFileNameContextMenu'
+import { useMonaco } from '@monaco-editor/react'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import type React from 'react'
-import { RefObject, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 
 export interface FileNameEditorProps {
   currentFile: FileContent | null
   onFileRenamed: (newPath: string, oldPath: string) => void
   sidebarOpen: boolean
-  fileNameInputRef: RefObject<HTMLInputElement | null>
+  editorReady: boolean
 }
 
 /**
@@ -36,9 +37,9 @@ export function FileNameEditor({
   currentFile,
   onFileRenamed,
   sidebarOpen,
-  fileNameInputRef,
+  editorReady,
 }: FileNameEditorProps) {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { toast } = useToast()
   const { data } = useFilesAndFolders()
   const files = flattenTreeItems(data)
@@ -49,11 +50,11 @@ export function FileNameEditor({
   } = useRenameFile()
   const { showContextMenu } = useFileNameContextMenu()
   const [fileName, setFileName] = useState('')
-  const [isEditingFileName, setIsEditingFileName] = useState(
-    searchParams.get(FOCUS_NAME_INPUT) === 'true',
-  )
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [editing, setEditing] = useState(false)
+  const monaco = useMonaco()
 
   // Sync file name when current file changes
   useEffect(() => {
@@ -64,17 +65,33 @@ export function FileNameEditor({
     }
   }, [currentFile])
 
-  // Focus input when editing mode is enabled
   useEffect(() => {
-    if (isEditingFileName && fileNameInputRef.current) {
-      fileNameInputRef.current.focus()
-      fileNameInputRef.current.select()
+    if (!editorReady) {
+      return
     }
-  }, [fileNameInputRef, isEditingFileName])
 
-  function handleFileNameClick() {
-    setIsEditingFileName(true)
-  }
+    if (searchParams.get(FOCUS_NAME_INPUT) === 'true') {
+      setEditing(true)
+      requestAnimationFrame(() => {
+        const input = inputRef.current
+
+        if (input) {
+          input.focus()
+          input.select()
+        }
+      })
+    } else {
+      requestAnimationFrame(() => {
+        const [editor] = monaco?.editor?.getEditors() || []
+
+        if (editor) {
+          editor.focus()
+        }
+      })
+    }
+  }, [editorReady, monaco, searchParams, setSearchParams])
+
+  // Focus input when editing mode is enabled
 
   function handleFileNameKeyDown(event: React.KeyboardEvent) {
     if (event.key === 'a' && (event.ctrlKey || event.metaKey)) {
@@ -91,7 +108,7 @@ export function FileNameEditor({
       if (currentFile) {
         setFileName(getDisplayName(currentFile.name))
       }
-      setIsEditingFileName(false)
+      setEditing(false)
     }
   }
 
@@ -103,11 +120,8 @@ export function FileNameEditor({
 
     const inputValue = fileName.trim()
 
-    if (
-      inputValue.length === 0 ||
-      inputValue === getDisplayName(currentFile.name)
-    ) {
-      setIsEditingFileName(false)
+    if (inputValue === getDisplayName(currentFile.name)) {
+      setEditing(false)
       resetRenameState()
       return
     }
@@ -121,7 +135,7 @@ export function FileNameEditor({
         existingFiles: files || [],
       })
 
-      setIsEditingFileName(false)
+      setEditing(false)
       onFileRenamed(newPath, oldPath)
       resetRenameState()
 
@@ -162,10 +176,10 @@ export function FileNameEditor({
 
   return (
     <div className="relative flex flex-row items-center gap-2 text-sm text-muted-foreground grow-1 shrink-1 flex-auto ml-1">
-      {isEditingFileName ? (
+      {editing ? (
         <>
           <input
-            ref={fileNameInputRef}
+            ref={inputRef}
             id="file-name"
             value={fileName}
             onChange={handleFileNameChange}
@@ -205,7 +219,7 @@ export function FileNameEditor({
               ref={buttonRef}
               variant="ghost"
               size="sm"
-              onClick={handleFileNameClick}
+              onClick={() => setEditing(true)}
               onContextMenu={(e) => {
                 setTooltipOpen(false)
                 showContextMenu(e, {

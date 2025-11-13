@@ -1,3 +1,4 @@
+import { FOCUS_NAME_INPUT } from '@/lib/constants'
 import { useSearchParams } from 'react-router'
 
 export function useCurrentFilePath() {
@@ -5,6 +6,7 @@ export function useCurrentFilePath() {
 
   function updateCurrentFilePath(filePath: string) {
     searchParams.set('file', filePath)
+    searchParams.delete(FOCUS_NAME_INPUT)
     setSearchParams(searchParams)
   }
 

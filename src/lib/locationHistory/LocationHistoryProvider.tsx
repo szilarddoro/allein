@@ -1,3 +1,4 @@
+import { FOCUS_NAME_INPUT } from '@/lib/constants'
 import { LocationHistoryContext } from '@/lib/locationHistory/LocationHistoryContext'
 import {
   PropsWithChildren,
@@ -18,6 +19,7 @@ function normalizeLocation(location: string): string {
   const params = new URLSearchParams(search)
   params.delete('focus')
   params.delete('line')
+  params.delete(FOCUS_NAME_INPUT)
 
   const normalizedSearch = params.toString()
   return normalizedSearch ? `${pathname}?${normalizedSearch}` : pathname

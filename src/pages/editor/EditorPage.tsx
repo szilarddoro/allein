@@ -7,7 +7,6 @@ import {
 } from '@/components/ui/resizable'
 import { P } from '@/components/ui/typography'
 import {
-  FOCUS_NAME_INPUT,
   FORMAT_DOCUMENT_EVENT,
   IMPROVE_WRITING_EVENT,
   TOGGLE_PREVIEW_EVENT,
@@ -27,15 +26,15 @@ import {
   ImperativePanelGroupHandle,
   ImperativePanelHandle,
 } from 'react-resizable-panels'
-import { useOutletContext, useSearchParams } from 'react-router'
+import { useLocation, useOutletContext } from 'react-router'
 import { useOnClickOutside } from 'usehooks-ts'
 import { EditorHeader } from './EditorHeader'
 import { ImprovementDialog } from './ImprovementDialog'
 import { MarkdownPreview } from './MarkdownPreview'
 import { TextEditor } from './TextEditor'
 import { useAutoSave } from './useAutoSave'
-import { useSetupEditorKeyBindings } from './useSetupEditorKeyBindings'
 import { useHighlightLine } from './useHighlightLine'
+import { useSetupEditorKeyBindings } from './useSetupEditorKeyBindings'
 
 export function EditorPage() {
   const { sidebarOpen, setSearchOpen } =
@@ -47,18 +46,18 @@ export function EditorPage() {
     null,
   )
   const previewButtonRef = useRef<HTMLButtonElement>(null)
-  const fileNameInputRef = useRef<HTMLInputElement>(null)
   const [editorReady, setEditorReady] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [markdownContent, setMarkdownContent] = useState('')
   const [showImprovementDialog, setShowImprovementDialog] = useState(false)
   const [selectedText, setSelectedText] = useState('')
   const [inlineCompletionLoading, setInlineCompletionLoading] = useState(false)
-  const [searchParams, setSearchParams] = useSearchParams()
   const panelGroupRef = useRef<ImperativePanelGroupHandle | null>(null)
   const previewPanelRef = useRef<ImperativePanelHandle | null>(null)
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const { saveContent } = useAutoSave()
+  const { pathname, search } = useLocation()
+  const currentLocation = `${pathname}${search}`
 
   useEffect(() => {
     function handleTogglePreviewEvent() {
@@ -163,12 +162,10 @@ export function EditorPage() {
   }
 
   useEffect(() => {
-    return () => {
-      monacoEditorRef.current?.dispose()
-      monacoEditorRef.current = null
-      setEditorReady(false)
-    }
-  }, [])
+    // monacoEditorRef.current?.dispose()
+    monacoEditorRef.current = null
+    setEditorReady(false)
+  }, [currentLocation])
 
   const {
     data: currentFile,
@@ -248,22 +245,6 @@ export function EditorPage() {
     monacoEditorRef.current = editor
     handleEditorReady(editor)
     setEditorReady(true)
-
-    const focusFileNameInput = searchParams.get(FOCUS_NAME_INPUT) === 'true'
-
-    if (focusFileNameInput) {
-      requestAnimationFrame(() => {
-        fileNameInputRef.current?.focus()
-        fileNameInputRef.current?.select()
-      })
-
-      searchParams.delete(FOCUS_NAME_INPUT)
-      setSearchParams(searchParams, { replace: true, viewTransition: false })
-    } else {
-      requestAnimationFrame(() => {
-        editor.focus()
-      })
-    }
   }
 
   const handleKeyDown = (event: monaco.IKeyboardEvent) => {
@@ -354,7 +335,7 @@ export function EditorPage() {
         sidebarOpen={sidebarOpen}
         onFileRenamed={handleFileRenamed}
         inlineCompletionLoading={inlineCompletionLoading}
-        fileNameInputRef={fileNameInputRef}
+        editorReady={editorReady}
       />
 
       <div className="w-full flex flex-1 min-h-0 relative">

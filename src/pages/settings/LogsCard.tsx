@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -6,11 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { H2 } from '@/components/ui/typography'
 import { downloadLogs, openLogsFolder } from '@/lib/logging/loggingUtils'
 import { useToast } from '@/lib/useToast'
-import { Download, ShieldCheck, ExternalLink } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { H2 } from '@/components/ui/typography'
+import { ExternalLink, Files, ShieldCheck } from 'lucide-react'
 
 export function LogsCard() {
   const { toast } = useToast()
@@ -42,10 +42,7 @@ export function LogsCard() {
           Logs help diagnose issues more easily. Share them when reporting bugs
           on GitHub.
         </CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <Alert variant="info">
+        <Alert variant="info" className="mt-2">
           <ShieldCheck />
           <AlertDescription>
             All logs are stored locally on your machine. No data is sent to
@@ -53,7 +50,9 @@ export function LogsCard() {
             GitHub issues.
           </AlertDescription>
         </Alert>
+      </CardHeader>
 
+      <CardContent className="space-y-4">
         <div className="flex flex-col gap-2 items-start">
           <Button
             size="sm"
@@ -77,8 +76,8 @@ export function LogsCard() {
             className="gap-2"
             onClick={handleDownloadLogs}
           >
-            <Download />
-            Download All Logs
+            <Files />
+            Combine Logs
           </Button>
           <p className="text-xs text-muted-foreground">
             The combined logs will be placed in your default

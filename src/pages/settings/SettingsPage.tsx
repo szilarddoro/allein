@@ -6,7 +6,7 @@ import { LogsCard } from './LogsCard'
 import { useOutletContext } from 'react-router'
 import { AppLayoutContextProps } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { getAppVersion } from '@/lib/version'
+import { getAppVersion, getAppLicense } from '@/lib/version'
 import { ReportBugButton } from '@/lib/report/ReportBugButton'
 
 export function SettingsPage() {
@@ -44,7 +44,9 @@ export function SettingsPage() {
       <footer className="flex flex-col gap-3 justify-center items-center pt-4 pb-16 px-4 text-center text-muted-foreground/80 text-xs">
         <ReportBugButton />
 
-        <p>Version: {getAppVersion()} - License: MIT</p>
+        <p>
+          Version: {getAppVersion()} - License: {getAppLicense()}
+        </p>
       </footer>
     </div>
   )

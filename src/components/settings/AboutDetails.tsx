@@ -1,5 +1,5 @@
 import { ReportBugButton } from '@/lib/report/ReportBugButton'
-import { getAppVersion } from '@/lib/version'
+import { getAppVersion, getAppLicense } from '@/lib/version'
 
 export function AboutDetails() {
   return (
@@ -14,7 +14,9 @@ export function AboutDetails() {
 
         <li className="flex justify-between items-center gap-4 py-2 min-h-[49px]">
           <span className="font-medium text-sm">License</span>
-          <span className="text-muted-foreground text-sm">MIT</span>
+          <span className="text-muted-foreground text-sm">
+            {getAppLicense()}
+          </span>
         </li>
       </ul>
 

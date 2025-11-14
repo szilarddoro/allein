@@ -9,6 +9,7 @@ export function ReportBugButton() {
       variant="ghost"
       onClick={reportBug}
       className="text-muted-foreground text-xs font-normal"
+      autoFocus={false}
     >
       <Bug /> Report a Bug
     </Button>

@@ -16,6 +16,7 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
     __APP_NAME__: JSON.stringify(packageJson.name),
+    __APP_LICENSE__: JSON.stringify(packageJson.license),
   },
   resolve: {
     alias: {

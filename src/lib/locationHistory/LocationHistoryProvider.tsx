@@ -1,4 +1,4 @@
-import { FOCUS_NAME_INPUT } from '@/lib/constants'
+import { cleanSearchParams } from '@/lib/locationHistory/cleanSearchParams'
 import { LocationHistoryContext } from '@/lib/locationHistory/LocationHistoryContext'
 import {
   PropsWithChildren,
@@ -11,17 +11,11 @@ import { useLocation, useNavigate } from 'react-router'
 
 const MAX_STACK_SIZE = 30
 
-// Normalize location by removing 'focus' and 'line' query params
 function normalizeLocation(location: string): string {
   const [pathname, search] = location.split('?')
   if (!search) return pathname
 
-  const params = new URLSearchParams(search)
-  params.delete('focus')
-  params.delete('line')
-  params.delete(FOCUS_NAME_INPUT)
-
-  const normalizedSearch = params.toString()
+  const normalizedSearch = cleanSearchParams(search).toString()
   return normalizedSearch ? `${pathname}?${normalizedSearch}` : pathname
 }
 

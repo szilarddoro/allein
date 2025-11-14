@@ -4,6 +4,7 @@ import {
   CommandInput,
   CommandList,
 } from '@/components/ui/command'
+import { LINE_NUMBER_SEARCH_PARAM } from '@/lib/constants'
 import { FileSearchResult } from '@/lib/search/types'
 import { KeyboardEvent, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -25,7 +26,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
 
     // Add line number for content matches to highlight in editor
     if (result.line_number) {
-      searchParams.set('line', result.line_number.toString())
+      searchParams.set(LINE_NUMBER_SEARCH_PARAM, result.line_number.toString())
     }
 
     navigate({

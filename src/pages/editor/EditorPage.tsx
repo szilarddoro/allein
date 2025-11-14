@@ -35,6 +35,7 @@ import { TextEditor } from './TextEditor'
 import { useAutoSave } from './useAutoSave'
 import { useHighlightLine } from './useHighlightLine'
 import { useSetupEditorKeyBindings } from './useSetupEditorKeyBindings'
+import { cleanSearchParams } from '@/lib/locationHistory/cleanSearchParams'
 
 export function EditorPage() {
   const { sidebarOpen, setSearchOpen } =
@@ -57,7 +58,8 @@ export function EditorPage() {
   const [currentFilePath, updateCurrentFilePath] = useCurrentFilePath()
   const { saveContent } = useAutoSave()
   const { pathname, search } = useLocation()
-  const currentLocation = `${pathname}${search}`
+  const cleanedSearchParams = cleanSearchParams(search)
+  const currentLocation = `${pathname}?${cleanedSearchParams}`
 
   useEffect(() => {
     function handleTogglePreviewEvent() {
@@ -162,7 +164,6 @@ export function EditorPage() {
   }
 
   useEffect(() => {
-    // monacoEditorRef.current?.dispose()
     monacoEditorRef.current = null
     setEditorReady(false)
   }, [currentLocation])

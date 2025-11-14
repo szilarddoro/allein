@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/resizable'
 import { useAIFeatures } from '@/lib/ai/useAIFeatures'
 import {
-  FOCUS_NAME_INPUT,
+  FOCUS_NAME_INPUT_SEARCH_PARAM,
   NEW_FILE_MENU_EVENT,
   NEW_FOLDER_MENU_EVENT,
   TOGGLE_SIDEBAR_EVENT,
@@ -145,7 +145,7 @@ export function AppLayout() {
         navigate(
           {
             pathname: '/editor',
-            search: `?file=${encodeURIComponent(fileContent.path)}&${FOCUS_NAME_INPUT}=true`,
+            search: `?file=${encodeURIComponent(fileContent.path)}&${FOCUS_NAME_INPUT_SEARCH_PARAM}=true`,
           },
           { viewTransition: true },
         )

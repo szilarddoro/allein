@@ -1,3 +1,4 @@
+import { LINE_NUMBER_SEARCH_PARAM } from '@/lib/constants'
 import * as monaco from 'monaco-editor'
 import { RefObject, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router'
@@ -7,10 +8,6 @@ interface UseHighlightLineParams {
   editorReady: boolean
 }
 
-/**
- * Hook to handle line highlighting when navigating from search results.
- * Watches for 'line' query parameter and highlights the specified line when present.
- */
 export function useHighlightLine({
   editorRef,
   editorReady,
@@ -58,7 +55,7 @@ export function useHighlightLine({
       return
     }
 
-    const lineParam = searchParams.get('line')
+    const lineParam = searchParams.get(LINE_NUMBER_SEARCH_PARAM)
 
     if (!lineParam) return
 

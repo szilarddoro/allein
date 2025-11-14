@@ -26,7 +26,7 @@ import { ItemRenameDialog } from './ItemRenameDialog'
 import { useLocationHistory } from '@/lib/locationHistory/useLocationHistory'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { ScrollableBrowserGrid } from './ScrollableBrowserGrid'
-import { FOCUS_NAME_INPUT } from '@/lib/constants'
+import { FOCUS_NAME_INPUT_SEARCH_PARAM } from '@/lib/constants'
 
 export function BrowserPage() {
   const { removeEntriesForFile, removeEntriesForFolder } = useLocationHistory()
@@ -79,7 +79,7 @@ export function BrowserPage() {
       })
       navigate({
         pathname: '/editor',
-        search: `?file=${encodeURIComponent(path)}&${FOCUS_NAME_INPUT}=true`,
+        search: `?file=${encodeURIComponent(path)}&${FOCUS_NAME_INPUT_SEARCH_PARAM}=true`,
       })
     } catch {
       toast.error('Failed to create file')

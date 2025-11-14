@@ -3,7 +3,10 @@ import { FileDeleteConfirmDialog } from '@/components/sidebar/FileDeleteConfirmD
 import { FileListItem } from '@/components/sidebar/FileListItem'
 import { FolderListItem } from '@/components/sidebar/FolderListItem'
 import { P } from '@/components/ui/typography'
-import { FOCUS_NAME_INPUT, TRIGGER_FOLDER_NAME_EDIT } from '@/lib/constants'
+import {
+  FOCUS_NAME_INPUT_SEARCH_PARAM,
+  TRIGGER_FOLDER_NAME_EDIT,
+} from '@/lib/constants'
 import { useCreateFile } from '@/lib/files/useCreateFile'
 import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFilePath } from '@/lib/files/useCurrentFilePath'
@@ -144,7 +147,7 @@ export function FileList() {
       })
       navigate({
         pathname: '/editor',
-        search: `?file=${encodeURIComponent(path)}&${FOCUS_NAME_INPUT}=true`,
+        search: `?file=${encodeURIComponent(path)}&${FOCUS_NAME_INPUT_SEARCH_PARAM}=true`,
       })
     } catch {
       toast.error('Failed to create file')

@@ -5,7 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { FOCUS_NAME_INPUT } from '@/lib/constants'
+import { FOCUS_NAME_INPUT_SEARCH_PARAM } from '@/lib/constants'
 import { getDisplayName } from '@/lib/files/fileUtils'
 import { FileContent } from '@/lib/files/types'
 import {
@@ -70,7 +70,7 @@ export function FileNameEditor({
       return
     }
 
-    if (searchParams.get(FOCUS_NAME_INPUT) === 'true') {
+    if (searchParams.get(FOCUS_NAME_INPUT_SEARCH_PARAM) === 'true') {
       setEditing(true)
       requestAnimationFrame(() => {
         const input = inputRef.current

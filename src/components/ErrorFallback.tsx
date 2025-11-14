@@ -1,4 +1,5 @@
 import alleinLogo from '@/assets/allein-logo.png'
+import { TauriDragRegion } from '@/components/TauriDragRegion'
 import { Anchor } from '@/components/ui/anchor'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,8 +15,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { H1, P } from '@/components/ui/typography'
-import { downloadLogs } from '@/lib/logging/loggingUtils'
 import { logEvent } from '@/lib/logging/useLogger'
+import { reportBug } from '@/lib/report/reportBug'
 import { ChevronDown, ChevronUp, RotateCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
@@ -58,7 +59,11 @@ export function ErrorFallback() {
   }, [error])
 
   return (
-    <div className="w-full h-screen bg-neutral-50 dark:bg-background flex items-center justify-center">
+    <div className="relative w-full h-screen bg-neutral-50 dark:bg-background flex items-center justify-center">
+      <header className="fixed top-0 left-0 right-0 h-16">
+        <TauriDragRegion />
+      </header>
+
       <Card className="shadow-sm dark:shadow-none gap-0 text-center max-w-xl w-full">
         <CardHeader className="flex flex-col items-center justify-center gap-1 mb-1">
           <img
@@ -78,22 +83,22 @@ export function ErrorFallback() {
         <CardContent className="my-0 text-center">
           <P className="my-1 mx-auto">
             Please{' '}
-            <Anchor
-              href="https://github.com/szilarddoro/allein/issues/new"
-              className="underline text-blue-500 dark:text-blue-400 hover:text-foreground hover:dark:text-foreground motion-safe:transition-colors"
-            >
-              submit a GitHub issue
-            </Anchor>{' '}
-            outlining the steps to reproduce the problem. You can{' '}
             <Button
-              onClick={downloadLogs}
+              onClick={reportBug}
               variant="ghost"
               size="sm"
               className="!p-0 hover:!bg-transparent underline text-blue-500 dark:text-blue-400 hover:!text-foreground cursor-pointer text-base font-normal h-auto"
             >
-              download the logs
+              report a bug
             </Button>{' '}
-            and attach them to the issue.
+            detailing the steps to reproduce the problem. Alternatively, you can{' '}
+            <Anchor
+              href="https://github.com/szilarddoro/allein/issues/new"
+              className="underline text-blue-500 dark:text-blue-400 hover:text-foreground hover:dark:text-foreground motion-safe:transition-colors"
+            >
+              open a GitHub issue
+            </Anchor>
+            .
           </P>
         </CardContent>
 
@@ -114,7 +119,7 @@ export function ErrorFallback() {
               </Button>
             </CollapsibleTrigger>
 
-            <CollapsibleContent className="border border-border text-destructive bg-neutral-50 dark:bg-background rounded-md whitespace-pre-wrap font-mono text-sm select-auto cursor-text py-2 px-4 mt-2 max-h-56 overflow-y-auto w-full text-left">
+            <CollapsibleContent className="border border-border text-destructive bg-neutral-50 dark:bg-background rounded-md whitespace-pre-wrap font-mono text-sm select-auto cursor-text py-2 px-4 mt-2 max-h-54 overflow-y-auto w-full text-left">
               <P>
                 {error.name}: {error.message}
               </P>

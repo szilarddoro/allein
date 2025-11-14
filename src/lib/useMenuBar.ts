@@ -20,6 +20,7 @@ import {
 } from '@/lib/constants'
 import { openFolderPicker } from '@/lib/folders/useOpenFolderPicker'
 import { useSetFolder } from '@/lib/folders/useSetFolder'
+import { reportBug } from '@/lib/report/reportBug'
 
 const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
 const newFolderEvent = new CustomEvent(NEW_FOLDER_MENU_EVENT)
@@ -233,6 +234,11 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
                   toast.error('Failed to open documentation. Please try again.')
                 }
               },
+            }),
+            separator,
+            await MenuItem.new({
+              text: 'Report a Bug',
+              action: reportBug,
             }),
           ],
         })

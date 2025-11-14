@@ -90,10 +90,10 @@ Simply start Allein and go through the onboarding flow—the app will guide you 
 Download the recommended models for different features:
 
 ```bash
-# For smart auto-completion suggestions
-ollama pull codellama:7b-code
+# For context-aware autocompletion
+ollama pull qwen2.5-coder:3b-base
 
-# For text improvement features
+# For writing improvement
 ollama pull gemma3:latest
 ```
 

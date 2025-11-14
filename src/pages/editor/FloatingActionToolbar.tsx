@@ -89,7 +89,7 @@ export function FloatingActionToolbar({
             side="top"
             sideOffset={10}
           >
-            <span>Format file</span>{' '}
+            <span>Format document</span>{' '}
             <Hotkey modifiers={['meta', 'shift']} keyCode="F" />
           </TooltipContent>
         </Tooltip>

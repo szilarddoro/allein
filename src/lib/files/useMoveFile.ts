@@ -18,12 +18,14 @@ export function useMoveFile() {
     }) => invoke<string>('move_file', { fromPath, toFolder }),
     onSuccess: async (_data, { fromPath }) => {
       try {
-        await queryClient.invalidateQueries({
-          queryKey: READ_FILE_QUERY_KEY(fromPath),
-        })
-        await queryClient.invalidateQueries({
-          queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(),
-        })
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: READ_FILE_QUERY_KEY(fromPath),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(),
+          }),
+        ])
       } catch {
         // silently ignore invalidation errors
       }

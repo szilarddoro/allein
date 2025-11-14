@@ -144,6 +144,13 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
     [updateButtonStates],
   )
 
+  function clearLocationHistory() {
+    locationStackRef.current = []
+
+    setCanGoBack(false)
+    setCanGoForward(false)
+  }
+
   return (
     <LocationHistoryContext.Provider
       value={{
@@ -153,6 +160,7 @@ export function LocationHistoryProvider({ children }: PropsWithChildren) {
         goForward,
         removeEntriesForFile,
         removeEntriesForFolder,
+        clearLocationHistory,
       }}
     >
       {children}

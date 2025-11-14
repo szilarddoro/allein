@@ -12,15 +12,35 @@ import { useMenuBar } from '@/lib/useMenuBar'
 import { cn } from '@/lib/utils'
 import { PropsWithChildren, useState } from 'react'
 
-export interface BaseLayoutProps extends PropsWithChildren {
+export interface BaseLayoutContentProps extends PropsWithChildren {
   className?: string
+  onOpenAbout: () => void
 }
 
-export function BaseLayout({ className, children }: BaseLayoutProps) {
+function BaseLayoutContent({
+  children,
+  className,
+  onOpenAbout,
+}: BaseLayoutContentProps) {
+  // `useMenuBar` needs to have access to the LocationHistoryContext to be able to reset the history
+  useMenuBar({ onOpenAbout })
+
+  return (
+    <div
+      className={cn(
+        'relative h-screen flex flex-col bg-gradient-to-br bg-neutral-100 dark:bg-neutral-900 overflow-hidden',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
+export function BaseLayout({ children }: PropsWithChildren) {
   const [aboutDialogOpen, setAboutDialogOpen] = useState(false)
 
   useInvalidateQueriesOnWindowFocus()
-  useMenuBar({ onOpenAbout: setAboutDialogOpen })
 
   return (
     <>
@@ -40,14 +60,9 @@ export function BaseLayout({ className, children }: BaseLayoutProps) {
       </Dialog>
 
       <LocationHistoryProvider>
-        <div
-          className={cn(
-            'relative h-screen flex flex-col bg-gradient-to-br bg-neutral-100 dark:bg-neutral-900 overflow-hidden',
-            className,
-          )}
-        >
+        <BaseLayoutContent onOpenAbout={() => setAboutDialogOpen(true)}>
           {children}
-        </div>
+        </BaseLayoutContent>
       </LocationHistoryProvider>
     </>
   )

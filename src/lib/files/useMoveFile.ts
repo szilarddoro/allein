@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { invoke } from '@tauri-apps/api/core'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from './useFilesAndFolders'
 import { useLogger } from '@/lib/logging/useLogger'
+import { READ_FILE_QUERY_KEY } from '@/lib/files/useReadFile'
 
 export function useMoveFile() {
   const queryClient = useQueryClient()
@@ -15,8 +16,11 @@ export function useMoveFile() {
       fromPath: string
       toFolder: string
     }) => invoke<string>('move_file', { fromPath, toFolder }),
-    onSuccess: async () => {
+    onSuccess: async (_data, { fromPath }) => {
       try {
+        await queryClient.invalidateQueries({
+          queryKey: READ_FILE_QUERY_KEY(fromPath),
+        })
         await queryClient.invalidateQueries({
           queryKey: FILES_AND_FOLDERS_TREE_QUERY_KEY(),
         })

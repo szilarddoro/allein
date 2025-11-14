@@ -10,7 +10,7 @@ import { DelayedActivityIndicator } from '@/components/DelayedActivityIndicator'
 import { REDO_MENU_EVENT, UNDO_MENU_EVENT } from '@/lib/constants'
 
 export interface TextEditorProps {
-  value?: string
+  defaultValue?: string
   onChange?: (value: string) => void
   placeholder?: string
   onKeyDown?: (event: monaco.IKeyboardEvent) => void
@@ -21,7 +21,7 @@ export interface TextEditorProps {
 export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
   (
     {
-      value = '',
+      defaultValue = '',
       onChange,
       placeholder,
       onKeyDown,
@@ -307,7 +307,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                   : 'allein-light'
               }
               defaultLanguage="markdown"
-              defaultValue={value}
+              defaultValue={defaultValue}
               onChange={handleEditorChange}
               beforeMount={handleBeforeMount}
               onMount={handleEditorDidMount}

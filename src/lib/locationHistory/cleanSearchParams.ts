@@ -13,7 +13,7 @@ export function cleanSearchParams(search: string | URLSearchParams) {
     searchParams.delete(LINE_NUMBER_SEARCH_PARAM)
     searchParams.delete(FOCUS_NAME_INPUT_SEARCH_PARAM)
 
-    return `?${searchParams.toString()}`
+    return `${searchParams.toString()}`
   }
 
   const updatedSearchParams = new URLSearchParams([...search])

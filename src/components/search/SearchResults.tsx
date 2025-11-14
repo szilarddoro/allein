@@ -127,6 +127,10 @@ export function SearchResults({
       normalizeForSearch(file.name).includes(normalizedSearchTerm),
     )
 
+    if (filteredFiles.length === 0) {
+      return <CommandEmpty>No results found.</CommandEmpty>
+    }
+
     return (
       <CommandGroup>
         {filteredFiles.map((file) => (

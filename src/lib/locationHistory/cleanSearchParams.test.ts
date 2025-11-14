@@ -11,14 +11,14 @@ describe('cleanSearchParams', () => {
       const result = cleanSearchParams(
         `?${LINE_NUMBER_SEARCH_PARAM}=42&file=test.md`,
       )
-      expect(result).toBe('?file=test.md')
+      expect(result).toBe('file=test.md')
     })
 
     it('should remove FOCUS_NAME_INPUT_SEARCH_PARAM from search string', () => {
       const result = cleanSearchParams(
         `?${FOCUS_NAME_INPUT_SEARCH_PARAM}=true&file=test.md`,
       )
-      expect(result).toBe('?file=test.md')
+      expect(result).toBe('file=test.md')
     })
 
     it('should remove both temporary params from search string', () => {
@@ -39,21 +39,21 @@ describe('cleanSearchParams', () => {
 
     it('should handle empty search string', () => {
       const result = cleanSearchParams('?')
-      expect(result).toBe('?')
+      expect(result).toBe('')
     })
 
     it('should handle only temporary params', () => {
       const result = cleanSearchParams(
         `?${LINE_NUMBER_SEARCH_PARAM}=5&${FOCUS_NAME_INPUT_SEARCH_PARAM}=true`,
       )
-      expect(result).toBe('?')
+      expect(result).toBe('')
     })
 
     it('should handle params with no question mark prefix', () => {
       const result = cleanSearchParams(
         `file=test.md&${LINE_NUMBER_SEARCH_PARAM}=10`,
       )
-      expect(result).toBe('?file=test.md')
+      expect(result).toBe('file=test.md')
     })
 
     it('should preserve URL encoded values', () => {
@@ -127,7 +127,7 @@ describe('cleanSearchParams', () => {
   describe('edge cases', () => {
     it('should handle params with empty values', () => {
       const result = cleanSearchParams(`?file=&${LINE_NUMBER_SEARCH_PARAM}=`)
-      expect(result).toBe('?file=')
+      expect(result).toBe('file=')
     })
 
     it('should handle multiple values for same param', () => {
@@ -148,14 +148,14 @@ describe('cleanSearchParams', () => {
     })
 
     it('should be case sensitive for param names', () => {
-      const result = cleanSearchParams('?Line=10&file=test.md')
+      const result = cleanSearchParams('Line=10&file=test.md')
       // Different case should not be removed
       expect(result).toContain('Line=10')
       expect(result).toContain('file=test.md')
     })
 
     it('should handle URL without temporary params', () => {
-      const result = cleanSearchParams('?file=example.md&folder=documents')
+      const result = cleanSearchParams('file=example.md&folder=documents')
       expect(result).toContain('file=example.md')
       expect(result).toContain('folder=documents')
     })

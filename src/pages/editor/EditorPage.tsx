@@ -201,12 +201,18 @@ export function EditorPage() {
 
   // Sync content when current file changes
   useEffect(() => {
+    if (!editorReady) {
+      return
+    }
+
     if (currentFile) {
+      monacoEditorRef.current?.setValue(currentFile.content)
       setMarkdownContent(currentFile.content)
     } else {
+      monacoEditorRef.current?.setValue('')
       setMarkdownContent('')
     }
-  }, [currentFile])
+  }, [currentFile, editorReady])
 
   const handleEditorChange = (content: string) => {
     setMarkdownContent(content)
@@ -355,7 +361,6 @@ export function EditorPage() {
             >
               <TextEditor
                 key={currentFilePath}
-                value={markdownContent}
                 onChange={handleEditorChange}
                 onKeyDown={handleKeyDown}
                 onEditorReady={handleEditorReadyWithRef}

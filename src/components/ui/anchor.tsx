@@ -31,7 +31,7 @@ export function Anchor({
       {...props}
       onClick={handleClick}
       className={cn(
-        'rounded-md focus:ring-[3px] focus:border-ring focus:ring-ring/50 focus:outline-none',
+        'rounded-md focus-visible:ring-[3px] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-none',
         className,
       )}
     />

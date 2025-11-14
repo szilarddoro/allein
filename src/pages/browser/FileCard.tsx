@@ -72,7 +72,7 @@ export function FileCard({
           pathname: '/editor',
           search: `?file=${encodeURIComponent(file.path)}`,
         }}
-        className="group motion-safe:transition-transform cursor-default focus:ring-0"
+        className="group motion-safe:transition-transform cursor-default"
         onContextMenu={handleContextMenu}
       >
         <BrowserCard

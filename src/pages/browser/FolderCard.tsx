@@ -87,7 +87,7 @@ export function FolderCard({
           pathname: '/',
           search: `?folder=${encodeURIComponent(folder.path)}`,
         }}
-        className="group cursor-default motion-safe:transition-colors focus:ring-0"
+        className="group cursor-default motion-safe:transition-colors"
         onContextMenu={handleContextMenu}
       >
         <BrowserCard

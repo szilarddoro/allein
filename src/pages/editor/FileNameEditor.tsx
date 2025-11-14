@@ -186,7 +186,7 @@ export function FileNameEditor({
             onBlur={handleFileNameBlur}
             onKeyDown={handleFileNameKeyDown}
             placeholder={getDisplayName(currentFile?.name || '')}
-            className="w-full focus:outline-none px-1.5 py-0.5 min-w-11"
+            className="w-full focus-visible:outline-none px-1.5 py-0.5 min-w-11"
             maxLength={255}
             spellCheck={false}
             autoCorrect="off"
@@ -213,7 +213,7 @@ export function FileNameEditor({
         >
           <TooltipTrigger
             asChild
-            className="cursor-pointer hover:text-foreground transition-colors focus:outline-none focus:ring-[3px] focus:ring-ring/50 rounded"
+            className="cursor-pointer hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 rounded"
           >
             <Button
               ref={buttonRef}

@@ -27,6 +27,54 @@ function normalizeForSearch(str: string): string {
     .toLowerCase()
 }
 
+function HighlightedSnippet({
+  snippet,
+  searchTerm,
+}: {
+  snippet: string
+  searchTerm: string
+}) {
+  if (!searchTerm || searchTerm.length < 3) {
+    return <>{snippet}</>
+  }
+
+  const normalizedSearchTerm = normalizeForSearch(searchTerm)
+
+  // Escape special regex characters in search term
+  const escapedSearchTerm = normalizedSearchTerm.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&',
+  )
+  const regex = new RegExp(`(${escapedSearchTerm})`, 'gi')
+
+  // Split the original snippet by the normalized matches
+  const parts = snippet.split(regex)
+
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (!part) return null
+
+        // Check if this part is a match by comparing normalized versions
+        const isMatch =
+          normalizeForSearch(part).toLowerCase() ===
+          normalizedSearchTerm.toLowerCase()
+
+        return isMatch ? (
+          <span
+            key={i}
+            className="bg-yellow-200 dark:bg-yellow-800 dark:text-white"
+          >
+            {part}
+          </span>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      })}
+    </>
+  )
+}
+
 function getParentFolder(currentFolder: string, path: string): string {
   const pathWithoutCurrentFolder = path.replace(currentFolder, '')
   const segments = pathWithoutCurrentFolder.split('/').filter(Boolean)
@@ -169,7 +217,10 @@ export function SearchResults({
                         {result.line_number}:{' '}
                       </span>
                     )}
-                    {result.snippet}
+                    <HighlightedSnippet
+                      snippet={result.snippet}
+                      searchTerm={searchTerm}
+                    />
                   </span>
                 )}
               </div>

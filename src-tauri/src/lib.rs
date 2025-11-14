@@ -584,8 +584,8 @@ fn search_files_recursive(
                         let snippet = if line.len() > 100 {
                             // Find the position of the match in normalized text
                             if let Some(match_pos) = line_normalized.find(query_normalized) {
-                                let start = match_pos.saturating_sub(50);
-                                let end = (match_pos + query_normalized.len() + 50).min(line.len());
+                                let start = match_pos.saturating_sub(25);
+                                let end = (match_pos + query_normalized.len() + 25).min(line.len());
                                 let snippet_text = &line[start..end];
                                 format!(
                                     "{}{}{}",

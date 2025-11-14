@@ -331,7 +331,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                 occurrencesHighlight: 'off',
                 foldingHighlight: false,
                 selectionHighlight: false,
-                renderLineHighlight: import.meta.env.DEV ? 'line' : 'none',
+                renderLineHighlight: 'line',
                 hideCursorInOverviewRuler: true,
                 overviewRulerBorder: false,
                 scrollbar: {

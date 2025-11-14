@@ -15,7 +15,7 @@ export function useHighlightLine({
   editorRef,
   editorReady,
 }: UseHighlightLineParams) {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
 
   const highlightLine = useCallback(
     (lineNumber: number) => {
@@ -67,11 +67,7 @@ export function useHighlightLine({
 
     // Highlight the line if editor is ready
     highlightLine(lineNumber)
-
-    // Remove the line parameter from URL
-    searchParams.delete('line')
-    setSearchParams(searchParams, { replace: true })
-  }, [searchParams, setSearchParams, highlightLine, editorReady, editorRef])
+  }, [searchParams, highlightLine, editorReady, editorRef])
 
   return { highlightLine }
 }

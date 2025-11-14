@@ -1,6 +1,6 @@
 [package]
 name = "Allein"
-version = "0.15.7"
+version = "0.15.8"
 description = "A Markdown editor with built-in Ollama support, offering intelligent auto-completion while working locally."
 authors = ["Szilard Doro <doroszilard@gmail.com>"]
 edition = "2021"

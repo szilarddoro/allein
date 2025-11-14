@@ -25,7 +25,7 @@ export function DraggableCard({
       {...attributes}
       tabIndex={-1}
       className={cn(
-        'outline-none relative motion-safe:transition-all before:absolute before:bg-transparent motion-safe:before:transition-colors before:rounded-md before:z-[100] before:inset-0 before:pointer-events-none',
+        'rounded-md outline-none relative motion-safe:transition-all before:absolute before:bg-transparent motion-safe:before:transition-colors before:rounded-md before:z-[100] before:inset-0 before:pointer-events-none focus-within:ring-[3px] focus-within:ring-ring/50',
         isDragging &&
           'opacity-80 before:bg-blue-500/20 before:dark:bg-blue-500/40 pointer-events-none [&_*]:pointer-events-none',
         isDraggingActive && 'pointer-events-none [&_*]:pointer-events-none',

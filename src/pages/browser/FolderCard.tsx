@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
 import { Link } from '@/components/ui/link'
 import { H3, P } from '@/components/ui/typography'
 import { TreeItem } from '@/lib/files/types'
@@ -12,6 +12,7 @@ import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { useNavigate } from 'react-router'
 import { DraggableCard } from './DraggableCard'
 import { useDroppable } from '@dnd-kit/core'
+import { BrowserCard } from '@/pages/browser/BrowserCard'
 
 export interface FolderCardProps {
   folder: TreeItem & { type: 'folder' }
@@ -60,7 +61,7 @@ export function FolderCard({
     })
   }
 
-  function handleContextMenu(e: MouseEvent<HTMLDivElement>) {
+  function handleContextMenu(e: MouseEvent<HTMLAnchorElement>) {
     showContextMenu(e as MouseEvent, {
       folderPath: folder.path,
       folderName: folder.name,
@@ -82,24 +83,17 @@ export function FolderCard({
     >
       <Link
         viewTransition
-        key={folder.path}
         to={{
           pathname: '/',
           search: `?folder=${encodeURIComponent(folder.path)}`,
         }}
-        className="group cursor-default motion-safe:transition-colors outline-none"
+        className="group cursor-default motion-safe:transition-colors focus:ring-0"
+        onContextMenu={handleContextMenu}
       >
-        <Card
+        <BrowserCard
           ref={setNodeRef}
-          className={cn(
-            'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative bg-card dark:bg-card/80',
-            'before:absolute before:top-0 before:left-0 before:size-full group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5 before:motion-safe:transition-colors',
-            isOver && 'bg-blue-500/10 before:bg-blue-500/20',
-          )}
-          onContextMenu={handleContextMenu}
+          className={cn(isOver && 'bg-blue-500/10 before:bg-blue-500/20')}
         >
-          <CardHeader className={cn('px-0 sr-only')}></CardHeader>
-
           <CardContent className="p-0 flex flex-col justify-center items-center h-full">
             <FolderClosed className="size-7 text-blue-500" />
             <H3 className="text-sm font-medium mb-0 truncate">
@@ -109,12 +103,13 @@ export function FolderCard({
                 Open folder: &quot;{folder.name}&quot;
               </span>
             </H3>
+
             <P className="text-xs text-muted-foreground my-0 mt-0.5">
               {folderChildren.length}{' '}
               {folderChildren.length === 1 ? 'item' : 'items'}
             </P>
           </CardContent>
-        </Card>
+        </BrowserCard>
       </Link>
     </DraggableCard>
   )

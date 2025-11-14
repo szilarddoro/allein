@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { CardContent, CardHeader } from '@/components/ui/card'
 import { Link } from '@/components/ui/link'
 import { H3, P } from '@/components/ui/typography'
 import { getDisplayName } from '@/lib/files/fileUtils'
@@ -8,6 +8,8 @@ import { DraggableCard } from './DraggableCard'
 import type React from 'react'
 import type { NavigateFunction } from 'react-router'
 import type { TreeItem } from '@/lib/files/types'
+import { MouseEvent } from 'react'
+import { BrowserCard } from '@/pages/browser/BrowserCard'
 
 export interface FileCardProps {
   file: TreeItem & { type: 'file' }
@@ -42,6 +44,23 @@ export function FileCard({
   onDelete,
   navigate,
 }: FileCardProps) {
+  function handleContextMenu(e: MouseEvent<HTMLAnchorElement>) {
+    onShowContextMenu(e, {
+      filePath: file.path,
+      fileName: file.name,
+      onOpen: () =>
+        navigate({
+          pathname: '/editor',
+          search: `?file=${encodeURIComponent(file.path)}`,
+        }),
+      onRename,
+      onCopyPath: () => onCopyFilePath(file.path),
+      onOpenInFolder: () => onOpenInFolder(file.path),
+      onDelete: () => onDelete(file.path, file.name),
+      isDeletingFile,
+    })
+  }
+
   return (
     <DraggableCard
       id={encodeURIComponent(file.path)}
@@ -49,34 +68,17 @@ export function FileCard({
     >
       <Link
         viewTransition
-        key={file.path}
         to={{
           pathname: '/editor',
           search: `?file=${encodeURIComponent(file.path)}`,
         }}
-        className="group motion-safe:transition-transform cursor-default block"
-        onContextMenu={(e) =>
-          onShowContextMenu(e, {
-            filePath: file.path,
-            fileName: file.name,
-            onOpen: () =>
-              navigate({
-                pathname: '/editor',
-                search: `?file=${encodeURIComponent(file.path)}`,
-              }),
-            onRename,
-            onCopyPath: () => onCopyFilePath(file.path),
-            onOpenInFolder: () => onOpenInFolder(file.path),
-            onDelete: () => onDelete(file.path, file.name),
-            isDeletingFile,
-          })
-        }
+        className="group motion-safe:transition-transform cursor-default focus:ring-0"
+        onContextMenu={handleContextMenu}
       >
-        <Card
+        <BrowserCard
           className={cn(
-            'rounded-md aspect-[3/4] px-3 py-2 pb-0 overflow-hidden gap-0 relative',
-            'before:absolute before:top-0 before:left-0 before:size-full before:z-20 before:bg-transparent before:transition-colors group-hover:before:bg-blue-500/5 group-focus:before:bg-blue-500/5',
-            'after:absolute after:bottom-0 after:left-0 after:w-full after:h-16 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent motion-safe:animate-opacity-in duration-250',
+            'motion-safe:animate-opacity-in duration-250',
+            'after:absolute after:bottom-0 after:left-0 after:w-full after:h-16 after:z-10 after:bg-gradient-to-t after:from-card after:to-transparent',
           )}
         >
           <CardHeader
@@ -110,7 +112,7 @@ export function FileCard({
               </P>
             )}
           </CardContent>
-        </Card>
+        </BrowserCard>
       </Link>
     </DraggableCard>
   )

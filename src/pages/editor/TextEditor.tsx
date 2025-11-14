@@ -383,7 +383,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                 wordBasedSuggestions: 'off',
                 inlineSuggest: {
                   enabled: true,
-                  keepOnBlur: import.meta.env.DEV,
+                  keepOnBlur: true,
                   showToolbar: 'never',
                 },
                 unicodeHighlight: {

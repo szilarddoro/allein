@@ -5,7 +5,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { FileSearchResult } from '@/lib/search/types'
-import { useState } from 'react'
+import { KeyboardEvent, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useDebounceValue } from 'usehooks-ts'
 
@@ -18,6 +18,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const [searchInput, setSearchInput] = useState('')
   const [debouncedSearchInput] = useDebounceValue(searchInput, 300)
   const navigate = useNavigate()
+  const inputRef = useRef<HTMLInputElement>(null)
 
   function handleSelect(result: FileSearchResult) {
     const searchParams = new URLSearchParams({ file: result.path })
@@ -39,12 +40,20 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
     onOpenChange(open)
   }
 
+  function handleInputKeyDown(ev: KeyboardEvent<HTMLInputElement>) {
+    if (ev.key === 'a' && (ev.metaKey || ev.ctrlKey)) {
+      inputRef.current?.select()
+    }
+  }
+
   return (
     <CommandDialog open={open} onOpenChange={handleOpenChange}>
       <CommandInput
         placeholder="Search files by name or content..."
         value={searchInput}
         onValueChange={setSearchInput}
+        onKeyDown={handleInputKeyDown}
+        ref={inputRef}
       />
 
       <CommandList>

@@ -472,14 +472,25 @@ async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
     let mut results = Vec::new();
     let query_normalized = normalize_for_search(&query);
 
-    search_files_recursive(&docs_dir, &query_normalized, &mut results)?;
+    search_files_recursive(&docs_dir, &docs_dir, &query_normalized, &mut results)?;
 
-    // Sort results: filename matches first, then content matches
+    // Sort results: filename matches first, then folder matches, then content matches
     results.sort_by(|a, b| {
-        if a.match_type == "filename" && b.match_type != "filename" {
-            std::cmp::Ordering::Less
-        } else if a.match_type != "filename" && b.match_type == "filename" {
-            std::cmp::Ordering::Greater
+        let a_priority = match a.match_type.as_str() {
+            "filename" => 0,
+            "folder" => 1,
+            "content" => 2,
+            _ => 3,
+        };
+        let b_priority = match b.match_type.as_str() {
+            "filename" => 0,
+            "folder" => 1,
+            "content" => 2,
+            _ => 3,
+        };
+
+        if a_priority != b_priority {
+            a_priority.cmp(&b_priority)
         } else {
             a.name.cmp(&b.name)
         }
@@ -491,6 +502,7 @@ async fn search_files(query: String) -> Result<Vec<FileSearchResult>, String> {
 /// Recursively search files in a directory and its subdirectories
 fn search_files_recursive(
     dir: &PathBuf,
+    docs_dir: &PathBuf,
     query_normalized: &str,
     results: &mut Vec<FileSearchResult>,
 ) -> Result<(), String> {
@@ -517,6 +529,14 @@ fn search_files_recursive(
                 .unwrap_or("")
                 .to_string();
 
+            // Calculate relative path from docs_dir for folder matching
+            let relative_path = path
+                .strip_prefix(docs_dir)
+                .ok()
+                .and_then(|p| p.to_str())
+                .unwrap_or("");
+            let relative_path_normalized = normalize_for_search(relative_path);
+
             // Check if filename matches (diacritic-insensitive)
             if normalize_for_search(&file_name).contains(query_normalized) {
                 // Check limit before pushing
@@ -525,6 +545,18 @@ fn search_files_recursive(
                         name: file_name.clone(),
                         path: path.to_string_lossy().to_string(),
                         match_type: "filename".to_string(),
+                        snippet: None,
+                        line_number: None,
+                    });
+                }
+            } else if relative_path_normalized.contains(query_normalized) {
+                // Check if any part of the folder path matches (but not filename)
+                // Check limit before pushing
+                if results.len() < 50 {
+                    results.push(FileSearchResult {
+                        name: file_name.clone(),
+                        path: path.to_string_lossy().to_string(),
+                        match_type: "folder".to_string(),
                         snippet: None,
                         line_number: None,
                     });
@@ -582,7 +614,7 @@ fn search_files_recursive(
             }
         } else if path.is_dir() {
             // Recursively search subdirectories
-            search_files_recursive(&path, query_normalized, results)?;
+            search_files_recursive(&path, docs_dir, query_normalized, results)?;
         }
     }
 

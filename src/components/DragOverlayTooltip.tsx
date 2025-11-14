@@ -45,7 +45,6 @@ export const DragOverlayTooltip = memo(
     const isMainFolderTarget =
       targetPath.endsWith(HOME_FOLDER_KEY) || targetPath === selectedDocsDir
 
-    // console.log(activeFolderPath, targetPath, sourceFolderPath)
     const keepInCurrentFolder = (() => {
       if (sourceFolderPath === targetPath) {
         return true

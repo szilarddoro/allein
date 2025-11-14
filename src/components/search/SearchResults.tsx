@@ -59,7 +59,9 @@ export function SearchResults({
   )
 
   // Group results by match type
-  const filenameResults = results.filter((r) => r.match_type === 'filename')
+  const filenameResults = results.filter(
+    (r) => r.match_type === 'filename' || r.match_type === 'folder',
+  )
   const contentResults = results.filter((r) => r.match_type === 'content')
 
   if (filesStatus === 'pending' || currentFolderStatus !== 'success') {

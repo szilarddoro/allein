@@ -20,7 +20,7 @@ import {
 } from '@/lib/constants'
 import { openFolderPicker } from '@/lib/folders/useOpenFolderPicker'
 import { useSetFolder } from '@/lib/folders/useSetFolder'
-import { reportBug } from '@/lib/report/reportBug'
+import { sendFeedback } from '@/lib/report/sendFeedback'
 
 const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
 const newFolderEvent = new CustomEvent(NEW_FOLDER_MENU_EVENT)
@@ -237,8 +237,8 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
             }),
             separator,
             await MenuItem.new({
-              text: 'Report a Bug',
-              action: reportBug,
+              text: 'Send Feedback',
+              action: sendFeedback,
             }),
           ],
         })

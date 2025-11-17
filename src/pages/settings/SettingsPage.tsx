@@ -7,7 +7,7 @@ import { useOutletContext } from 'react-router'
 import { AppLayoutContextProps } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { getAppVersion, getAppLicense } from '@/lib/version'
-import { ReportBugButton } from '@/lib/report/ReportBugButton'
+import { SendFeedbackButton } from '@/lib/report/SendFeedbackButton'
 
 export function SettingsPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -42,7 +42,7 @@ export function SettingsPage() {
       </div>
 
       <footer className="flex flex-col gap-3 justify-center items-center pt-4 pb-16 px-4 text-center text-muted-foreground/80 text-xs">
-        <ReportBugButton />
+        <SendFeedbackButton />
 
         <p>
           Version: {getAppVersion()} - License: {getAppLicense()}

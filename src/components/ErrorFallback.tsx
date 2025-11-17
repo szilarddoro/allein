@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/collapsible'
 import { H1, P } from '@/components/ui/typography'
 import { logEvent } from '@/lib/logging/useLogger'
-import { reportBug } from '@/lib/report/reportBug'
+import { sendFeedback } from '@/lib/report/sendFeedback'
 import { ChevronDown, ChevronUp, RotateCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
@@ -84,7 +84,7 @@ export function ErrorFallback() {
           <P className="my-1 mx-auto">
             Please{' '}
             <Button
-              onClick={reportBug}
+              onClick={sendFeedback}
               variant="ghost"
               size="sm"
               className="!p-0 hover:!bg-transparent underline text-blue-500 dark:text-blue-400 hover:!text-foreground cursor-pointer text-base font-normal h-auto"

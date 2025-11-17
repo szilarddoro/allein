@@ -1,4 +1,4 @@
-import { ReportBugButton } from '@/lib/report/ReportBugButton'
+import { SendFeedbackButton } from '@/lib/report/SendFeedbackButton'
 import { getAppVersion, getAppLicense } from '@/lib/version'
 
 export function AboutDetails() {
@@ -20,7 +20,7 @@ export function AboutDetails() {
         </li>
       </ul>
 
-      <ReportBugButton />
+      <SendFeedbackButton />
     </div>
   )
 }

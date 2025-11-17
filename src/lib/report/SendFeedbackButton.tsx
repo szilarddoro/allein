@@ -1,17 +1,17 @@
 import { Button } from '@/components/ui/button'
-import { reportBug } from '@/lib/report/reportBug'
-import { Bug } from 'lucide-react'
+import { sendFeedback } from '@/lib/report/sendFeedback'
+import { MessageSquareText } from 'lucide-react'
 
-export function ReportBugButton() {
+export function SendFeedbackButton() {
   return (
     <Button
       size="sm"
       variant="ghost"
-      onClick={reportBug}
+      onClick={sendFeedback}
       className="text-muted-foreground text-xs font-normal"
       autoFocus={false}
     >
-      <Bug /> Report a Bug
+      <MessageSquareText /> Send Feedback
     </Button>
   )
 }

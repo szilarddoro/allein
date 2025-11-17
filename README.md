@@ -2,7 +2,7 @@
 
 A Markdown editor powered by **your LLM**. Like GitHub Copilot, but local and free. No account required.
 
-![allein-demo](https://github.com/user-attachments/assets/c3cfabaf-70f1-4db7-9066-c8c4ec1d59ea)
+![allein-demo](https://github.com/user-attachments/assets/4fe81b13-2a19-454b-b106-9443f95cb5cc)
 
 ## What's Included
 

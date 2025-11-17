@@ -85,7 +85,7 @@ The project uses:
 
 ## Licensing
 
-**MIT License** (see LICENSE file). AI completion system inspired by [continuedev/continue](https://github.com/continuedev/continue) (Apache 2.0). See NOTICE for details.
+**AGPL-3.0 License** (see LICENSE file). AI completion system inspired by [continuedev/continue](https://github.com/continuedev/continue) (Apache 2.0). See NOTICE for details.
 
 ## Code Organization Guidelines
 

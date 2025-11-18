@@ -226,12 +226,12 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
           text: 'Help',
           items: [
             await MenuItem.new({
-              text: 'Documentation',
+              text: 'Website',
               async action() {
                 try {
-                  await openUrl('https://allein.app/docs')
+                  await openUrl('https://allein.app')
                 } catch {
-                  toast.error('Failed to open documentation. Please try again.')
+                  toast.error('Failed to open the website. Please try again.')
                 }
               },
             }),

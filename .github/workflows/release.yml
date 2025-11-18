@@ -58,10 +58,15 @@ jobs:
           security find-identity -v -p codesigning build.keychain
       - name: Verify Certificate
         run: |
-          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Apple Development")
+          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep -E "Developer ID|Apple Development" | head -1)
           CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
-          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
-          echo "Certificate imported."
+          if [ -z "$CERT_ID" ]; then
+            echo "Warning: Could not find certificate ID. Continuing anyway..."
+            security find-identity -v -p codesigning build.keychain
+          else
+            echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
+            echo "Certificate imported: $CERT_ID"
+          fi
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0

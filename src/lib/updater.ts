@@ -12,7 +12,9 @@ export async function checkForUpdates(
   try {
     const update = await check()
 
-    if (update?.available) {
+    console.log(update)
+
+    if (update != null) {
       const changelog = update.body || 'New version available'
 
       // Show dialog with update information

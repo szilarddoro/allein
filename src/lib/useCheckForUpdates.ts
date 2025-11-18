@@ -11,8 +11,7 @@ interface UseCheckForUpdatesOptions {
  */
 export function useCheckForUpdates() {
   return useMutation({
-    mutationFn: async (options: UseCheckForUpdatesOptions = {}) => {
-      return await checkForUpdates(options.onUserClick ?? false)
-    },
+    mutationFn: async (options: UseCheckForUpdatesOptions = {}) =>
+      checkForUpdates(options.onUserClick ?? false),
   })
 }

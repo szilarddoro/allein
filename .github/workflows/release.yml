@@ -22,26 +22,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - name: Install Mise
+        uses: jdx/mise-action@v2
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: Add Rust target
-        run: rustup target add ${{ matrix.target }}
-
-      - name: Install dependencies (pnpm)
-        run: pnpm install
+      - name: Install dependencies
+        run: |
+          mise install
+          rustup target add ${{ matrix.target }}
+          pnpm install
 
       - name: Import Apple Developer Certificate
         env:

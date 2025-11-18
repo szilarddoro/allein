@@ -14,6 +14,7 @@ export const TOGGLE_SIDEBAR_EVENT = 'toggle-sidebar'
 export const FORMAT_DOCUMENT_EVENT = 'format-document'
 export const IMPROVE_WRITING_EVENT = 'improve-writing'
 export const TOGGLE_PREVIEW_EVENT = 'toggle-preview'
+export const CHECK_FOR_UPDATES_EVENT = 'check-for-updates'
 
 // AI assistant constants
 export const RECOMMENDED_AUTOCOMPLETION_MODEL = {

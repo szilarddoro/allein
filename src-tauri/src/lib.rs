@@ -1020,6 +1020,10 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
+        #[cfg(desktop)]
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        #[cfg(desktop)]
+        .plugin(tauri_plugin_process::init())
         .invoke_handler(tauri::generate_handler![
             list_files,
             list_files_with_preview,

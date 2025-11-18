@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from 'react-router'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { toast } from 'sonner'
 import {
+  CHECK_FOR_UPDATES_EVENT,
   FORMAT_DOCUMENT_EVENT,
   IMPROVE_WRITING_EVENT,
   NEW_FILE_MENU_EVENT,
@@ -30,6 +31,7 @@ const toggleSidebarEvent = new CustomEvent(TOGGLE_SIDEBAR_EVENT)
 const formatDocumentEvent = new CustomEvent(FORMAT_DOCUMENT_EVENT)
 const improveWritingEvent = new CustomEvent(IMPROVE_WRITING_EVENT)
 const togglePreviewEvent = new CustomEvent(TOGGLE_PREVIEW_EVENT)
+const checkForUpdatesEvent = new CustomEvent(CHECK_FOR_UPDATES_EVENT)
 
 export interface UseMenuBarProps {
   onOpenAbout?: (open: boolean) => void
@@ -62,6 +64,13 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
               text: 'About Allein',
               action() {
                 onOpenAbout?.(true)
+              },
+            }),
+            separator,
+            await MenuItem.new({
+              text: 'Check for Updates',
+              action() {
+                window.dispatchEvent(checkForUpdatesEvent)
               },
             }),
             separator,

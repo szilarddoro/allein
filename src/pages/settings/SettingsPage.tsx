@@ -3,6 +3,7 @@ import { DebugCard } from './DebugCard'
 import { AIAssistantCard } from './AIAssistantCard'
 import { AppearanceCard } from './AppearanceCard'
 import { LogsCard } from './LogsCard'
+import { UpdatesCard } from './UpdatesCard'
 import { useOutletContext } from 'react-router'
 import { AppLayoutContextProps } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -28,6 +29,10 @@ export function SettingsPage() {
 
         <section>
           <AppearanceCard />
+        </section>
+
+        <section>
+          <UpdatesCard />
         </section>
 
         <section>

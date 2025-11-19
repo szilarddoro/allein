@@ -20,7 +20,7 @@ export function BrowserCard({
       className={cn(
         'rounded-md aspect-[5/6] px-3 py-2 pb-0 overflow-hidden gap-0 relative bg-card dark:bg-card/80',
         'before:z-20 before:absolute before:rounded-md before:top-0 before:left-0 before:size-full before:border before:border-transparent before:motion-safe:transition-colors',
-        'group-hover:before:bg-neutral-500/10 group-focus-within:before:bg-neutral-500/10 group-focus-within:border-neutral-500/30',
+        'group-hover:before:bg-neutral-500/5 dark:group-hover:before:bg-neutral-500/10 group-focus-within:before:bg-neutral-500/8 dark:group-focus-within:before:bg-neutral-500/12 group-focus-within:border-neutral-500/30',
         className,
       )}
     >

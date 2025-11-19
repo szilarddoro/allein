@@ -8,7 +8,11 @@ import { ModelDownloadContext } from '@/lib/modelDownload/ModelDownloadContext'
 import { usePullModelWithStatus } from '@/lib/modelDownload/usePullModelWithStatus'
 import { DEFAULT_OLLAMA_URL } from '@/lib/ollama/ollama'
 import { testOllamaConnection } from '@/lib/ollama/useOllamaConnection'
-import { useOllamaModels } from '@/lib/ollama/useOllamaModels'
+import {
+  OLLAMA_MODELS_BASE_QUERY_KEY,
+  useOllamaModels,
+} from '@/lib/ollama/useOllamaModels'
+import { useQueryClient } from '@tanstack/react-query'
 import { PropsWithChildren, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -18,13 +22,16 @@ export function ModelDownloadProvider({ children }: PropsWithChildren) {
   const [downloadEnabled, setDownloadEnabled] = useState(false)
   const { mutateAsync: updateConfig } = useUpdateConfig()
   const { refetch: refetchModels } = useOllamaModels(ollamaUrl)
+  const [downloadStatus, setDownloadStatus] = useState<
+    'idle' | 'pending' | 'success' | 'error'
+  >('idle')
+  const queryClient = useQueryClient()
 
   const autocompletionModel = usePullModelWithStatus({
     disabled: !downloadEnabled,
     model: RECOMMENDED_AUTOCOMPLETION_MODEL.name,
     connected: true,
     ollamaUrl,
-    variant: 'autocompletion',
   })
 
   const writingImprovementsModel = usePullModelWithStatus({
@@ -32,15 +39,29 @@ export function ModelDownloadProvider({ children }: PropsWithChildren) {
     model: RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name,
     connected: true,
     ollamaUrl,
-    variant: 'writing-improvements',
   })
+
+  const anyPending =
+    autocompletionModel.modelStatus === 'pending' ||
+    writingImprovementsModel.modelStatus === 'pending'
 
   const bothSucceeded =
     autocompletionModel.modelStatus === 'success' &&
     writingImprovementsModel.modelStatus === 'success'
 
   useEffect(() => {
-    if (updatedConfigRef.current || !bothSucceeded || !downloadEnabled) {
+    if (anyPending && downloadStatus !== 'pending') {
+      setDownloadStatus('pending')
+    }
+  }, [anyPending, downloadStatus])
+
+  useEffect(() => {
+    if (
+      updatedConfigRef.current ||
+      !bothSucceeded ||
+      !downloadEnabled ||
+      anyPending
+    ) {
       return
     }
 
@@ -55,10 +76,17 @@ export function ModelDownloadProvider({ children }: PropsWithChildren) {
             key: 'improvement_model',
             value: RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name || '',
           }),
-          refetchModels(),
+          queryClient.invalidateQueries({
+            predicate: (query) =>
+              query.queryKey.includes(OLLAMA_MODELS_BASE_QUERY_KEY),
+          }),
         ])
+
         updatedConfigRef.current = true
+
         setDownloadEnabled(false)
+        setDownloadStatus('success')
+
         toast.success('AI models successfully downloaded.')
       } catch (error) {
         logEvent(
@@ -74,15 +102,25 @@ export function ModelDownloadProvider({ children }: PropsWithChildren) {
     }
 
     updateSelectedModels()
-  }, [bothSucceeded, downloadEnabled, refetchModels, updateConfig])
+  }, [
+    anyPending,
+    bothSucceeded,
+    downloadEnabled,
+    queryClient,
+    refetchModels,
+    updateConfig,
+  ])
 
   async function handleStartDownload(externalOllamaUrl: string) {
+    setDownloadStatus('idle')
     const isConnected = await testOllamaConnection(externalOllamaUrl)
 
     if (!isConnected) {
       throw new Error('Failed to connect to Ollama.')
     }
 
+    autocompletionModel.resetState()
+    writingImprovementsModel.resetState()
     setDownloadEnabled(true)
     setOllamaUrl(externalOllamaUrl)
   }
@@ -90,6 +128,7 @@ export function ModelDownloadProvider({ children }: PropsWithChildren) {
   return (
     <ModelDownloadContext.Provider
       value={{
+        downloadStatus,
         autocompletionModel,
         writingImprovementsModel,
         startDownload: handleStartDownload,

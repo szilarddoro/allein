@@ -1,6 +1,10 @@
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useOllamaModelDetails } from '@/lib/ollama/useOllamaModelDetails'
-import { usePullOllamaModel } from '@/lib/ollama/usePullOllamaModel'
+import {
+  PULL_MODEL_STATUS_BASE_QUERY_KEY,
+  usePullOllamaModel,
+} from '@/lib/ollama/usePullOllamaModel'
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
 export interface UsePullModelWithStatusProps {
@@ -8,7 +12,6 @@ export interface UsePullModelWithStatusProps {
   disabled?: boolean
   connected?: boolean
   ollamaUrl?: string
-  variant: 'autocompletion' | 'writing-improvements'
 }
 
 export function usePullModelWithStatus({
@@ -16,16 +19,15 @@ export function usePullModelWithStatus({
   disabled,
   connected,
   ollamaUrl: externalOllamaUrl,
-  variant,
 }: UsePullModelWithStatusProps) {
   const { ollamaUrl } = useOllamaConfig()
 
+  const queryClient = useQueryClient()
   const { data: modelDetails, status: modelDetailsStatus } =
     useOllamaModelDetails({
       serverUrl: externalOllamaUrl || ollamaUrl,
       model,
       disabled: !connected,
-      variant,
     })
 
   // We disable pulling the model if:
@@ -113,22 +115,23 @@ export function usePullModelWithStatus({
     setModelStatus('success')
   }, [modelDetails, modelDetailsStatus])
 
-  useEffect(() => {
-    // TODO: Reset all local state when model status is missing
-    if (
-      modelDetails &&
-      'status' in modelDetails &&
-      modelDetails.status === 'missing'
-    ) {
-      setModelProgress(0)
-      setModelStatus('idle')
-    }
-  }, [modelDetails])
+  function resetState() {
+    queryClient
+      .invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(PULL_MODEL_STATUS_BASE_QUERY_KEY),
+      })
+      .then(() => {
+        setModelProgress(0)
+        setModelStatus('idle')
+      })
+  }
 
   return {
     modelStatus:
       modelDetailsStatus === 'pending' ? ('initPending' as const) : modelStatus,
     modelProgress,
     modelError: error,
+    resetState,
   }
 }

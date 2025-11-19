@@ -38,7 +38,6 @@ export function ModelDownloadToast() {
     <Toast
       visible={visible}
       className="pl-[unset] pr-[unset] px-3! flex flex-col gap-2 w-full"
-      hideDelay={3000}
     >
       <H3 className="text-sm self-start my-0 text-muted-foreground font-normal sr-only">
         Downloading AI models

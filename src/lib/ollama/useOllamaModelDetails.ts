@@ -1,4 +1,3 @@
-import { updateConfig } from '@/lib/db/database'
 import { useLogger } from '@/lib/logging/useLogger'
 import { useQuery } from '@tanstack/react-query'
 
@@ -6,7 +5,6 @@ export interface UseOllamaModelDetailsProps {
   serverUrl?: string
   model?: string
   disabled?: boolean
-  variant: 'autocompletion' | 'writing-improvements'
 }
 
 export interface OllamaModelDetailsResponse {
@@ -28,7 +26,6 @@ export function useOllamaModelDetails({
   serverUrl,
   model,
   disabled,
-  variant,
 }: UseOllamaModelDetailsProps) {
   const logger = useLogger()
   return useQuery<OllamaModelDetailsResponse | { status: 'missing' }>({
@@ -56,16 +53,6 @@ export function useOllamaModelDetails({
           serverUrl,
           model,
         })
-
-        if (variant) {
-          await updateConfig({
-            key:
-              variant === 'autocompletion'
-                ? 'completion_model'
-                : 'improvement_model',
-            value: '',
-          })
-        }
 
         return {
           status: 'missing',

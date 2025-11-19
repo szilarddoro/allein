@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { LocationHistoryProvider } from '@/lib/locationHistory/LocationHistoryProvider'
-import { ModelDownloadProvider } from '@/lib/modelDownload/ModelDownloadProvider'
 import { useInvalidateQueriesOnWindowFocus } from '@/lib/useInvalidateQueriesOnWindowFocus'
 import { useMenuBar } from '@/lib/useMenuBar'
 import { cn } from '@/lib/utils'
@@ -60,13 +59,11 @@ export function BaseLayout({ children }: PropsWithChildren) {
         </DialogContent>
       </Dialog>
 
-      <ModelDownloadProvider>
-        <LocationHistoryProvider>
-          <BaseLayoutContent onOpenAbout={() => setAboutDialogOpen(true)}>
-            {children}
-          </BaseLayoutContent>
-        </LocationHistoryProvider>
-      </ModelDownloadProvider>
+      <LocationHistoryProvider>
+        <BaseLayoutContent onOpenAbout={() => setAboutDialogOpen(true)}>
+          {children}
+        </BaseLayoutContent>
+      </LocationHistoryProvider>
     </>
   )
 }

@@ -17,13 +17,15 @@ export interface PullModelResponseChunk {
   completed?: number
 }
 
+export const PULL_MODEL_STATUS_BASE_QUERY_KEY = 'model-status'
+
 export function usePullOllamaModel(
   { serverUrl, model, disabled }: UsePullOllamaModelProps = { disabled: false },
 ) {
   const logger = useLogger()
 
   return useQuery<PullModelResponseChunk[]>({
-    queryKey: ['model-status', serverUrl, model],
+    queryKey: [PULL_MODEL_STATUS_BASE_QUERY_KEY, serverUrl, model],
     queryFn: streamedQuery({
       streamFn: ({ signal }) => {
         return {

@@ -12,9 +12,9 @@ export interface OllamaModelsResponse {
   models: OllamaModel[]
 }
 
-export const OLLAMA_MODEL_BASE_QUERY_KEY = 'ollama-model'
-export const OLLAMA_MODEL_QUERY_KEY = (serverUrl: string) => [
-  OLLAMA_MODEL_BASE_QUERY_KEY,
+export const OLLAMA_MODELS_BASE_QUERY_KEY = 'ollama-models'
+export const OLLAMA_MODELS_QUERY_KEY = (serverUrl: string) => [
+  OLLAMA_MODELS_BASE_QUERY_KEY,
   serverUrl,
 ]
 
@@ -45,7 +45,7 @@ export function useOllamaModels(serverUrl?: string | null, disabled?: boolean) {
   const targetServerUrl = serverUrl || ''
 
   return useQuery({
-    queryKey: OLLAMA_MODEL_QUERY_KEY(targetServerUrl),
+    queryKey: OLLAMA_MODELS_QUERY_KEY(targetServerUrl),
     queryFn: () => fetchOllamaModels(targetServerUrl),
     retry: false,
     enabled: !disabled,

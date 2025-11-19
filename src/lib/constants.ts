@@ -17,12 +17,12 @@ export const TOGGLE_PREVIEW_EVENT = 'toggle-preview'
 
 // AI assistant constants
 export const RECOMMENDED_AUTOCOMPLETION_MODEL = {
-  name: 'qwen2.5-coder:0.5b-base',
+  name: 'granite-embedding:30m',
   url: 'https://ollama.com/library/qwen2.5-coder:3b-base',
 }
 
 export const RECOMMENDED_WRITING_IMPROVEMENTS_MODEL = {
-  name: 'gemma3:270m',
+  name: 'smollm:135m',
   url: 'https://ollama.com/library/gemma3:latest',
 }
 

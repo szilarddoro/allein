@@ -13,6 +13,7 @@ import '@fontsource-variable/inter'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router'
+import { ModelDownloadProvider } from '@/lib/modelDownload/ModelDownloadProvider'
 
 const router = createBrowserRouter([
   {
@@ -59,8 +60,10 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       disableTransitionOnChange
     >
       <QueryProvider>
-        <RouterProvider router={router} />
-        <Toaster />
+        <ModelDownloadProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </ModelDownloadProvider>
       </QueryProvider>
     </ThemeProvider>
   </React.StrictMode>,

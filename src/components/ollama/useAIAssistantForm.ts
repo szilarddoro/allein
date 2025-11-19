@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDebounceValue } from 'usehooks-ts'
 import * as z from 'zod'
+import { useModelDownloadContext } from '@/lib/modelDownload/useModelDownloadContext'
 
 export const assistantSettingsFormValues = z
   .object({
@@ -75,6 +76,7 @@ export interface UseAIAssistantFormReturn {
 export function useAIAssistantForm({
   onDirtyChange,
 }: UseAIAssistantFormProps): UseAIAssistantFormReturn {
+  const { downloadStatus } = useModelDownloadContext()
   const { ollamaUrl, completionModel, improvementModel, configStatus } =
     useOllamaConfig()
   const { aiAssistanceEnabled } = useAIConfig()
@@ -106,7 +108,11 @@ export function useAIAssistantForm({
 
   // Initialize form with loaded config values
   useEffect(() => {
-    if (configStatus !== 'success' || formInitializedRef.current) {
+    if (
+      configStatus !== 'success' ||
+      formInitializedRef.current ||
+      downloadStatus === 'pending'
+    ) {
       return
     }
 
@@ -120,6 +126,7 @@ export function useAIAssistantForm({
 
     formInitializedRef.current = true
   }, [
+    downloadStatus,
     formReset,
     configStatus,
     aiAssistanceEnabled,
@@ -170,10 +177,12 @@ export function useModelValidation({
   configLoading,
 }: UseModelValidationProps) {
   const isFormDirty = form.formState.isDirty
+  const { downloadStatus } = useModelDownloadContext()
 
   // Clear model selections when connection is lost
   useEffect(() => {
     if (
+      downloadStatus === 'pending' ||
       connectionStatus !== 'success' ||
       !isFormDirty ||
       isConnected ||
@@ -192,11 +201,17 @@ export function useModelValidation({
     connectionStatus,
     connectionLoading,
     configLoading,
+    downloadStatus,
   ])
 
   // Validate that selected models still exist in the model list
   useEffect(() => {
-    if (modelsStatus !== 'success' || !models || models.length === 0) {
+    if (
+      downloadStatus === 'pending' ||
+      modelsStatus !== 'success' ||
+      !models ||
+      models.length === 0
+    ) {
       return
     }
 
@@ -229,5 +244,12 @@ export function useModelValidation({
         message: 'Improvement model is required when AI assistant is enabled',
       })
     }
-  }, [form, models, modelsStatus, completionModel, improvementModel])
+  }, [
+    form,
+    models,
+    modelsStatus,
+    completionModel,
+    improvementModel,
+    downloadStatus,
+  ])
 }

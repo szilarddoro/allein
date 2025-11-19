@@ -393,7 +393,7 @@ export const TextEditor = forwardRef<HTMLDivElement, TextEditorProps>(
                 },
                 fontSize: 14,
                 lineHeight: 1.6,
-                padding: { top: 12, bottom: 32 },
+                padding: { top: 12, bottom: 96 },
                 placeholder,
               }}
             />

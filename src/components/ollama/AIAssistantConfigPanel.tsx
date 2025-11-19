@@ -268,7 +268,7 @@ export function AIAssistantConfigPanel({
 
             <CollapsibleContent
               className={cn(
-                'p-3 rounded-md bg-secondary dark:bg-secondary/40 mt-3 border border-input/50',
+                'p-3 rounded-md bg-secondary/40 dark:bg-secondary/40 mt-3 border border-border dark:border-input/50',
                 placement === 'onboarding' &&
                   'bg-card/90 dark:bg-input/30 border-input',
               )}

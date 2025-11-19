@@ -1,25 +1,37 @@
 import { cn } from '@/lib/utils'
-import { PropsWithChildren, useState } from 'react'
-import { useInterval } from 'usehooks-ts'
+import { PropsWithChildren, useEffect, useState } from 'react'
 
 export interface ToastProps {
   visible?: boolean
+  hideDelay?: number
   className?: string
 }
 
 export function Toast({
   visible,
+  hideDelay = 250,
   className,
   children,
 }: PropsWithChildren<ToastProps>) {
   const [collapse, setCollapse] = useState(false)
 
-  useInterval(
-    () => {
-      setCollapse(true)
-    },
-    !visible && !collapse ? 250 : null,
-  )
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>
+
+    if (visible) {
+      setCollapse(false)
+    } else {
+      timeout = setTimeout(() => {
+        setCollapse(true)
+      }, hideDelay)
+    }
+
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout)
+      }
+    }
+  }, [hideDelay, visible])
 
   if (collapse) {
     return null

@@ -11,6 +11,7 @@ import {
   RECOMMENDED_WRITING_IMPROVEMENTS_MODEL,
 } from '@/lib/constants'
 import { useModelDownloadContext } from '@/lib/modelDownload/useModelDownloadContext'
+import { cn } from '@/lib/utils'
 import { Info } from 'lucide-react'
 import { PropsWithChildren } from 'react'
 
@@ -18,9 +19,17 @@ interface ModelDownloadPanelProps {
   ollamaUrl?: string
 }
 
-function Wrapper({ children }: PropsWithChildren) {
+function Wrapper({
+  children,
+  className,
+}: PropsWithChildren<{ className?: string }>) {
   return (
-    <div className="-mt-3 p-4 border border-input/50 rounded-md flex flex-col justify-center items-start gap-3 text-sm bg-secondary dark:bg-secondary/40 text-muted-foreground">
+    <div
+      className={cn(
+        '-mt-3 p-4 border border-border dark:border-input/50 rounded-md flex flex-col justify-center items-start gap-3 text-sm bg-secondary/40 dark:bg-secondary/40 text-muted-foreground',
+        className,
+      )}
+    >
       {children}
     </div>
   )
@@ -36,8 +45,12 @@ export function ModelDownloadPanel({ ollamaUrl }: ModelDownloadPanelProps) {
 
   if (downloading) {
     return (
-      <Wrapper>
-        <ActivityIndicator>Downloading models...</ActivityIndicator>
+      <Wrapper className="flex-row justify-start items-center gap-1.5">
+        <ActivityIndicator className="text-xs" srOnly>
+          Downloading models...
+        </ActivityIndicator>
+        Download progress appears in the bottom left corner. You&apos;re free to
+        navigate other pages.
       </Wrapper>
     )
   }
@@ -51,6 +64,7 @@ export function ModelDownloadPanel({ ollamaUrl }: ModelDownloadPanelProps) {
           disabled={!ollamaUrl}
           onClick={() => startDownload(ollamaUrl!)}
           size="sm"
+          type="button"
         >
           Install Models
         </Button>
@@ -62,11 +76,11 @@ export function ModelDownloadPanel({ ollamaUrl }: ModelDownloadPanelProps) {
 
           <TooltipContent className="leading-normal">
             Pressing the button will download{' '}
-            <InlineCode className="text-xs px-0">
+            <InlineCode className="text-xs px-0 bg-transparent">
               {RECOMMENDED_AUTOCOMPLETION_MODEL.name}
             </InlineCode>{' '}
             and{' '}
-            <InlineCode className="text-xs px-0">
+            <InlineCode className="text-xs px-0 bg-transparent">
               {RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name}
             </InlineCode>
             , which require approximately a total of{' '}

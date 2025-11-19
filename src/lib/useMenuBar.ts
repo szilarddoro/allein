@@ -9,7 +9,6 @@ import { useLocation, useNavigate } from 'react-router'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { toast } from 'sonner'
 import {
-  CHECK_FOR_UPDATES_EVENT,
   FORMAT_DOCUMENT_EVENT,
   IMPROVE_WRITING_EVENT,
   NEW_FILE_MENU_EVENT,
@@ -22,6 +21,7 @@ import {
 import { openFolderPicker } from '@/lib/folders/useOpenFolderPicker'
 import { useSetFolder } from '@/lib/folders/useSetFolder'
 import { sendFeedback } from '@/lib/report/sendFeedback'
+import { checkForUpdatesWithPrompt } from '@/lib/updater/updater'
 
 const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
 const newFolderEvent = new CustomEvent(NEW_FOLDER_MENU_EVENT)
@@ -31,7 +31,6 @@ const toggleSidebarEvent = new CustomEvent(TOGGLE_SIDEBAR_EVENT)
 const formatDocumentEvent = new CustomEvent(FORMAT_DOCUMENT_EVENT)
 const improveWritingEvent = new CustomEvent(IMPROVE_WRITING_EVENT)
 const togglePreviewEvent = new CustomEvent(TOGGLE_PREVIEW_EVENT)
-const checkForUpdatesEvent = new CustomEvent(CHECK_FOR_UPDATES_EVENT)
 
 export interface UseMenuBarProps {
   onOpenAbout?: (open: boolean) => void
@@ -69,8 +68,12 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
             separator,
             await MenuItem.new({
               text: 'Check for Updates',
-              action() {
-                window.dispatchEvent(checkForUpdatesEvent)
+              async action() {
+                try {
+                  await checkForUpdatesWithPrompt()
+                } catch {
+                  toast.error('Failed to check for updates. Please try again.')
+                }
               },
             }),
             separator,
@@ -235,10 +238,20 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
           text: 'Help',
           items: [
             await MenuItem.new({
-              text: 'Website',
+              text: 'Visit the Website',
               async action() {
                 try {
                   await openUrl('https://allein.app')
+                } catch {
+                  toast.error('Failed to open the website. Please try again.')
+                }
+              },
+            }),
+            await MenuItem.new({
+              text: 'Visit the GitHub Page',
+              async action() {
+                try {
+                  await openUrl('https://github.com/szilarddoro/allein')
                 } catch {
                   toast.error('Failed to open the website. Please try again.')
                 }

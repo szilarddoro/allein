@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core'
+import { useCallback, useMemo } from 'react'
 
 export interface LogContext {
   [key: string]: unknown
@@ -25,14 +26,32 @@ export async function logEvent(
 }
 
 export function useLogger() {
-  return {
-    info: (category: string, message: string, context?: LogContext) =>
+  const info = useCallback(
+    (category: string, message: string, context?: LogContext) =>
       logEvent('INFO', category, message, context),
-    warn: (category: string, message: string, context?: LogContext) =>
+    [],
+  )
+
+  const warn = useCallback(
+    (category: string, message: string, context?: LogContext) =>
       logEvent('WARN', category, message, context),
-    error: (category: string, message: string, context?: LogContext) =>
+    [],
+  )
+
+  const error = useCallback(
+    (category: string, message: string, context?: LogContext) =>
       logEvent('ERROR', category, message, context),
-    debug: (category: string, message: string, context?: LogContext) =>
+    [],
+  )
+
+  const debug = useCallback(
+    (category: string, message: string, context?: LogContext) =>
       logEvent('DEBUG', category, message, context),
-  }
+    [],
+  )
+
+  return useMemo(
+    () => ({ info, warn, error, debug }),
+    [debug, error, info, warn],
+  )
 }

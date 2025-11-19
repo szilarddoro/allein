@@ -30,7 +30,7 @@ export function FloatingActionToolbar({
     <div className={cn('group', className)}>
       <div
         className={cn(
-          'flex flex-row gap-1 bg-secondary dark:bg-background border-1 border-input/60 rounded-lg p-1 motion-safe:transition-colors',
+          'flex flex-row gap-1 bg-neutral-200/20 dark:bg-neutral-800/20 backdrop-blur-xl border-1 border-input/60 rounded-lg p-1 motion-safe:transition-colors',
           showPreview && 'bg-secondary dark:bg-card',
         )}
       >

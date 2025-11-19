@@ -21,6 +21,7 @@ import {
 import { openFolderPicker } from '@/lib/folders/useOpenFolderPicker'
 import { useSetFolder } from '@/lib/folders/useSetFolder'
 import { sendFeedback } from '@/lib/report/sendFeedback'
+import { checkForUpdatesWithPrompt } from '@/lib/updater/updater'
 
 const newFileEvent = new CustomEvent(NEW_FILE_MENU_EVENT)
 const newFolderEvent = new CustomEvent(NEW_FOLDER_MENU_EVENT)
@@ -62,6 +63,17 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
               text: 'About Allein',
               action() {
                 onOpenAbout?.(true)
+              },
+            }),
+            separator,
+            await MenuItem.new({
+              text: 'Check for Updates',
+              async action() {
+                try {
+                  await checkForUpdatesWithPrompt()
+                } catch {
+                  toast.error('Failed to check for updates. Please try again.')
+                }
               },
             }),
             separator,
@@ -226,10 +238,20 @@ export function useMenuBar({ onOpenAbout }: UseMenuBarProps = {}) {
           text: 'Help',
           items: [
             await MenuItem.new({
-              text: 'Website',
+              text: 'Visit the Website',
               async action() {
                 try {
                   await openUrl('https://allein.app')
+                } catch {
+                  toast.error('Failed to open the website. Please try again.')
+                }
+              },
+            }),
+            await MenuItem.new({
+              text: 'Visit the GitHub Page',
+              async action() {
+                try {
+                  await openUrl('https://github.com/szilarddoro/allein')
                 } catch {
                   toast.error('Failed to open the website. Please try again.')
                 }

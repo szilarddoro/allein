@@ -27,3 +27,6 @@ coverage
 *.sw?
 coverage/
 target/rust-analyzer/
+
+# Environment variables
+.env

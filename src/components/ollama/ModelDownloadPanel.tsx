@@ -75,13 +75,13 @@ export function ModelDownloadPanel({ ollamaUrl }: ModelDownloadPanelProps) {
             <Info className="size-4" />
           </TooltipTrigger>
 
-          <TooltipContent className="leading-normal">
+          <TooltipContent side="right" className="leading-normal text-sm">
             Pressing the button will download{' '}
-            <InlineCode className="text-xs px-0 bg-transparent">
+            <InlineCode className="text-sm px-0 bg-transparent">
               {RECOMMENDED_AUTOCOMPLETION_MODEL.name}
             </InlineCode>{' '}
             and{' '}
-            <InlineCode className="text-xs px-0 bg-transparent">
+            <InlineCode className="text-sm px-0 bg-transparent">
               {RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name}
             </InlineCode>
             , which require approximately a total of{' '}

@@ -45,9 +45,8 @@
     "updater": {
       "active": true,
       "endpoints": [
-        "http://localhost:3000/api/version?current_version={{current_version}}"
+        "https://allein.app/api/version?current_version={{current_version}}"
       ],
-      "dangerousInsecureTransportProtocol": true,
       "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ1RjM1MDdENjYwNTk1RkEKUldUNmxRVm1mVkR6UlQxWWt3VjZMRlhQVXlsVDB1d2MyQUVKSnJ2M0I5bFNMZ25NVjBSaTJzV28K",
       "windows": {

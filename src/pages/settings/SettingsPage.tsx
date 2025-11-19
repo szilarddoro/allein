@@ -1,14 +1,14 @@
 import { H1 } from '@/components/ui/typography'
-import { DebugCard } from './DebugCard'
-import { AIAssistantCard } from './AIAssistantCard'
-import { AppearanceCard } from './AppearanceCard'
-import { LogsCard } from './LogsCard'
-import { UpdatesCard } from './UpdatesCard'
-import { useOutletContext } from 'react-router'
+import { SendFeedbackButton } from '@/lib/report/SendFeedbackButton'
 import { AppLayoutContextProps } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { getAppVersion, getAppLicense } from '@/lib/version'
-import { SendFeedbackButton } from '@/lib/report/SendFeedbackButton'
+import { getAppLicense, getAppVersion } from '@/lib/version'
+import { useOutletContext } from 'react-router'
+import { AIAssistantCard } from './AIAssistantCard'
+import { AppearanceCard } from './AppearanceCard'
+import { DebugCard } from './DebugCard'
+import { LogsCard } from './LogsCard'
+import { CheckForUpdatesButton } from '@/lib/updater/CheckForUpdatesButton'
 
 export function SettingsPage() {
   const { sidebarOpen } = useOutletContext<AppLayoutContextProps>()
@@ -32,10 +32,6 @@ export function SettingsPage() {
         </section>
 
         <section>
-          <UpdatesCard />
-        </section>
-
-        <section>
           <LogsCard />
         </section>
 
@@ -46,10 +42,13 @@ export function SettingsPage() {
         )}
       </div>
 
-      <footer className="flex flex-col gap-3 justify-center items-center pt-4 pb-16 px-4 text-center text-muted-foreground/80 text-xs">
-        <SendFeedbackButton />
+      <footer className="flex flex-col gap-3 justify-center items-center pt-4 pb-16 px-4 text-center text-xs">
+        <div className="flex flex-col gap-1">
+          <SendFeedbackButton />
+          <CheckForUpdatesButton />
+        </div>
 
-        <p>
+        <p className="text-muted-foreground/80">
           Version: {getAppVersion()} - License: {getAppLicense()}
         </p>
       </footer>

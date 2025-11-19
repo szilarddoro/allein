@@ -1,4 +1,5 @@
 import { Toast } from '@/components/Toast'
+import { Separator } from '@/components/ui/separator'
 import { H3 } from '@/components/ui/typography'
 import { useModelDownloadContext } from '@/lib/modelDownload/useModelDownloadContext'
 import { ModelProgress } from '@/lib/updater/ModelProgress'
@@ -25,6 +26,8 @@ export function ModelDownloadToast() {
         progress={autocompletionModel.modelProgress}
         error={autocompletionModel.modelError}
       />
+
+      <Separator />
 
       <ModelProgress
         name="Writing Improvements"

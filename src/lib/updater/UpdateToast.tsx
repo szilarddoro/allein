@@ -12,7 +12,7 @@ export function UpdateToast() {
   const updateCheckedRef = useRef<boolean>(false)
   const { mutateAsync: checkForUpdates } = useCheckForUpdates()
   const { mutateAsync: updateApp, isPending: isUpdatePending } = useUpdateApp()
-  const [toastVisible, setToastVisible] = useState(false)
+  const [visible, setVisible] = useState(false)
   const [updateData, setUpdateData] = useState<Update | null>(null)
   const { error: logError } = useLogger()
 
@@ -24,7 +24,7 @@ export function UpdateToast() {
     async function checkUpdateStatus() {
       try {
         const update = await checkForUpdates()
-        setToastVisible(update != null)
+        setVisible(update != null)
         setUpdateData(update)
       } catch {
         logError('updater', 'Failed to check for updates')
@@ -50,7 +50,7 @@ export function UpdateToast() {
   }
 
   return (
-    <Toast visible={toastVisible}>
+    <Toast visible={visible} hideDelay={0}>
       <div className="font-medium">A new version is available</div>
 
       <div className="flex items-center gap-1">
@@ -69,7 +69,7 @@ export function UpdateToast() {
         <Button
           size="sm"
           variant="ghost"
-          onClick={() => setToastVisible(false)}
+          onClick={() => setVisible(false)}
           className="px-2"
         >
           Later

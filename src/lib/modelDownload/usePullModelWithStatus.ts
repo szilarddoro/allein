@@ -8,6 +8,7 @@ export interface UsePullModelWithStatusProps {
   disabled?: boolean
   connected?: boolean
   ollamaUrl?: string
+  variant: 'autocompletion' | 'writing-improvements'
 }
 
 export function usePullModelWithStatus({
@@ -15,6 +16,7 @@ export function usePullModelWithStatus({
   disabled,
   connected,
   ollamaUrl: externalOllamaUrl,
+  variant,
 }: UsePullModelWithStatusProps) {
   const { ollamaUrl } = useOllamaConfig()
 
@@ -23,6 +25,7 @@ export function usePullModelWithStatus({
       serverUrl: externalOllamaUrl || ollamaUrl,
       model,
       disabled: !connected,
+      variant,
     })
 
   // We disable pulling the model if:
@@ -109,6 +112,18 @@ export function usePullModelWithStatus({
     setModelProgress(100)
     setModelStatus('success')
   }, [modelDetails, modelDetailsStatus])
+
+  useEffect(() => {
+    // TODO: Reset all local state when model status is missing
+    if (
+      modelDetails &&
+      'status' in modelDetails &&
+      modelDetails.status === 'missing'
+    ) {
+      setModelProgress(0)
+      setModelStatus('idle')
+    }
+  }, [modelDetails])
 
   return {
     modelStatus:

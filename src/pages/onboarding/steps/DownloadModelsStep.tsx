@@ -52,6 +52,7 @@ export function DownloadModelsStep({ onNext }: DownloadModelsStepProps) {
     disabled: !downloadEnabled || isOllamaDisconnected,
     model: RECOMMENDED_AUTOCOMPLETION_MODEL.name,
     connected: isOllamaConnected,
+    variant: 'autocompletion',
   })
 
   const {
@@ -62,6 +63,7 @@ export function DownloadModelsStep({ onNext }: DownloadModelsStepProps) {
     disabled: !downloadEnabled || isOllamaDisconnected,
     model: RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name,
     connected: isOllamaConnected,
+    variant: 'writing-improvements',
   })
 
   const isDownloading =

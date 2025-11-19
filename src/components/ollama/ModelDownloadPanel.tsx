@@ -49,8 +49,9 @@ export function ModelDownloadPanel({ ollamaUrl }: ModelDownloadPanelProps) {
         <ActivityIndicator className="text-xs" srOnly>
           Downloading models...
         </ActivityIndicator>
-        Download progress appears in the bottom left corner. You&apos;re free to
-        navigate other pages.
+        You&apos;ll see download progress in the bottom left corner.
+        Installation typically takes 3-5 minutes depending on your network
+        speed—feel free to navigate elsewhere while it runs.
       </Wrapper>
     )
   }

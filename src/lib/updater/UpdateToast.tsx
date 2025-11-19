@@ -12,7 +12,7 @@ export function UpdateToast() {
   const updateCheckedRef = useRef<boolean>(false)
   const { mutateAsync: checkForUpdates } = useCheckForUpdates()
   const { mutateAsync: updateApp, isPending: isUpdatePending } = useUpdateApp()
-  const [toastVisible, setToastVisible] = useState(true)
+  const [toastVisible, setToastVisible] = useState(false)
   const [updateData, setUpdateData] = useState<Update | null>(null)
   const { error: logError } = useLogger()
 
@@ -24,7 +24,7 @@ export function UpdateToast() {
     async function checkUpdateStatus() {
       try {
         const update = await checkForUpdates()
-        setToastVisible(true)
+        setToastVisible(update != null)
         setUpdateData(update)
       } catch {
         logError('updater', 'Failed to check for updates')

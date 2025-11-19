@@ -28,7 +28,7 @@ export function Toast({
   return (
     <div
       className={cn(
-        'bg-neutral-200/20 dark:bg-neutral-800/20 backdrop-blur-xl border border-border rounded-md pl-3 pr-1.5 py-2 motion-safe:transition-opacity text-sm flex items-center justify-between gap-12 shadow-xs min-h-12.5 font-medium',
+        'bg-neutral-200/20 dark:bg-neutral-800/20 backdrop-blur-xl border border-border rounded-md pl-3 pr-1.5 py-2 motion-safe:transition-opacity text-sm flex items-center justify-between gap-12 shadow-xs min-h-12.5',
         !visible ? 'pointer-events-none opacity-0' : 'opacity-100',
         className,
       )}

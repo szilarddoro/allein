@@ -42,7 +42,7 @@ export function WelcomeStep({ onNext, onSkip }: WelcomeStepProps) {
         <H1 className="my-0 text-3xl text-center">Welcome to Allein</H1>
 
         <P className="mt-1 text-foreground/70 text-center max-w-md">
-          Markdown editor powered by your LLM
+          A Markdown editor powered by your LLM
         </P>
       </div>
 

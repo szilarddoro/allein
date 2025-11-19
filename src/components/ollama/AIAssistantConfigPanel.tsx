@@ -166,12 +166,12 @@ export function AIAssistantConfigPanel({
               <FieldDescription>
                 Download models from Ollama first, then select them here. See{' '}
                 <Anchor
-                  href="https://docs.ollama.com/quickstart"
+                  href="https://docs.ollama.com/cli#download-a-model"
                   className="text-blue-500 !underline-offset-2 dark:text-blue-400"
                 >
                   the quickstart guide
                 </Anchor>{' '}
-                for setup instructions.
+                for instructions.
               </FieldDescription>
             </FieldContent>
 

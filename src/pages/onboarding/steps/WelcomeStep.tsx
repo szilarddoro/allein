@@ -2,7 +2,7 @@ import alleinLogo from '@/assets/allein-logo.png'
 import { Button } from '@/components/ui/button'
 import { H1, P } from '@/components/ui/typography'
 import { cn } from '@/lib/utils'
-import { Database, Sparkles, UserRound, Zap } from 'lucide-react'
+import { Blocks, Sparkles, UserRound, Zap } from 'lucide-react'
 import { PropsWithChildren } from 'react'
 
 export function FeatureListItem({
@@ -42,7 +42,7 @@ export function WelcomeStep({ onNext, onSkip }: WelcomeStepProps) {
         <H1 className="my-0 text-3xl text-center">Welcome to Allein</H1>
 
         <P className="mt-1 text-foreground/70 text-center max-w-md">
-          The lightweight, AI-powered writing tool.
+          Markdown editor powered by your LLM
         </P>
       </div>
 
@@ -54,10 +54,10 @@ export function WelcomeStep({ onNext, onSkip }: WelcomeStepProps) {
           <Sparkles className="size-4" /> Writing improvements
         </FeatureListItem>
         <FeatureListItem className="delay-[550ms]">
-          <Database className="size-4" /> Private LLMs - Works offline
+          <Blocks className="size-4" /> Bring your own LLM
         </FeatureListItem>
         <FeatureListItem className="delay-[750ms]">
-          <UserRound className="size-4" /> No registration needed
+          <UserRound className="size-4" /> No account required
         </FeatureListItem>
       </ul>
 

@@ -6,11 +6,13 @@ import { v4 as uuidv4 } from 'uuid'
 export interface ActivityIndicatorProps extends PropsWithChildren {
   srOnly?: boolean
   className?: string
+  iconClassName?: string
 }
 
 export function ActivityIndicator({
   children = 'Loading...',
   className,
+  iconClassName,
   srOnly,
 }: ActivityIndicatorProps) {
   const id = `activity-indicator-${uuidv4()}`
@@ -24,7 +26,7 @@ export function ActivityIndicator({
       )}
       aria-labelledby={id}
     >
-      <Loader2 className="size-4 animate-spin" />
+      <Loader2 className={cn('size-4 animate-spin', iconClassName)} />
       <span id={id} className={cn(srOnly && 'sr-only')}>
         {children}
       </span>

@@ -30,12 +30,16 @@ export function ModelProgress({
             <span>Not Downloaded</span>
           </div>
         ) : status === 'initPending' ? (
-          <DelayedActivityIndicator delay={500}>
+          <DelayedActivityIndicator
+            delay={500}
+            className="self-end text-xs"
+            iconClassName="size-3.5"
+          >
             Checking model...
           </DelayedActivityIndicator>
         ) : status === 'success' ? (
-          <div className="flex flex-row gap-1.5 items-center text-success text-sm">
-            <CheckCircle2 className="size-4" />
+          <div className="flex flex-row gap-1.5 items-center text-success text-xs self-end">
+            <CheckCircle2 className="size-3.5" />
             <span>Downloaded</span>
           </div>
         ) : (

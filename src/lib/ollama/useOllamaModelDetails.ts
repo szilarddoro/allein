@@ -16,12 +16,11 @@ export interface OllamaModelDetailsResponse {
   model_info: Record<string, unknown>
 }
 
-export const OLLAMA_MODEL_BASE_QUERY_KEY = 'ollama-model-details'
-export const OLLAMA_MODEL_QUERY_KEY = (serverUrl?: string, model?: string) => [
-  OLLAMA_MODEL_BASE_QUERY_KEY,
-  serverUrl,
-  model,
-]
+export const OLLAMA_MODEL_DETAILS_BASE_QUERY_KEY = 'ollama-model-details'
+export const OLLAMA_MODEL_DETAILS_QUERY_KEY = (
+  serverUrl?: string,
+  model?: string,
+) => [OLLAMA_MODEL_DETAILS_BASE_QUERY_KEY, serverUrl, model]
 
 export function useOllamaModelDetails({
   serverUrl,
@@ -30,7 +29,7 @@ export function useOllamaModelDetails({
 }: UseOllamaModelDetailsProps) {
   const logger = useLogger()
   return useQuery<OllamaModelDetailsResponse | { status: 'missing' }>({
-    queryKey: OLLAMA_MODEL_QUERY_KEY(serverUrl, model),
+    queryKey: OLLAMA_MODEL_DETAILS_QUERY_KEY(serverUrl, model),
     queryFn: async () => {
       if (!serverUrl) {
         throw new Error('Server URL is required to fetch model details')
@@ -50,7 +49,7 @@ export function useOllamaModelDetails({
       )
 
       if (!response.ok) {
-        logger.info('model-details', 'Model is missing.', {
+        logger.warn('model-details', 'Model is missing.', {
           serverUrl,
           model,
         })

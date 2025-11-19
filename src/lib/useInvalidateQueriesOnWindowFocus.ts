@@ -1,18 +1,25 @@
 import { DOCS_FOLDER_QUERY_KEY } from '@/lib/files/useCurrentDocsFolder'
 import { FILES_AND_FOLDERS_TREE_QUERY_KEY } from '@/lib/files/useFilesAndFolders'
 import { READ_FILE_BASE_QUERY_KEY } from '@/lib/files/useReadFile'
-import { OLLAMA_MODEL_BASE_QUERY_KEY } from '@/lib/ollama/useOllamaModels'
+import { useModelDownloadContext } from '@/lib/modelDownload/useModelDownloadContext'
+import { OLLAMA_MODEL_DETAILS_BASE_QUERY_KEY } from '@/lib/ollama/useOllamaModelDetails'
+import { OLLAMA_MODELS_BASE_QUERY_KEY } from '@/lib/ollama/useOllamaModels'
 import { OLLAMA_WARMUP_BASE_QUERY_KEY } from '@/lib/ollama/useWarmupCompletionModel'
 import { useQueryClient } from '@tanstack/react-query'
 import { listen } from '@tauri-apps/api/event'
 import { useEffect, useRef } from 'react'
 
 export function useInvalidateQueriesOnWindowFocus() {
+  const { downloadStatus } = useModelDownloadContext()
   const queryClient = useQueryClient()
   const lastRefetchTime = useRef<number | null>(null)
 
   // Listen for Tauri window events
   useEffect(() => {
+    if (downloadStatus === 'pending') {
+      return
+    }
+
     let unlisten: () => void | undefined
 
     const setupListeners = async () => {
@@ -40,7 +47,10 @@ export function useInvalidateQueriesOnWindowFocus() {
             }),
             queryClient.invalidateQueries({
               predicate: (query) =>
-                query.queryKey.includes(OLLAMA_MODEL_BASE_QUERY_KEY),
+                query.queryKey.includes(OLLAMA_MODELS_BASE_QUERY_KEY),
+            }),
+            queryClient.invalidateQueries({
+              queryKey: [OLLAMA_MODEL_DETAILS_BASE_QUERY_KEY],
             }),
             queryClient.invalidateQueries({
               queryKey: [OLLAMA_WARMUP_BASE_QUERY_KEY],
@@ -55,5 +65,5 @@ export function useInvalidateQueriesOnWindowFocus() {
     setupListeners()
 
     return () => unlisten?.()
-  }, [queryClient])
+  }, [queryClient, downloadStatus])
 }

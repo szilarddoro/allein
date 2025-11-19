@@ -84,7 +84,8 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
           onContextMenu={showContextMenu}
           className={cn(
             '-mt-12 px-4 prose prose-sm max-w-none prose-headings:text-neutral-900 prose-p:text-neutral-700 prose-strong:text-neutral-900 prose-blockquote:border-l-4 prose-blockquote:border-neutral-300 prose-blockquote:text-neutral-600 [&_ul_ul]:ml-4 [&_ol_ol]:ml-4 [&_ul_ol]:ml-4 [&_ol_ul]:ml-4 [&_li_ul]:ml-4 [&_li_ol]:ml-4 select-auto cursor-auto',
-            renderType === 'embedded' && 'mt-0 px-0 overflow-hidden w-full',
+            renderType === 'embedded' &&
+              'mt-0 px-0 overflow-hidden w-full select-none',
             previewClassName,
           )}
         >

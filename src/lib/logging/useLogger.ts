@@ -12,6 +12,11 @@ export async function logEvent(
   context?: LogContext,
 ) {
   try {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.debug(level, category, message, context)
+    }
+
     await invoke('log_event', {
       level,
       category,

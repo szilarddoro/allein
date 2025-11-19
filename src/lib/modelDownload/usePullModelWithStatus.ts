@@ -1,24 +1,31 @@
 import { useOllamaConfig } from '@/lib/ollama/useOllamaConfig'
 import { useOllamaModelDetails } from '@/lib/ollama/useOllamaModelDetails'
-import { usePullOllamaModel } from '@/lib/ollama/usePullOllamaModel'
+import {
+  PULL_MODEL_STATUS_BASE_QUERY_KEY,
+  usePullOllamaModel,
+} from '@/lib/ollama/usePullOllamaModel'
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
 export interface UsePullModelWithStatusProps {
   model?: string
   disabled?: boolean
   connected?: boolean
+  ollamaUrl?: string
 }
 
 export function usePullModelWithStatus({
   model,
   disabled,
   connected,
+  ollamaUrl: externalOllamaUrl,
 }: UsePullModelWithStatusProps) {
   const { ollamaUrl } = useOllamaConfig()
 
+  const queryClient = useQueryClient()
   const { data: modelDetails, status: modelDetailsStatus } =
     useOllamaModelDetails({
-      serverUrl: ollamaUrl,
+      serverUrl: externalOllamaUrl || ollamaUrl,
       model,
       disabled: !connected,
     })
@@ -36,7 +43,7 @@ export function usePullModelWithStatus({
   const [modelProgress, setModelProgress] = useState(0)
 
   const { data, error, status } = usePullOllamaModel({
-    serverUrl: ollamaUrl,
+    serverUrl: externalOllamaUrl || ollamaUrl,
     model,
     disabled: isPullDisabled,
   })
@@ -108,10 +115,23 @@ export function usePullModelWithStatus({
     setModelStatus('success')
   }, [modelDetails, modelDetailsStatus])
 
+  function resetState() {
+    queryClient
+      .invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(PULL_MODEL_STATUS_BASE_QUERY_KEY),
+      })
+      .then(() => {
+        setModelProgress(0)
+        setModelStatus('idle')
+      })
+  }
+
   return {
     modelStatus:
       modelDetailsStatus === 'pending' ? ('initPending' as const) : modelStatus,
     modelProgress,
     modelError: error,
+    resetState,
   }
 }

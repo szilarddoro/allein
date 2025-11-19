@@ -12,8 +12,16 @@ export async function checkForUpdates(): Promise<Update | null> {
   try {
     const update = await check()
     return update
-  } catch {
-    // Fail silently
+  } catch (error) {
+    logEvent(
+      'ERROR',
+      'updater',
+      `Failed to check for updates: ${(error as Error).message}`,
+      {
+        stack: (error as Error).stack || null,
+      },
+    )
+
     return null
   }
 }

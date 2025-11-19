@@ -22,6 +22,7 @@ import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { logEvent } from '@/lib/logging/useLogger'
 import { AppLayoutContextProps } from '@/lib/types'
+import { UpdateToast } from '@/lib/updater/UpdateToast'
 import { useToast } from '@/lib/useToast'
 import { cn } from '@/lib/utils'
 import { useOnboardingProgress } from '@/pages/onboarding/useOnboardingProgress'
@@ -230,6 +231,8 @@ export function AppLayout() {
   return (
     <BaseLayout>
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+
+      <UpdateToast />
 
       <DndContext
         sensors={[mouseSensor]}

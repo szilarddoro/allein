@@ -38,6 +38,7 @@ import {
   RECOMMENDED_AUTOCOMPLETION_MODEL,
   RECOMMENDED_WRITING_IMPROVEMENTS_MODEL,
 } from '@/lib/constants'
+import { ModelDownloadPanel } from '@/components/ollama/ModelDownloadPanel'
 
 export interface AIAssistantConfigPanelProps {
   onSubmit: (values: AssistantSettingsFormValues) => void
@@ -164,14 +165,14 @@ export function AIAssistantConfigPanel({
             <FieldContent>
               <FieldLabel className="text-base">AI Models</FieldLabel>
               <FieldDescription>
-                Download models from Ollama first, then select them here. See{' '}
+                For details on downloading additional models, see the{' '}
                 <Anchor
                   href="https://docs.ollama.com/cli#download-a-model"
                   className="text-blue-500 !underline-offset-2 dark:text-blue-400"
                 >
-                  the quickstart guide
-                </Anchor>{' '}
-                for instructions.
+                  Ollama CLI reference
+                </Anchor>
+                .
               </FieldDescription>
             </FieldContent>
 
@@ -187,53 +188,59 @@ export function AIAssistantConfigPanel({
             </Button>
           </Field>
 
-          <ModelSelectorField
-            control={form.control}
-            name="completionModel"
-            label="Autocomplete"
-            ariaLabel="Model used by the autocomplete feature"
-            disabled={
-              !watchAiAssistantEnabled ||
-              !models ||
-              models.length === 0 ||
-              (!isConnected && !connectionLoading)
-            }
-            models={models}
-            modelsLoading={modelsLoading}
-            modelsError={modelsError}
-            onCopyCommand={() =>
-              handleCopyOllamaPullCommand(
-                RECOMMENDED_AUTOCOMPLETION_MODEL.name,
-                toast,
-              )
-            }
-            disableAnimations={disableAnimations}
-            recommendedModel={RECOMMENDED_AUTOCOMPLETION_MODEL.name}
-          />
+          {!models || models.length === 0 ? (
+            <ModelDownloadPanel ollamaUrl={targetOllamaUrl} />
+          ) : (
+            <>
+              <ModelSelectorField
+                control={form.control}
+                name="completionModel"
+                label="Autocomplete"
+                ariaLabel="Model used by the autocomplete feature"
+                disabled={
+                  !watchAiAssistantEnabled ||
+                  !models ||
+                  models.length === 0 ||
+                  (!isConnected && !connectionLoading)
+                }
+                models={models}
+                modelsLoading={modelsLoading}
+                modelsError={modelsError}
+                onCopyCommand={() =>
+                  handleCopyOllamaPullCommand(
+                    RECOMMENDED_AUTOCOMPLETION_MODEL.name,
+                    toast,
+                  )
+                }
+                disableAnimations={disableAnimations}
+                recommendedModel={RECOMMENDED_AUTOCOMPLETION_MODEL.name}
+              />
 
-          <ModelSelectorField
-            control={form.control}
-            name="improvementModel"
-            label="Writing Improvements"
-            ariaLabel="Model used by the writing improvement feature"
-            disabled={
-              !watchAiAssistantEnabled ||
-              !models ||
-              models.length === 0 ||
-              (!isConnected && !connectionLoading)
-            }
-            models={models}
-            modelsLoading={modelsLoading}
-            modelsError={modelsError}
-            onCopyCommand={() =>
-              handleCopyOllamaPullCommand(
-                RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name,
-                toast,
-              )
-            }
-            disableAnimations={disableAnimations}
-            recommendedModel={RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name}
-          />
+              <ModelSelectorField
+                control={form.control}
+                name="improvementModel"
+                label="Writing Improvements"
+                ariaLabel="Model used by the writing improvement feature"
+                disabled={
+                  !watchAiAssistantEnabled ||
+                  !models ||
+                  models.length === 0 ||
+                  (!isConnected && !connectionLoading)
+                }
+                models={models}
+                modelsLoading={modelsLoading}
+                modelsError={modelsError}
+                onCopyCommand={() =>
+                  handleCopyOllamaPullCommand(
+                    RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name,
+                    toast,
+                  )
+                }
+                disableAnimations={disableAnimations}
+                recommendedModel={RECOMMENDED_WRITING_IMPROVEMENTS_MODEL.name}
+              />
+            </>
+          )}
 
           <Collapsible
             id="advanced-options"

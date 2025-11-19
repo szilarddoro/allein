@@ -15,7 +15,7 @@ export function CheckForUpdatesButton() {
       variant="ghost"
       disabled={isPending}
       onClick={handleCheckForUpdates}
-      className="text-xs font-normal [&:not(:disabled)]:text-muted-foreground [&:disabled]:opacity-50"
+      className="text-xs font-normal text-muted-foreground [&:disabled]:opacity-50"
     >
       {isPending ? (
         <span className="animate-spin">

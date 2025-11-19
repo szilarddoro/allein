@@ -1,8 +1,8 @@
+import { Toast } from '@/components/Toast'
 import { Button } from '@/components/ui/button'
 import { useLogger } from '@/lib/logging/useLogger'
 import { useCheckForUpdates } from '@/lib/updater/useCheckForUpdates'
 import { useUpdateApp } from '@/lib/updater/useUpdateApp'
-import { cn } from '@/lib/utils'
 import { Update } from '@tauri-apps/plugin-updater'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -12,7 +12,7 @@ export function UpdateToast() {
   const updateCheckedRef = useRef<boolean>(false)
   const { mutateAsync: checkForUpdates } = useCheckForUpdates()
   const { mutateAsync: updateApp, isPending: isUpdatePending } = useUpdateApp()
-  const [toastVisible, setToastVisible] = useState(false)
+  const [toastVisible, setToastVisible] = useState(true)
   const [updateData, setUpdateData] = useState<Update | null>(null)
   const { error: logError } = useLogger()
 
@@ -24,7 +24,7 @@ export function UpdateToast() {
     async function checkUpdateStatus() {
       try {
         const update = await checkForUpdates()
-        setToastVisible(update != null)
+        setToastVisible(true)
         setUpdateData(update)
       } catch {
         logError('updater', 'Failed to check for updates')
@@ -50,12 +50,7 @@ export function UpdateToast() {
   }
 
   return (
-    <div
-      className={cn(
-        'absolute bottom-5 left-5 z-[200] bg-neutral-200/20 dark:bg-neutral-800/20 backdrop-blur-xl border border-border rounded-md pl-3 pr-1.5 py-2 motion-safe:transition-opacity text-sm flex items-center justify-between gap-12 shadow-xs',
-        !toastVisible ? 'pointer-events-none opacity-0' : 'opacity-100',
-      )}
-    >
+    <Toast visible={toastVisible}>
       <div className="font-medium">A new version is available</div>
 
       <div className="flex items-center gap-1">
@@ -80,6 +75,6 @@ export function UpdateToast() {
           Later
         </Button>
       </div>
-    </div>
+    </Toast>
   )
 }

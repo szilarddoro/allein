@@ -21,6 +21,7 @@ import { useCreateFolder } from '@/lib/files/useCreateFolder'
 import { useCurrentFolderPath } from '@/lib/files/useCurrentFolderPath'
 import { useFilesAndFolders } from '@/lib/files/useFilesAndFolders'
 import { logEvent } from '@/lib/logging/useLogger'
+import { ModelDownloadToast } from '@/lib/modelDownload/ModelDownloadToast'
 import { AppLayoutContextProps } from '@/lib/types'
 import { UpdateToast } from '@/lib/updater/UpdateToast'
 import { useToast } from '@/lib/useToast'
@@ -232,7 +233,10 @@ export function AppLayout() {
     <BaseLayout>
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 
-      <UpdateToast />
+      <div className="flex flex-col gap-2 absolute bottom-5 left-5 z-[200] w-sm">
+        <ModelDownloadToast />
+        <UpdateToast />
+      </div>
 
       <DndContext
         sensors={[mouseSensor]}

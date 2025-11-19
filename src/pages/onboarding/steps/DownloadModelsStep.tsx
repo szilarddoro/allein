@@ -9,7 +9,7 @@ import {
 import { DEFAULT_OLLAMA_URL } from '@/lib/ollama/ollama'
 import { useOllamaConnection } from '@/lib/ollama/useOllamaConnection'
 import { ModelCardWithProgress } from '@/pages/onboarding/steps/ModelCardWithProgress'
-import { usePullModelWithStatus } from '@/pages/onboarding/steps/usePullModelWithStatus'
+import { usePullModelWithStatus } from '@/lib/modelDownload/usePullModelWithStatus'
 import { AdvancedOptionsDialog } from '@/pages/onboarding/steps/AdvancedOptionsDialog'
 import { AlertCircle, Sparkles, Zap } from 'lucide-react'
 import { useTheme } from 'next-themes'

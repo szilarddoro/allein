@@ -7,18 +7,20 @@ export interface UsePullModelWithStatusProps {
   model?: string
   disabled?: boolean
   connected?: boolean
+  ollamaUrl?: string
 }
 
 export function usePullModelWithStatus({
   model,
   disabled,
   connected,
+  ollamaUrl: externalOllamaUrl,
 }: UsePullModelWithStatusProps) {
   const { ollamaUrl } = useOllamaConfig()
 
   const { data: modelDetails, status: modelDetailsStatus } =
     useOllamaModelDetails({
-      serverUrl: ollamaUrl,
+      serverUrl: externalOllamaUrl || ollamaUrl,
       model,
       disabled: !connected,
     })
@@ -36,7 +38,7 @@ export function usePullModelWithStatus({
   const [modelProgress, setModelProgress] = useState(0)
 
   const { data, error, status } = usePullOllamaModel({
-    serverUrl: ollamaUrl,
+    serverUrl: externalOllamaUrl || ollamaUrl,
     model,
     disabled: isPullDisabled,
   })

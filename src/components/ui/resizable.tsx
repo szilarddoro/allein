@@ -36,7 +36,7 @@ function ResizableHandle({
     <ResizablePrimitive.PanelResizeHandle
       data-slot="resizable-handle"
       className={cn(
-        'group relative w-px motion-safe:transition-all opacity-0 focus-visible:ring-ring flex items-center justify-center focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:outline-hidden data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full [&[data-panel-group-direction=vertical]>div]:rotate-90',
+        'group relative w-px motion-safe:transition-all opacity-0 cursor-col-resize! focus-visible:ring-ring flex items-center justify-center focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:outline-hidden data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full [&[data-panel-group-direction=vertical]>div]:rotate-90',
         'before:absolute before:bg-border before:top-0 before:left-0 before:right-0 before:bottom-0 before:w-px before:mx-auto motion-safe:before:transition-colors',
         'data-[resize-handle-active=keyboard]:opacity-100 data-[resize-handle-state=drag]:opacity-100 data-[resize-handle-state=hover]:opacity-100',
         'data-[resize-handle-active=keyboard]:before:bg-neutral-400 data-[resize-handle-active=keyboard]:dark:before:bg-neutral-600 data-[resize-handle-state=drag]:before:bg-neutral-400 data-[resize-handle-state=drag]:dark:before:bg-neutral-600',

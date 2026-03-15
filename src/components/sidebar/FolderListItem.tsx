@@ -255,7 +255,7 @@ export function FolderListItem({
                 }
               >
                 {collapsibleOpen ? <ChevronDown /> : <ChevronRight />}
-                {folder.name}
+                <span className="truncate">{folder.name}</span>
               </Button>
             )}
           </CollapsibleTrigger>

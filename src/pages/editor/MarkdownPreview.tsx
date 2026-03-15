@@ -71,11 +71,12 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
         )}
       >
         {renderType !== 'embedded' && onClose && (
-          <div className="sticky top-0 w-full flex justify-end pt-2 pr-2 transform-gpu">
+          <div className="sticky top-0 w-full flex justify-end pt-2 pr-2 transform-gpu pointer-events-none">
             <Button
               size="icon"
               variant="ghost"
               aria-label="Close Preview"
+              className="pointer-events-auto"
               onClick={onClose}
             >
               <X />

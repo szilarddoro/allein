@@ -98,6 +98,7 @@ export function FileCard({
               <>
                 <MarkdownPreview
                   renderType="embedded"
+                  title={file.name}
                   content={file.preview}
                   aria-hidden="true"
                 />

@@ -31,8 +31,10 @@ import {
 } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import remarkGfm from 'remark-gfm'
 import { useMarkdownPreviewContextMenu } from './useMarkdownPreviewContextMenu'
+import { getDisplayName } from '@/lib/files/fileUtils'
 
 interface MarkdownPreviewProps {
+  title: string
   content: string
   placeholder?: string
   className?: string
@@ -44,6 +46,7 @@ interface MarkdownPreviewProps {
 }
 
 export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
+  title,
   content,
   placeholder,
   className,
@@ -89,6 +92,17 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             previewClassName,
           )}
         >
+          {title && (
+            <H1
+              className={cn(
+                renderType === 'embedded' &&
+                  'break-words text-xl [&_code]:text-xl my-2',
+              )}
+            >
+              {getDisplayName(title)}
+            </H1>
+          )}
+
           {!content && placeholder ? (
             <span className="text-sm text-muted-foreground">{placeholder}</span>
           ) : (

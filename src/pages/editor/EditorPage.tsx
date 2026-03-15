@@ -205,11 +205,26 @@ export function EditorPage() {
       return
     }
 
+    const editor = monacoEditorRef.current
     if (currentFile) {
-      monacoEditorRef.current?.setValue(currentFile.content)
+      // Only update editor if the file content differs from what's already in the editor.
+      // This avoids overwriting in-flight changes (e.g., emoji insertion from OS picker)
+      // when the query re-fetches on window focus.
+      const currentEditorValue = editor?.getModel()?.getValue()
+      if (currentEditorValue !== currentFile.content) {
+        const position = editor?.getPosition()
+        const scrollTop = editor?.getScrollTop()
+        editor?.setValue(currentFile.content)
+        if (position) {
+          editor?.setPosition(position)
+        }
+        if (scrollTop != null) {
+          editor?.setScrollTop(scrollTop)
+        }
+      }
       setMarkdownContent(currentFile.content)
     } else {
-      monacoEditorRef.current?.setValue('')
+      editor?.setValue('')
       setMarkdownContent('')
     }
   }, [currentFile, editorReady])
